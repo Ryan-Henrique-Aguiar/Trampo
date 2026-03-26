@@ -1,0 +1,6 @@
+TRAMPO
+
+- Atualizar cronograma
+- Atualizar lista de revisões
+- Texto deve ser justificado
+- Ajustar para as referências não ficarem na mesma página de outros conteúdos
