@@ -143,7 +143,7 @@
       </meta>
       <abstract-items />
       <sub-models />
-      <diagram type="uml-usecase" id="p1715fc3dc03943eaa582ea3739f691f0_875912323" name="Visão Geral" order-index="1" uid="" name-style="" auto-routed-paths="false" default-line-style="default" view-location="-432,-145" zoom="1.2">
+      <diagram type="uml-usecase" id="p1715fc3dc03943eaa582ea3739f691f0_875912323" name="Visão Geral" order-index="1" uid="" name-style="" auto-routed-paths="false" default-line-style="default" view-location="-556,-162" zoom="0.9">
         <style>
           <background-color index="1" color="#FFFFFFFF" />
           <background-color index="2" color="#FFFFFFFF" />
@@ -186,7 +186,7 @@
               <issues />
             </use-case>
           </item>
-          <item id="7abfd6b99da8471abde96a1e145dfc31" cid="ELEM010" type="universal-connector" creator="" creation-date="05/03/2026 14:02:23" from="89a8b0055b8149d9afab7b65cf45ce23">
+          <item id="7abfd6b99da8471abde96a1e145dfc31" cid="ELEM010" type="universal-connector" creator="" creation-date="05/03/2026 14:02:23" from="89a8b0055b8149d9afab7b65cf45ce23" to="c3d8f51e523d47368f5d97da2a48fcf7">
             <connector />
           </item>
           <item id="fd23ef8bbee045aba22c3670e9c10cd7" cid="AC007" type="actor" name="Prestador" creator="" creation-date="05/03/2026 13:51:15" visibility="undefined" />
@@ -196,7 +196,7 @@
               <end-role id="umlar-952626d1-d3a5-4d68-8c67-1107570edc19" name="" navigability="" association-type="association" visibility="private" />
             </relation>
           </item>
-          <item id="10167b941e26445bb06042ceeb9ac42e" cid="ELEM008" type="universal-connector" creator="" creation-date="05/03/2026 14:02:18" from="12b849d07bbd46e98f07f4f866b02428">
+          <item id="10167b941e26445bb06042ceeb9ac42e" cid="ELEM008" type="universal-connector" creator="" creation-date="05/03/2026 14:02:18" from="12b849d07bbd46e98f07f4f866b02428" to="c3d8f51e523d47368f5d97da2a48fcf7">
             <connector />
           </item>
           <item id="1995e44594f44d2fb66e57eb77bafb81" cid="GNR002" type="generalization" creator="" creation-date="05/03/2026 13:54:23" from="71001c41f3824b0a8b3cc3ec4bf969b7" to="c3d8f51e523d47368f5d97da2a48fcf7" visibility="package" />
@@ -243,7 +243,7 @@
               <issues />
             </use-case>
           </item>
-          <item id="12b849d07bbd46e98f07f4f866b02428" cid="UC006" type="use-case" name="Acessar módulo de Autenticação e Configuração modo urgente" owner="5b68bf299670465cb6eed15737fbde0e" creator="" creation-date="05/03/2026 13:54:43" visibility="undefined">
+          <item id="12b849d07bbd46e98f07f4f866b02428" cid="UC006" type="use-case" name="Acessar módulo de Autenticação" owner="5b68bf299670465cb6eed15737fbde0e" creator="" creation-date="05/03/2026 13:54:43" visibility="undefined">
             <associated-diagrams>
               <diagram id="pce6210dda5f149a0aa3ab0d36539a935_143523989" />
             </associated-diagrams>
@@ -277,11 +277,11 @@
             <layout ax="87" ay="-117" awidth="338" aheight="704" x="87" y="-117" width="338" height="704" expanded="87,-117,338,704" collapsed="0,0,0,0" />
           </item>
           <item id="c3d8f51e523d47368f5d97da2a48fcf7" iid="c188e2f50bf14561b149f5bdb2ba531f" creation-date="05/03/2026 13:50:58" order-index="1" type="entity">
-            <layout name-position="0,10" name-anchor="bottom" auto-anchor="true" label-attached="false" ax="-176" ay="90.5" awidth="50" aheight="100" x="-176" y="90.5" width="50" height="120" />
+            <layout name-position="0,10" name-anchor="bottom" auto-anchor="true" label-attached="false" ax="-279" ay="98" awidth="50" aheight="100" x="-279" y="98" width="50" height="120" />
             <actor />
           </item>
           <item id="89a8b0055b8149d9afab7b65cf45ce23" iid="929de3528394495496ab9379c023ed0c" container="5b68bf299670465cb6eed15737fbde0e" container-iid="0d32f32502f74bfba663362a3e048e98" creation-date="05/03/2026 13:55:28" order-index="7" type="entity">
-            <layout ax="177" ay="294" awidth="158" aheight="99" x="177" y="294" width="158" height="75" />
+            <layout ax="186.5" ay="237.5" awidth="158" aheight="99" x="186.5" y="237.5" width="158" height="75" />
             <use-case />
           </item>
           <item id="d497ae679f7a42d0befb55d268d4dc72" iid="85336156fabe44d7accf4cbfede50d3f" container="5b68bf299670465cb6eed15737fbde0e" container-iid="0d32f32502f74bfba663362a3e048e98" creation-date="05/03/2026 13:55:52" order-index="8" type="entity">
@@ -289,11 +289,11 @@
             <use-case />
           </item>
           <item id="c3d8da352e0b4134a8695284ec71ba47" iid="664eb6b173074858b038cb82a0cbc801" container="5b68bf299670465cb6eed15737fbde0e" container-iid="0d32f32502f74bfba663362a3e048e98" creation-date="05/03/2026 13:56:06" order-index="9" type="entity">
-            <layout ax="166.25" ay="428" awidth="179.5" aheight="112" x="166.25" y="428" width="179.5" height="75" />
+            <layout ax="165" ay="381" awidth="179.5" aheight="112" x="165" y="381" width="179.5" height="75" />
             <use-case />
           </item>
           <item id="12b849d07bbd46e98f07f4f866b02428" iid="e668c5db04484a88b8afcf71ac984c29" container="5b68bf299670465cb6eed15737fbde0e" container-iid="0d32f32502f74bfba663362a3e048e98" creation-date="05/03/2026 13:54:43" order-index="6" type="entity">
-            <layout ax="163.875" ay="133" awidth="184.25" aheight="115" x="163.875" y="133" width="184.25" height="121.5" />
+            <layout ax="186.5" ay="116" awidth="158" aheight="99" x="186.5" y="116" width="158" height="75" />
             <use-case />
           </item>
           <item id="71001c41f3824b0a8b3cc3ec4bf969b7" iid="10e99483cbc64a4d9106e8c1262a6c90" creation-date="05/03/2026 13:51:05" order-index="2" type="entity">
@@ -305,47 +305,47 @@
             <actor />
           </item>
           <item id="46947a8b2c7b423ca12374e83dc69608" iid="e06d4cf360924fa0b8f7df7ace13a3ef" creation-date="05/03/2026 13:54:12" order-index="4" type="relation">
-            <layout line-style="oblique" lock-start-point="true" lock-to-fields="false" auto-path="" x1="-69" y1="393" x2="-135" y2="190" start-border-pos="0" end-border-pos="0.5439723205566406" name-position="0,20">
+            <layout line-style="oblique" lock-start-point="true" lock-to-fields="false" auto-path="" x1="-69" y1="393" x2="-229" y2="181" start-border-pos="0" end-border-pos="0.45777027130126957" name-position="0,20">
               <points>
                 <point x="-69" y="393" />
-                <point x="-135" y="190" />
+                <point x="-229" y="181" />
               </points>
             </layout>
             <relation from="fd23ef8bbee045aba22c3670e9c10cd7" from-iid="7a1e6a5b061b4393878256de4ab50a5f" to="c3d8f51e523d47368f5d97da2a48fcf7" to-iid="c188e2f50bf14561b149f5bdb2ba531f" />
           </item>
           <item id="1995e44594f44d2fb66e57eb77bafb81" iid="9616a1ad31264b6dbabe864e2678d955" creation-date="05/03/2026 13:54:23" order-index="5" type="relation">
-            <layout line-style="oblique" lock-start-point="true" lock-end-point="true" lock-to-fields="false" auto-path="" x1="-43" y1="46" x2="-126" y2="103" start-border-pos="0.75" end-border-pos="0.28" name-position="0,20">
+            <layout line-style="oblique" lock-start-point="true" lock-end-point="true" lock-to-fields="false" auto-path="" x1="-43" y1="46" x2="-229" y2="110" start-border-pos="0.75" end-border-pos="0.28" name-position="0,20">
               <points>
                 <point x="-43" y="46" />
-                <point x="-126" y="103" />
+                <point x="-229" y="110" />
               </points>
             </layout>
             <relation from="71001c41f3824b0a8b3cc3ec4bf969b7" from-iid="10e99483cbc64a4d9106e8c1262a6c90" to="c3d8f51e523d47368f5d97da2a48fcf7" to-iid="c188e2f50bf14561b149f5bdb2ba531f" />
           </item>
           <item id="10167b941e26445bb06042ceeb9ac42e" iid="ff0867bb891f474aba3272d3f5c86568" creation-date="05/03/2026 14:02:18" order-index="11" type="relation">
-            <layout line-style="oblique" lock-start-point="true" lock-end-point="true" lock-to-fields="false" auto-path="" x1="163" y1="190" x2="-142" y2="133" start-border-pos="0.8762626262626263" end-border-pos="0.375" name-position="0,20">
+            <layout line-style="oblique" lock-start-point="true" lock-end-point="true" lock-to-fields="false" auto-path="" x1="186" y1="165" x2="-229" y2="148" start-border-pos="0.8762626262626263" end-border-pos="0.375" name-position="0,20">
               <points>
-                <point x="163" y="190" />
-                <point x="-143" y="133" />
-                <point x="-142" y="133" />
+                <point x="186" y="165" />
+                <point x="-157" y="148" />
+                <point x="-229" y="148" />
               </points>
             </layout>
-            <relation from="12b849d07bbd46e98f07f4f866b02428" from-iid="e668c5db04484a88b8afcf71ac984c29" />
+            <relation from="12b849d07bbd46e98f07f4f866b02428" from-iid="e668c5db04484a88b8afcf71ac984c29" to="c3d8f51e523d47368f5d97da2a48fcf7" to-iid="c188e2f50bf14561b149f5bdb2ba531f" />
           </item>
           <item id="7abfd6b99da8471abde96a1e145dfc31" iid="ab3659f9ac0c49719ef385a58a15353a" creation-date="05/03/2026 14:02:23" order-index="12" type="relation">
-            <layout line-style="oblique" lock-start-point="true" lock-end-point="true" lock-to-fields="false" auto-path="" x1="177" y1="343" x2="-119" y2="180.5" start-border-pos="0.8760431463068181" end-border-pos="0.375" name-position="0,20">
+            <layout line-style="oblique" lock-start-point="true" lock-end-point="true" lock-to-fields="false" auto-path="" x1="186" y1="287" x2="-229" y2="148" start-border-pos="0.8760431463068181" end-border-pos="0.375" name-position="0,20">
               <points>
-                <point x="177" y="343" />
-                <point x="-119" y="180.5" />
+                <point x="186" y="287" />
+                <point x="-229" y="148" />
               </points>
             </layout>
-            <relation from="89a8b0055b8149d9afab7b65cf45ce23" from-iid="929de3528394495496ab9379c023ed0c" />
+            <relation from="89a8b0055b8149d9afab7b65cf45ce23" from-iid="929de3528394495496ab9379c023ed0c" to="c3d8f51e523d47368f5d97da2a48fcf7" to-iid="c188e2f50bf14561b149f5bdb2ba531f" />
           </item>
           <item id="1d068958191f47d6a06cae859638dc70" iid="e591116b60ec4632ae23ae5792d83243" creation-date="05/03/2026 14:02:36" order-index="14" type="relation">
-            <layout start-role-position="25,15" end-role-position="25,-15" start-multiplicity-position="25,-15" end-multiplicity-position="25,15" line-style="oblique" lock-start-point="true" lock-end-point="true" lock-to-fields="false" auto-path="" x1="-19" y1="443" x2="166" y2="484" start-border-pos="0.375" end-border-pos="0.875" name-position="0,20">
+            <layout start-role-position="25,15" end-role-position="25,-15" start-multiplicity-position="25,-15" end-multiplicity-position="25,15" line-style="oblique" lock-start-point="true" lock-end-point="true" lock-to-fields="false" auto-path="" x1="-19" y1="443" x2="165" y2="437" start-border-pos="0.375" end-border-pos="0.875" name-position="0,20">
               <points>
                 <point x="-19" y="443" />
-                <point x="166" y="484" />
+                <point x="165" y="437" />
               </points>
             </layout>
             <relation from="fd23ef8bbee045aba22c3670e9c10cd7" from-iid="7a1e6a5b061b4393878256de4ab50a5f" to="c3d8da352e0b4134a8695284ec71ba47" to-iid="664eb6b173074858b038cb82a0cbc801" />
@@ -361,7 +361,7 @@
           </item>
         </layer>
       </diagram>
-      <diagram type="uml-usecase" id="p456303e6439c420dbc9dabfd250bee39_875146578" name="Módulo de Criação de Serviço e visualização de propostas" order-index="3" overview-order-index="1" uid="" name-style="" auto-routed-paths="false" default-line-style="default" view-location="80,159" zoom="1.2">
+      <diagram type="uml-usecase" id="p456303e6439c420dbc9dabfd250bee39_875146578" name="Módulo de Criação de Serviço e visualização de propostas" order-index="3" overview-order-index="1" uid="" name-style="" auto-routed-paths="false" default-line-style="default" view-location="0,94">
         <style>
           <background-color index="1" color="#FFFFFFFF" />
           <background-color index="2" color="#FFFFFFFF" />
