@@ -1,11 +1,13 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&display=swap');
+
 :root {
 
   /* =========================
      CORES
   ========================= */
 
-  --primary: #00ACFF;
-  --primary-dark: #0088CC;
+  --primary: #185FA5;
+  --primary-dark: #0C447C;
 
   --white: #FFFFFF;
 
@@ -28,6 +30,7 @@
   --font-size-lg: 20px;
   --font-size-xl: 24px;
   --font-size-xxl: 32px;
+  --font-size-title: 48px;
 
   /* =========================
      PESOS
@@ -71,7 +74,7 @@ body {
   font-size: var(--font-size-md);
   font-weight: var(--font-weight-regular);
 
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Syne', sans-serif;
 }
 
 /* =========================
@@ -102,7 +105,7 @@ body {
 
 .btn-primary-auth:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0, 172, 255, .3);
+  box-shadow: 0 8px 20px rgba(24, 95, 165, .35);
 }
 
 .btn-primary-auth:active {
