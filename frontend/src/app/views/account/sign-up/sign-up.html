@@ -1,1 +1,46 @@
-<p>sign-up works!</p>
+<app-auth-layout>
+  <div class="form-container">
+    <h1>Criar conta</h1>
+    <a routerLink="/sign-in" class="auth-redirect-link">Já possui conta? entrar →</a>
+
+    <div class="row">
+      <div class="input-icon">
+        <i class="fa-solid fa-user"></i>
+        <input type="text" placeholder="Nome">
+      </div>
+      <div class="input-icon">
+        <i class="fa-solid fa-user"></i>
+        <input type="text" placeholder="Sobrenome">
+      </div>
+    </div>
+
+    <div class="input-icon">
+      <i class="fa-solid fa-envelope"></i>
+      <input type="email" placeholder="Email">
+    </div>
+
+    <div class="input-icon">
+      <i class="fa-solid fa-lock"></i>
+      <input type="password" placeholder="Senha">
+    </div>
+
+    <div class="input-icon">
+      <i class="fa-solid fa-lock"></i>
+      <input type="password" placeholder="Confirmar senha">
+    </div>
+
+    <button class="btn-primary-auth">
+      Próxima etapa
+    </button>
+
+    <div class="divider">
+      <span>ou continue com</span>
+    </div>
+
+    <button class="btn-google">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" height="20" alt="Google">
+      Google
+    </button>
+
+  </div>
+</app-auth-layout>

@@ -78,3 +78,47 @@ a:hover{
 .btn-primary-auth{
     margin-top: 16px;
 }
+
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-placeholder);
+  font-size: var(--font-size-sm);
+  margin-top: 16px;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-color);
+}
+
+.btn-google {
+  width: 100%;
+  height: 48px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+
+  color: var(--text-primary);
+  font-family: 'Syne', sans-serif;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+
+  cursor: pointer;
+  transition: box-shadow .2s ease;
+}
+
+.btn-google:hover {
+  box-shadow: var(--shadow-sm);
+}
