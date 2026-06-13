@@ -1,5 +1,25 @@
 <app-auth-layout>
   <div class="form-container">
+    <!--Steps-->
+    <div class="steps-indicator">
+      <div class="step" [class.active]="currentStep === 1">
+        <div class="step-circle">1</div>
+        <span>Conta</span>
+      </div>
+      <div class="step-line"></div>
+      <div class="step" [class.active]="currentStep === 2">
+        <div class="step-circle">2</div>
+        <span>Dados</span>
+      </div>
+      @if(isPrestador){
+      <div class="step-line"></div>
+      <div class="step" [class.active]="currentStep === 3">
+        <div class="step-circle">3</div>
+        <span>Perfil</span>
+      </div>
+      }
+    </div>
+    @if(currentStep===1){
     <h1>Criar conta</h1>
     <a routerLink="/login" class="auth-redirect-link">Já possui conta? entrar →</a>
     <div class="row">
@@ -24,7 +44,7 @@
       <i class="fa-solid fa-lock"></i>
       <input type="password" placeholder="Confirmar senha">
     </div>
-    <button class="btn-primary-auth">
+    <button class="btn-primary-auth" (click)="nextStep()">
       Próxima etapa
     </button>
     <div class="divider">
@@ -34,5 +54,94 @@
       <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" height="20" alt="Google">
       Google
     </button>
+    }
+    @if(currentStep === 2){
+    <h1>Dados pessoais</h1>
+    <div class="input-icon">
+      <i class="fa-solid fa-phone"></i>
+      <input type="text" placeholder="Telefone">
+    </div>
+    <div class="input-icon">
+      <i class="fa-solid fa-id-card"></i>
+      <input type="text" placeholder="CPF">
+    </div>
+    <div class="input-icon input-outlined">
+      <i class="fa-solid fa-cake-candles"></i>
+      <input type="date" placeholder="DD/MM/AAAA" maxlength="10">
+      <label>Data de nascimento</label>
+    </div>
+    <div class="input-icon">
+      <i class="fa-solid fa-map"></i>
+      <input type="text" placeholder="Estado" [formControl]="estadoControl" list="lista-estados"
+        (change)="onEstadoChange()" autocomplete="off">
+      <datalist id="lista-estados">
+        @for(estado of estados; track estado.id){
+        <option [value]="estado.nome"></option>
+        }
+      </datalist>
+    </div>
+
+    <div class="input-icon">
+      <i class="fa-solid fa-city"></i>
+      <input type="text" placeholder="Cidade" [formControl]="cidadeControl" list="lista-cidades" autocomplete="off">
+      <datalist id="lista-cidades">
+        @for(cidade of cidades; track cidade.id){
+        <option [value]="cidade.nome"></option>
+        }
+      </datalist>
+    </div>
+
+    <div class="checkbox-card">
+      <div class="checkbox-card-content">
+        <i class="fa-solid fa-briefcase"></i>
+
+        <div>
+          <p class="checkbox-card-title">
+            Quero ser prestador de serviços
+          </p>
+
+          <p class="checkbox-card-desc">
+            Você poderá oferecer serviços na plataforma.
+          </p>
+        </div>
+      </div>
+
+      <input type="checkbox" id="isPrestador" [(ngModel)]="isPrestador">
+
+      <label for="isPrestador" class="toggle">
+      </label>
+    </div>
+    <div class="form-actions">
+      <button class="btn-secondary-auth" (click)="prevStep()">
+        Voltar
+      </button>
+      @if(isPrestador){
+      <button class="btn-primary-auth" (click)="nextStep()">
+        Próxima etapa
+      </button>
+      }@else {
+      <button class="btn-primary-auth">
+        Criar conta
+      </button>
+      }
+    </div>
+    }
+    @if(currentStep === 3){
+    <h1>Perfil profissional</h1>
+    <div class="input-icon">
+      <i class="fa-solid fa-briefcase"></i>
+      <input type="text" placeholder="Categoria">
+    </div>
+    <textarea rows="4" placeholder="Descreva seus serviços">
+      </textarea>
+    <div class="form-actions">
+      <button class="btn-secondary-auth" (click)="prevStep()">
+        Voltar
+      </button>
+      <button class="btn-primary-auth">
+        Criar conta
+      </button>
+    </div>
+    }
   </div>
 </app-auth-layout>
