@@ -11,4 +11,6 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
   templateUrl: './main.html',
   styleUrl: './main.css',
 })
-export class Main {}
+export class Main {
+  isHelpOpen = false;
+}
