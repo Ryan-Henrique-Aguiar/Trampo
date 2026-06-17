@@ -1,0 +1,184 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&display=swap');
+
+:root {
+
+  /* =========================
+     CORES
+  ========================= */
+
+  --primary: #185FA5;
+  --primary-dark: #0C447C;
+
+  --white: #FFFFFF;
+
+  --text-primary: #333333;
+  --text-secondary: #6C757D;
+  --text-placeholder: #ADB5BD;
+
+  --background: #F5F5F5;
+  --surface: #FFFFFF;
+
+  --border-color: #DEE2E6;
+
+  /* =========================
+     FONTES
+  ========================= */
+
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-md: 16px;
+  --font-size-lg: 20px;
+  --font-size-xl: 24px;
+  --font-size-xxl: 32px;
+  --font-size-title: 48px;
+
+  /* =========================
+     PESOS
+  ========================= */
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* =========================
+     BORDAS
+  ========================= */
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 24px;
+
+  /* =========================
+     SOMBRAS
+  ========================= */
+
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, .08);
+  --shadow-md: 0 4px 15px rgba(0, 0, 0, .15);
+}
+
+/* =========================
+   CONFIGURAÇÕES GLOBAIS
+========================= */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--text-primary);
+
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-regular);
+
+  font-family: 'Syne', sans-serif;
+}
+
+/* =========================
+   BOTÃO PRINCIPAL AUTH
+========================= */
+
+.btn-primary-auth {
+  width: 100%;
+  height: 48px;
+
+  border: none;
+  border-radius: var(--radius-md);
+
+  background: linear-gradient(
+    to bottom,
+    var(--primary),
+    var(--primary-dark)
+  );
+
+  color: var(--white);
+
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+
+  cursor: pointer;
+  transition: all .3s ease;
+}
+
+.btn-primary-auth:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(24, 95, 165, .35);
+}
+
+.btn-primary-auth:active {
+  transform: translateY(0);
+}
+
+.btn-primary-auth:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}
+
+.btn-secondary-auth {
+  width: 100%;
+  height: 48px;
+
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+
+  background: var(--surface);
+
+  color: var(--text-primary);
+
+  font-family: 'Syne', sans-serif;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+
+  cursor: pointer;
+  transition: all .2s ease;
+}
+
+.btn-secondary-auth:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: rgba(24, 95, 165, 0.04);
+}
+
+
+.toggle {
+  width: 44px;
+  height: 24px;
+
+  background: var(--border-color);
+
+  border-radius: 999px;
+
+  position: relative;
+
+  cursor: pointer;
+
+  transition: all .2s ease;
+}
+
+.toggle::after {
+  content: '';
+
+  width: 18px;
+  height: 18px;
+
+  background: white;
+  border-radius: 50%;
+
+  position: absolute;
+
+  top: 3px;
+  left: 3px;
+
+  transition: all .2s ease;
+}
+
+.checkbox-card input:checked + .toggle {
+  background: var(--primary);
+}
+
+.checkbox-card input:checked + .toggle::after {
+  left: 20px;
+}

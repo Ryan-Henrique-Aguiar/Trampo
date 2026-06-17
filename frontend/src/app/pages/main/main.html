@@ -1,1 +1,23 @@
-<p>main works!</p>
+<div class="layout-wrapper">
+  <aside class="sidebar">
+    <nav>
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Início</a>
+      <a routerLink="/tickets" routerLinkActive="active">Tickets</a>
+      <a routerLink="/perfil" routerLinkActive="active">Perfil</a>
+    </nav>
+  </aside>
+
+  <div class="content-area">
+    <header class="navbar">
+      <!-- navbar aqui -->
+    </header>
+
+    <main class="page-content">
+      <router-outlet></router-outlet>
+    </main>
+
+    <footer class="footer">
+      <!-- footer aqui -->
+    </footer>
+  </div>
+</div>
