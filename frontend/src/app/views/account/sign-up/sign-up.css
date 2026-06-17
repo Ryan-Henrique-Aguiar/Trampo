@@ -65,7 +65,11 @@ input[type="date"]::placeholder {
   position: relative;
   margin-top: 8px;
 }
-
+.input-error {
+  font-size: var(--font-size-xs);
+  color: red;
+  margin-top: 4px;
+}
 .input-outlined label {
   position: absolute;
   top: -8px;
