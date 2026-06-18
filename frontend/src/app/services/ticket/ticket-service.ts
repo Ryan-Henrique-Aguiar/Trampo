@@ -21,10 +21,6 @@ export class TicketService {
 
   constructor(private http: HttpClient) {}
 
-  getRecent(limit = 3): Observable<Ticket[]> {
-    return this.http.get<Ticket[]>(`${this.base}/tickets`);
-  }
-
   getAll(): Observable<Ticket[]> {
     return this.http.get<Ticket[]>(`${this.base}/tickets`);
   }

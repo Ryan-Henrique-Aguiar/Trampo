@@ -28,7 +28,7 @@ export class Home implements OnInit {
 
   ngOnInit() {
     this.categoryService.getAll().subscribe(data => this.categories = data);
-      this.ticketService.getRecent(3).subscribe({
+      this.ticketService.getAll().subscribe({
     next: (data) => {
       console.log('tickets:', data);
       this.services = data;
