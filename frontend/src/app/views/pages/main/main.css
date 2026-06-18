@@ -84,7 +84,7 @@
 .navbar {
   height: 80px;
   flex-shrink: 0;
-  background: var(--surface);
+  background: var(--primary-dark);
   border-bottom: 1px solid var(--border-color);
   box-shadow: var(--shadow-sm);
   display: flex;
@@ -92,13 +92,18 @@
   justify-content: space-between;
   padding: 0 28px;
   transition: background 0.2s ease;
+
+  margin-left: 10px;
+  margin-right: 10px;
+  margin-top: 10px;
+  border-radius: 20px;
 }
 
 .navbar-title {
   font-family: 'Syne', sans-serif;
   font-weight: var(--font-weight-semibold);
   font-size: var(--font-size-md);
-  color: var(--text-primary);
+  color: var(--white);
 }
 
 .navbar-icon {
@@ -109,13 +114,14 @@
 
 .navbar-icon i {
   font-size: var(--font-size-xl);
-  color: var(--text-secondary);
+  color: var(--white);
   cursor: pointer;
-  transition: color 0.2s ease;
+  transition: 0.2s ease;
 }
 
 .navbar-icon i:hover {
-  color: var(--primary);
+  transform: scale(1.2);
+  transition: 0.2s ease;
 }
 .logo-navbar-mobile{
     display: none;
@@ -237,7 +243,7 @@
   .navbar {
     align-items: flex-start;
     padding: 20px 20px 0;
-    background: var(--primary);
+    background: var(--primary-dark);
     border-bottom: none;
     position: relative;
     z-index: 1;
