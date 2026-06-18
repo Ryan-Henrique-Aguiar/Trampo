@@ -1,23 +1,93 @@
 <div class="layout-wrapper">
-  <aside class="sidebar">
-    <nav>
-      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Início</a>
-      <a routerLink="/tickets" routerLinkActive="active">Tickets</a>
-      <a routerLink="/perfil" routerLinkActive="active">Perfil</a>
-    </nav>
-  </aside>
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <img src="logos/branco-transparente.png" alt="Trampo" width="180px">
+        </div>
 
-  <div class="content-area">
-    <header class="navbar">
-      <!-- navbar aqui -->
-    </header>
+        <nav class="sidebar-nav">
+            <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+                <i class="fa-solid fa-house"></i>
+                <span>Início</span>
+            </a>
+            <a routerLink="/tickets" routerLinkActive="active">
+                <i class="fa-solid fa-ticket"></i>
+                <span>Serviços</span>
+            </a>
+            <a routerLink="/chat" routerLinkActive="active">
+                <i class="fa-solid fa-comment"></i>
+                <span>Chat</span>
+            </a>
+            <a routerLink="/perfil" routerLinkActive="active">
+                <i class="fa-solid fa-user"></i>
+                <span>Perfil</span>
+            </a>
+            <div class="sidebar-dropdown">
+                <button class="dropdown-toggle" (click)="isHelpOpen = !isHelpOpen">
+                    <div class="dropdown-left">
+                        <i class="fa-solid fa-circle-question"></i>
+                        <span>Ajuda</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-down dropdown-arrow" [class.open]="isHelpOpen">
+                    </i>
+                </button>
+                @if(isHelpOpen){
+                <div class="dropdown-menu">
+                    <a routerLink="/faq">
+                        <i class="fa-solid fa-book"></i>
+                        <span>FAQ</span>
+                    </a>
+                    <a routerLink="/suporte">
+                        <i class="fa-solid fa-headset"></i>
+                        <span>Suporte</span>
+                    </a>
+                    <a routerLink="/contato">
+                        <i class="fa-solid fa-envelope"></i>
+                        <span>Contato</span>
+                    </a>
+                </div>
+                }
+            </div>
+        </nav>
+    </aside>
 
-    <main class="page-content">
-      <router-outlet></router-outlet>
-    </main>
+    <div class="content-area">
+        <header class="navbar">
+            <div style=" display: flex; flex-direction: column; gap:16px;">
+                <img src="logos/branco-transparente.png" alt="Trampo" width="100px" class="logo-navbar-mobile">
+                <span class="navbar-title">Olá, {{name}}</span>
+            </div>
+            <div class="navbar-icon">
+                <i class="fa-solid fa-bell"></i>
+                <i class="fa-solid fa-gear icon-settings"></i>
+            </div>
+        </header>
 
-    <footer class="footer">
-      <!-- footer aqui -->
-    </footer>
-  </div>
+        <main class="page-content">
+            <router-outlet></router-outlet>
+        </main>
+
+        <footer class="footer">
+            <span>&copy; 2026 Trampo. Todos os direitos reservados.</span>
+        </footer>
+
+        <!-- Barra inferior: visível apenas no mobile -->
+        <nav class="bottom-nav">
+            <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+                <i class="fa-solid fa-house"></i>
+                <span>Início</span>
+            </a>
+            <a routerLink="/tickets" routerLinkActive="active">
+                <i class="fa-solid fa-ticket"></i>
+                <span>Serviços</span>
+            </a>
+            <a routerLink="/chat" routerLinkActive="active">
+                <i class="fa-solid fa-comment"></i>
+                <span>Chat</span>
+            </a>
+            <a routerLink="/perfil" routerLinkActive="active">
+                <i class="fa-solid fa-user"></i>
+                <span>Perfil</span>
+            </a>
+        </nav>
+    </div>
 </div>
