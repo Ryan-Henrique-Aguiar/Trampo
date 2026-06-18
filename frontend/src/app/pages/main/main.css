@@ -5,8 +5,9 @@
 
 .layout-wrapper {
   display: flex;
-  min-height: 100vh;
+  height: 100vh; /* era min-height, muda para height */
   background: var(--background);
+  overflow: hidden; /* adiciona isso */
 }
 
 /* ---------- SIDEBAR ---------- */
@@ -76,6 +77,8 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+  height: 100vh; /* adiciona isso */
+  overflow: hidden; /* adiciona isso */
 }
 
 .navbar {
@@ -121,7 +124,7 @@
 .page-content {
   flex: 1;
   padding: 28px;
-  overflow-y: auto;
+  overflow-y: auto; /* só aqui rola */
 }
 
 .footer {
@@ -232,7 +235,6 @@
   }
 
   .navbar {
-    height: 130px;
     align-items: flex-start;
     padding: 20px 20px 0;
     background: var(--primary);
@@ -263,9 +265,10 @@
   .page-content {
     position: relative;
     z-index: 2;
-    margin-top: -50px;
+
     padding: 16px;
     padding-bottom: 84px;
+    overflow-y: auto; /* garante scroll só aqui */
   }
 
   .bottom-nav {

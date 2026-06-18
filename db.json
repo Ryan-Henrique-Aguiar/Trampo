@@ -1,0 +1,85 @@
+{
+  "categories": [
+    {
+      "id": 1,
+      "name": "Pintura",
+      "icon_url": "https://thuopnsbyvbaoviwwqgb.supabase.co/storage/v1/object/public/assets/pintor.svg"
+    },
+    {
+      "id": 2,
+      "name": "Alvenaria",
+      "icon_url": "https://thuopnsbyvbaoviwwqgb.supabase.co/storage/v1/object/public/assets/alvenaria.svg"
+    },
+    {
+      "id": 3,
+      "name": "Desenvolvimento de software",
+      "icon_url": "https://thuopnsbyvbaoviwwqgb.supabase.co/storage/v1/object/public/assets/software.svg"
+    }
+  ],
+  "tickets": [
+    {
+      "id": 1,
+      "code": "#TRP-000001",
+      "type": "normal",
+      "title": "Vazamento na cozinha",
+      "description": "Existe um vazamento embaixo da pia.",
+      "category": "Hidráulica",
+      "location": "Centro",
+      "createdAt": "Hoje, 09:30",
+      "proposals": 3,
+      "priceRange": "100-200",
+      "paymentMethods": ["pix"],
+      "availableDays": ["Segunda", "Terça"],
+      "availableHours": ["09:00", "14:00"],
+      "status": "with_proposals"
+    },
+    {
+      "id": 2,
+      "code": "#TRP-000002",
+      "type": "normal",
+      "title": "Pintura do quarto",
+      "description": "Pintura completa de um quarto.",
+      "category": "Pintor",
+      "location": "Centro",
+      "createdAt": "Ontem, 15:20",
+      "proposals": 0,
+      "priceRange": "300-500",
+      "paymentMethods": ["credit", "pix"],
+      "availableDays": ["Sábado"],
+      "availableHours": ["08:00"],
+      "status": "in_progress"
+    },
+    {
+      "id": 3,
+      "code": "#TRP-000003",
+      "type": "normal",
+      "title": "Instalação de tomadas",
+      "description": "Instalar 3 tomadas na sala.",
+      "category": "Elétrica",
+      "location": "Bairro Novo",
+      "createdAt": "Hoje, 11:00",
+      "proposals": 1,
+      "priceRange": "80-150",
+      "paymentMethods": ["pix"],
+      "availableDays": ["Quarta"],
+      "availableHours": ["10:00"],
+      "status": "open"
+    },
+    {
+      "id": 4,
+      "code": "#TRP-000004",
+      "type": "normal",
+      "title": "Reforma do banheiro",
+      "description": "Reforma completa do banheiro.",
+      "category": "Pintor",
+      "location": "Centro",
+      "createdAt": "Há 2 dias",
+      "proposals": 0,
+      "priceRange": "1000-2000",
+      "paymentMethods": ["credit"],
+      "availableDays": ["Segunda", "Sexta"],
+      "availableHours": ["08:00", "13:00"],
+      "status": "cancelled"
+    }
+  ]
+}
