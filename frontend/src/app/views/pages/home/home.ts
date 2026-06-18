@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { Category, CategoryService } from '../../services/category/category-service';
-import { Ticket, TicketService } from '../../services/ticket/ticket-service';
+import { Category, CategoryService } from '../../../services/category/category-service';
+import { Ticket, TicketService } from '../../../services/ticket/ticket-service';
 
 
 export type ServiceStatus =

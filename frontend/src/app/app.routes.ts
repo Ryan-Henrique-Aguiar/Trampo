@@ -2,8 +2,8 @@ import { Routes } from '@angular/router';
 
 import { SignIn } from './views/account/sign-in/sign-in';
 import { SignUp } from './views/account/sign-up/sign-up';
-import { Main } from './pages/main/main';
-import { Home } from './pages/home/home';
+import { Main } from './views/pages/main/main';
+import { Home } from './views/pages/home/home';
 
 export const routes: Routes = [
   // Rotas públicas (sem sidebar/navbar/footer)
