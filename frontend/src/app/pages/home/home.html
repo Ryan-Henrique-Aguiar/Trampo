@@ -1,0 +1,81 @@
+<section class="home">
+    <div class="action-cards">
+        <button class="action-card" (click)="openRequestServiceModal()">
+            <div class="action-icon action-icon--service">
+                <i class="fa-solid fa-file-pen"></i>
+            </div>
+            <span class="action-title">Solicitar serviço</span>
+            <span class="action-subtitle">Receba propostas</span>
+        </button>
+
+        <button class="action-card" (click)="openUrgentServiceModal()">
+            <div class="action-icon action-icon--urgent">
+                <i class="fa-solid fa-bolt"></i>
+            </div>
+            <span class="action-title">Chamado urgente</span>
+            <span class="action-subtitle">Prestador agora</span>
+        </button>
+    </div>
+
+    <div class="section-header">
+        <h2>Categorias</h2>
+        <a class="link-see-all" href="#">Ver todas ></a>
+    </div>
+
+    <div class="categories">
+        @for (category of categories; track category.name) {
+        <div class="category-card" (click)="openRequestServiceModal(category)">
+            <div class="category-icon">
+                <img [src]="category.icon_url" [alt]="category.name" />
+            </div>
+            <span>{{ category.name }}</span>
+        </div>
+        }
+    </div>
+    <div class="urgent-banner" (click)="openUrgentServiceModal()">
+    <div class="urgent-banner-icon">
+        <i class="fa-solid fa-bolt"></i>
+    </div>
+    <div class="urgent-banner-text">
+        <span class="urgent-banner-title">7 prestadores disponíveis agora</span>
+        <span class="urgent-banner-sub">Modo urgente ativo na sua região</span>
+    </div>
+    <i class="fa-solid fa-chevron-right urgent-banner-arrow"></i>
+    </div>
+
+    <div class="section-header">
+        <h2>Ultimos chamados abertos</h2>
+    </div>
+
+    <div class="tickets">
+        @for (service of services.slice(0,3); track service.code) {
+        <div class="ticket-card">
+            <div class="ticket-top">
+                <span class="ticket-code">{{ service.code }}</span>
+                <span class="ticket-status" [class]="'ticket-status--' + service.status">
+                    {{ getStatusLabel(service.status) }}
+                </span>
+            </div>
+
+            <p class="ticket-title">{{ service.title }}</p>
+
+            <div style="display: flex; justify-content: space-between;">
+                <div class="ticket-meta">
+                    <span><i class="fa-solid fa-location-dot"></i> {{ service.location }}</span>
+                    <span><i class="fa-solid fa-clock"></i> {{ service.createdAt }}</span>
+                    @if (service.proposals) {
+                    <span><i class="fa-solid fa-comment-dots"></i> {{ service.proposals }} propostas</span>
+                    }
+                </div>
+                <button class="btn-detail">Detalhes</button>
+            </div>
+        </div>
+        }
+    </div>
+    @if(services.length > 0){
+        <a routerLink="/tickets" class="link-see-all">
+        Ver todos os chamados
+        </a>
+    }
+
+</section>

@@ -1,0 +1,205 @@
+<app-auth-layout>
+  <div class="form-container">
+
+    <!-- Steps -->
+    <div class="steps-indicator">
+      <div class="step" [class.active]="currentStep === 1">
+        <div class="step-circle">1</div>
+        <span>Conta</span>
+      </div>
+      <div class="step-line"></div>
+      <div class="step" [class.active]="currentStep === 2">
+        <div class="step-circle">2</div>
+        <span>Dados</span>
+      </div>
+      @if(isPrestador){
+        <div class="step-line"></div>
+        <div class="step" [class.active]="currentStep === 3">
+          <div class="step-circle">3</div>
+          <span>Perfil</span>
+        </div>
+      }
+    </div>
+
+    <!-- Step 1: Conta -->
+    @if(currentStep === 1){
+      <h1>Criar conta</h1>
+      <a routerLink="/login" class="auth-redirect-link">Já possui conta? entrar →</a>
+
+      <form [formGroup]="registerForm">
+        <div class="input-icon">
+          <i class="fa-solid fa-user"></i>
+          <input type="text" placeholder="Nome" formControlName="nome" required>
+        </div>
+        @if(registerForm.get('nome')?.invalid && registerForm.get('nome')?.touched){
+          <small class="error-msg">Informe seu nome.</small>
+        }
+
+        <div class="input-icon">
+          <i class="fa-solid fa-envelope"></i>
+          <input type="email" placeholder="Email" formControlName="email">
+        </div>
+        @if(registerForm.get('email')?.touched && registerForm.get('email')?.errors?.['required']){
+          <small class="error-msg">Informe seu email.</small>
+        }
+        @if(registerForm.get('email')?.touched && registerForm.get('email')?.errors?.['email']){
+          <small class="error-msg">Email inválido.</small>
+        }
+
+        <div class="input-icon">
+          <i class="fa-solid fa-lock"></i>
+          <input type="password" placeholder="Senha" formControlName="senha">
+        </div>
+        @if(registerForm.get('senha')?.touched && registerForm.get('senha')?.errors?.['required']){
+          <small class="error-msg">Informe uma senha.</small>
+        }
+        @if(registerForm.get('senha')?.touched && registerForm.get('senha')?.errors?.['minlength']){
+          <small class="error-msg">A senha deve ter no mínimo 6 caracteres.</small>
+        }
+
+        <div class="input-icon">
+          <i class="fa-solid fa-lock"></i>
+          <input type="password" placeholder="Confirmar senha" formControlName="confirmarSenha">
+        </div>
+        @if(registerForm.get('confirmarSenha')?.touched && registerForm.get('confirmarSenha')?.errors?.['required']){
+          <small class="error-msg">Confirme sua senha.</small>
+        }
+        @if(registerForm.get('confirmarSenha')?.touched && registerForm.hasError('senhasDivergentes')){
+          <small class="error-msg">As senhas não coincidem.</small>
+        }
+      </form>
+
+      <button class="btn-primary-auth" (click)="nextStep()">
+        Próxima etapa
+      </button>
+      <div class="divider">
+        <span>ou continue com</span>
+      </div>
+      <button class="btn-google">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" height="20" alt="Google">
+        Google
+      </button>
+    }
+
+    <!-- Step 2: Dados pessoais -->
+    @if(currentStep === 2){
+      <h1>Dados pessoais</h1>
+
+      <form [formGroup]="registerForm">
+        <div class="input-icon">
+          <i class="fa-solid fa-phone"></i>
+          <input type="text" placeholder="Telefone" formControlName="telefone">
+        </div>
+        @if(registerForm.get('telefone')?.invalid && registerForm.get('telefone')?.touched){
+          <small class="error-msg">Informe seu telefone.</small>
+        }
+
+        <div class="input-icon">
+          <i class="fa-solid fa-id-card"></i>
+          <input type="text" placeholder="CPF" formControlName="cpf">
+        </div>
+        @if(registerForm.get('cpf')?.invalid && registerForm.get('cpf')?.touched){
+          <small class="error-msg">Informe seu CPF.</small>
+        }
+
+        <div class="input-icon input-outlined">
+          <i class="fa-solid fa-cake-candles" (click)="abrirCalendario(dataInput)"></i>
+          <input
+            type="date"
+            formControlName="dataNascimento"
+            [max]="maxDate"
+            #dataInput
+            (click)="abrirCalendario(dataInput)">
+          <label>Data de nascimento</label>
+        </div>
+        @if(registerForm.get('dataNascimento')?.invalid && registerForm.get('dataNascimento')?.touched){
+          <small class="error-msg">Informe sua data de nascimento.</small>
+        }
+
+        <div class="input-icon">
+          <i class="fa-solid fa-map"></i>
+          <input
+            type="text"
+            placeholder="Estado"
+            formControlName="estado"
+            list="lista-estados"
+            (change)="onEstadoChange()"
+            autocomplete="off">
+          <datalist id="lista-estados">
+            @for(estado of estados; track estado.id){
+              <option [value]="estado.nome"></option>
+            }
+          </datalist>
+        </div>
+        @if(registerForm.get('estado')?.invalid && registerForm.get('estado')?.touched){
+          <small class="error-msg">Selecione um estado.</small>
+        }
+
+        <div class="input-icon">
+          <i class="fa-solid fa-city"></i>
+          <input
+            type="text"
+            placeholder="Cidade"
+            formControlName="cidade"
+            list="lista-cidades"
+            autocomplete="off">
+          <datalist id="lista-cidades">
+            @for(cidade of cidades; track cidade.id){
+              <option [value]="cidade.nome"></option>
+            }
+          </datalist>
+        </div>
+        @if(registerForm.get('cidade')?.invalid && registerForm.get('cidade')?.touched){
+          <small class="error-msg">Selecione uma cidade.</small>
+        }
+
+        <div class="checkbox-card">
+          <div class="checkbox-card-content">
+            <i class="fa-solid fa-briefcase"></i>
+            <div>
+              <p class="checkbox-card-title">Quero ser prestador de serviços</p>
+              <p class="checkbox-card-desc">Você poderá oferecer serviços na plataforma.</p>
+            </div>
+          </div>
+          <input type="checkbox" id="isPrestador" formControlName="isPrestador">
+          <label for="isPrestador" class="toggle"></label>
+        </div>
+      </form>
+
+      <div class="form-actions">
+        <button class="btn-secondary-auth" (click)="prevStep()">Voltar</button>
+        @if(isPrestador){
+          <button class="btn-primary-auth" (click)="nextStep()">Próxima etapa</button>
+        } @else {
+          <button class="btn-primary-auth" (click)="onRegister()">Criar conta</button>
+        }
+      </div>
+    }
+
+    <!-- Step 3: Perfil profissional -->
+    @if(currentStep === 3){
+      <h1>Perfil profissional</h1>
+
+      <form [formGroup]="registerForm">
+        <div class="input-icon">
+          <i class="fa-solid fa-briefcase"></i>
+          <input type="text" placeholder="Categoria" formControlName="categoria">
+        </div>
+        @if(registerForm.get('categoria')?.invalid && registerForm.get('categoria')?.touched){
+          <small class="error-msg">Informe sua categoria.</small>
+        }
+
+        <textarea rows="4" placeholder="Descreva seus serviços" formControlName="descricao"></textarea>
+        @if(registerForm.get('descricao')?.invalid && registerForm.get('descricao')?.touched){
+          <small class="error-msg">Descreva seus serviços.</small>
+        }
+      </form>
+
+      <div class="form-actions">
+        <button class="btn-secondary-auth" (click)="prevStep()">Voltar</button>
+        <button class="btn-primary-auth" (click)="onRegister()">Criar conta</button>
+      </div>
+    }
+
+  </div>
+</app-auth-layout>
