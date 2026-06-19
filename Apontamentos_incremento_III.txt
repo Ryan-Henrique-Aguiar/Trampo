@@ -1,0 +1,6 @@
+Apontamentos Incremento III
+
+- Rever os relacionamentos do Caso de Uso Modulo de Envio de propostas e listar serviços
+- Adicionar mais detalhes na descrição dos requisitos
+- Pensar na questão do contratante poder selecionar os prestadores de serviços disponíveis para não acontecer de publicar uma oportunidade e ela não ser selecionada por nenhum prestador de serviço
+- LGPD
