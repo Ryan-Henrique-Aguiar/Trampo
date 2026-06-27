@@ -1,0 +1,25 @@
+:host {
+    display: block;
+}
+
+/* Section headers */
+.section-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+
+.section-header h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+}
+
+/* Tickets */
+.tickets {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}

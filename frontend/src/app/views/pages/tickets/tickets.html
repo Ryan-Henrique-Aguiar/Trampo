@@ -1,0 +1,9 @@
+<section class="home">
+    <app-action-cards />
+    <div class="tickets">
+        <h1>Meus serviços</h1>
+        @for (ticket of tickets.slice(0, 3); track ticket.code) {
+            <app-ticket-card [ticket]="ticket" />
+        }
+    </div>
+</section>

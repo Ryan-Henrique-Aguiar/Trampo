@@ -4,6 +4,7 @@ import { SignIn } from './views/account/sign-in/sign-in';
 import { SignUp } from './views/account/sign-up/sign-up';
 import { Main } from './views/pages/main/main';
 import { Home } from './views/pages/home/home';
+import { Tickets } from './views/pages/tickets/tickets';
 
 export const routes: Routes = [
   // Rotas públicas (sem sidebar/navbar/footer)
@@ -16,8 +17,7 @@ export const routes: Routes = [
     component: Main,
     children: [
       { path: '', component: Home},
-      // conforme for criando outras telas, adiciona aqui:
-      // { path: 'tickets', component: Tickets },
+      { path: 'tickets', component: Tickets }
       // { path: 'perfil', component: Perfil },
     ],
   },
