@@ -1,19 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-
-export interface Ticket {
-  id: number;
-  code: string;
-  type: 'normal' | 'urgent';
-  title: string;
-  description: string;
-  category: string;
-  location: string;
-  createdAt: string;
-  proposals: number;
-  status: string;
-}
+import { Ticket } from '../../models/ticket.model';
 
 @Injectable({ providedIn: 'root' })
 export class TicketService {

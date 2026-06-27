@@ -1,0 +1,22 @@
+<div class="action-cards">
+    <button class="action-card" (click)="openModal(false)">
+        <div class="action-icon action-icon--service">
+            <i class="fa-solid fa-file-pen"></i>
+        </div>
+        <span class="action-title">Solicitar serviço</span>
+        <span class="action-subtitle">Receba propostas</span>
+    </button>
+
+    <button class="action-card" (click)="openModal(true)">
+        <div class="action-icon action-icon--urgent">
+            <i class="fa-solid fa-bolt"></i>
+        </div>
+        <span class="action-title">Serviço urgente</span>
+        <span class="action-subtitle">Prestador agora</span>
+    </button>
+</div>
+
+<app-ticket-modal
+    [isOpen]="isModalOpen"
+    [isUrgent]="isUrgent"
+    (close)="closeModal()" />

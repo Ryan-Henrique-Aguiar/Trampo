@@ -1,0 +1,86 @@
+.ticket-card {
+    background: var(--surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 16px 18px;
+}
+
+.ticket-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.ticket-code {
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+}
+
+.ticket-status {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    padding: 4px 10px;
+    border-radius: 999px;
+}
+
+.ticket-status--open {
+    background: rgba(24, 95, 165, 0.1);
+    color: var(--primary);
+}
+
+.ticket-status--with_proposals {
+    background: rgba(24, 95, 165, 0.1);
+    color: var(--primary);
+}
+
+.ticket-status--in_progress {
+    background: rgba(46, 160, 90, 0.12);
+    color: #2EA05A;
+}
+
+.ticket-status--completed {
+    background: rgba(108, 117, 125, 0.12);
+    color: var(--text-secondary);
+}
+
+.ticket-status--cancelled {
+    background: rgba(232, 82, 91, 0.1);
+    color: #E8525B;
+}
+
+.ticket-title {
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-medium);
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.ticket-meta {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+}
+
+.ticket-meta i {
+    margin-right: 4px;
+}
+
+.btn-detail {
+    width: 100px;
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    padding: 4px 10px;
+    cursor: pointer;
+    border: 1px solid gray;
+    border-radius: 12px;
+    background: none;
+}
+
+@media (max-width: 600px) {
+    .btn-detail {
+        max-width: 70px;
+    }
+}

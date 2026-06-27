@@ -1,0 +1,17 @@
+@if (isOpen) {
+    <div class="modal-overlay" (click)="onOverlayClick($event)">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>{{ isUrgent ? 'Serviço urgente' : 'Solicitar serviço' }}</h2>
+                <button class="modal-close" (click)="closeModal()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <!-- formulário virá aqui -->
+                <p style="color: var(--text-secondary);">Formulário em construção...</p>
+            </div>
+        </div>
+    </div>
+}

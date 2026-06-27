@@ -1,0 +1,30 @@
+<div class="ticket-card">
+    <div class="ticket-top">
+        <span class="ticket-code">{{ ticket.code }}</span>
+        <span class="ticket-status" [class]="'ticket-status--' + ticket.status">
+            {{ getStatusLabel(ticket.status) }}
+        </span>
+    </div>
+
+    <p class="ticket-title">{{ ticket.title }}</p>
+
+    <div style="display: flex; justify-content: space-between;">
+        <div class="ticket-meta">
+            <span>
+                <i class="fa-solid fa-location-dot"></i>
+                {{ ticket.address.neighborhood }}, {{ ticket.address.city }}
+            </span>
+            <span>
+                <i class="fa-solid fa-clock"></i>
+                {{ ticket.createdAt }}
+            </span>
+            @if (ticket.proposals) {
+                <span>
+                    <i class="fa-solid fa-comment-dots"></i>
+                    {{ ticket.proposals }} propostas
+                </span>
+            }
+        </div>
+        <button class="btn-detail">Detalhes</button>
+    </div>
+</div>

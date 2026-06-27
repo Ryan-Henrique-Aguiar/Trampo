@@ -1,58 +1,70 @@
 import { Component, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { Category, CategoryService } from '../../../services/category/category-service';
-import { Ticket, TicketService } from '../../../services/ticket/ticket-service';
 
+import { CategoryService } from '../../../services/category/category-service';
+import { TicketService } from '../../../services/ticket/ticket-service';
 
-export type ServiceStatus =
-  | 'open'
-  | 'with_proposals'
-  | 'in_progress'
-  | 'completed'
-  | 'cancelled';
+import { Category } from '../../../models/category.model';
+import { Ticket } from '../../../models/ticket.model';
+
+import { TicketStatus } from '../../../enums/ticket-status';
+import { TicketCard } from "../../../shared/components/ticket-card/ticket-card";
+import { ActionCards } from "../../../shared/components/action-cards/action-cards";
 
 @Component({
   selector: 'app-home',
-  imports: [RouterLink],
+  imports: [RouterLink, TicketCard, ActionCards],
   templateUrl: './home.html',
   styleUrl: './home.css',
 })
 export class Home implements OnInit {
+
   categories: Category[] = [];
-  services: Ticket[] = [];
+  tickets: Ticket[] = [];
 
   constructor(
     private categoryService: CategoryService,
     private ticketService: TicketService
   ) {}
 
-  ngOnInit() {
-    this.categoryService.getAll().subscribe(data => this.categories = data);
-      this.ticketService.getAll().subscribe({
-    next: (data) => {
-      console.log('tickets:', data);
-      this.services = data;
-    },
-    error: (err) => console.error('erro:', err)
-  });
+  ngOnInit(): void {
+    this.loadCategories();
+    this.loadTickets();
   }
 
-getStatusLabel(status: string): string {
-    const labels: Record<string, string> = {
-      open: 'Aberto',
-      with_proposals: 'Com propostas',
-      in_progress: 'Em andamento',
-      completed: 'Finalizado',
-      cancelled: 'Cancelado',
+  private loadCategories(): void {
+    this.categoryService.getAll().subscribe({
+      next: (categories) => {
+        this.categories = categories;
+      },
+      error: (err) => {
+        console.error('Erro ao carregar categorias:', err);
+      }
+    });
+  }
+
+  private loadTickets(): void {
+    this.ticketService.getAll().subscribe({
+      next: (tickets) => {
+        this.tickets = tickets;
+      },
+      error: (err) => {
+        console.error('Erro ao carregar tickets:', err);
+      }
+    });
+  }
+
+  getStatusLabel(status: TicketStatus): string {
+    const labels: Record<TicketStatus, string> = {
+      [TicketStatus.OPEN]: 'Aberto',
+      [TicketStatus.WITH_PROPOSALS]: 'Com propostas',
+      [TicketStatus.IN_PROGRESS]: 'Em andamento',
+      [TicketStatus.COMPLETED]: 'Finalizado',
+      [TicketStatus.CANCELLED]: 'Cancelado'
     };
-    return labels[status] ?? status;
+
+    return labels[status];
   }
 
-  openRequestServiceModal(category?: Category): void {
-    console.log('abrir modal com categoria:', category?.name);
-  }
 
-  openUrgentServiceModal(): void {
-    console.log('abrir modal: chamado urgente');
-  }
 }

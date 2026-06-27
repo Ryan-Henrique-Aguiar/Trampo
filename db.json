@@ -3,19 +3,20 @@
     {
       "id": 1,
       "name": "Pintura",
-      "icon_url": "https://thuopnsbyvbaoviwwqgb.supabase.co/storage/v1/object/public/assets/pintor.svg"
+      "iconUrl": "https://thuopnsbyvbaoviwwqgb.supabase.co/storage/v1/object/public/assets/pintor.svg"
     },
     {
       "id": 2,
       "name": "Alvenaria",
-      "icon_url": "https://thuopnsbyvbaoviwwqgb.supabase.co/storage/v1/object/public/assets/alvenaria.svg"
+      "iconUrl": "https://thuopnsbyvbaoviwwqgb.supabase.co/storage/v1/object/public/assets/alvenaria.svg"
     },
     {
       "id": 3,
       "name": "Desenvolvimento de software",
-      "icon_url": "https://thuopnsbyvbaoviwwqgb.supabase.co/storage/v1/object/public/assets/software.svg"
+      "iconUrl": "https://thuopnsbyvbaoviwwqgb.supabase.co/storage/v1/object/public/assets/software.svg"
     }
   ],
+
   "tickets": [
     {
       "id": 1,
@@ -23,14 +24,42 @@
       "type": "normal",
       "title": "Vazamento na cozinha",
       "description": "Existe um vazamento embaixo da pia.",
-      "category": "Hidráulica",
-      "location": "Centro",
-      "createdAt": "Hoje, 09:30",
+
+      "categoryId": 2,
+
+      "address": {
+        "street": "Rua das Flores",
+        "number": "120",
+        "neighborhood": "Centro",
+        "city": "São Paulo",
+        "state": "SP",
+        "zipCode": "01000-000",
+        "complement": "Casa"
+      },
+
+      "createdAt": "2026-06-27T09:30:00",
+
       "proposals": 3,
-      "priceRange": "100-200",
-      "paymentMethods": ["pix"],
-      "availableDays": ["Segunda", "Terça"],
-      "availableHours": ["09:00", "14:00"],
+
+      "priceRange": {
+        "min": 100,
+        "max": 200
+      },
+
+      "paymentMethods": [
+        "pix"
+      ],
+
+      "availableDays": [
+        "Segunda",
+        "Terça"
+      ],
+
+      "availableHours": [
+        "09:00",
+        "14:00"
+      ],
+
       "status": "with_proposals"
     },
     {
@@ -39,14 +68,41 @@
       "type": "normal",
       "title": "Pintura do quarto",
       "description": "Pintura completa de um quarto.",
-      "category": "Pintor",
-      "location": "Centro",
-      "createdAt": "Ontem, 15:20",
+
+      "categoryId": 1,
+
+      "address": {
+        "street": "Rua das Palmeiras",
+        "number": "85",
+        "neighborhood": "Jardim América",
+        "city": "São Paulo",
+        "state": "SP",
+        "zipCode": "01400-000",
+        "complement": "Apartamento 52"
+      },
+
+      "createdAt": "2026-06-26T15:20:00",
+
       "proposals": 0,
-      "priceRange": "300-500",
-      "paymentMethods": ["credit", "pix"],
-      "availableDays": ["Sábado"],
-      "availableHours": ["08:00"],
+
+      "priceRange": {
+        "min": 300,
+        "max": 500
+      },
+
+      "paymentMethods": [
+        "credit",
+        "pix"
+      ],
+
+      "availableDays": [
+        "Sábado"
+      ],
+
+      "availableHours": [
+        "08:00"
+      ],
+
       "status": "in_progress"
     },
     {
@@ -55,14 +111,39 @@
       "type": "normal",
       "title": "Instalação de tomadas",
       "description": "Instalar 3 tomadas na sala.",
-      "category": "Elétrica",
-      "location": "Bairro Novo",
-      "createdAt": "Hoje, 11:00",
+
+      "categoryId": 3,
+
+      "address": {
+        "street": "Rua das Acácias",
+        "number": "450",
+        "neighborhood": "Bairro Novo",
+        "city": "São Paulo",
+        "state": "SP",
+        "zipCode": "02000-000"
+      },
+
+      "createdAt": "2026-06-27T11:00:00",
+
       "proposals": 1,
-      "priceRange": "80-150",
-      "paymentMethods": ["pix"],
-      "availableDays": ["Quarta"],
-      "availableHours": ["10:00"],
+
+      "priceRange": {
+        "min": 80,
+        "max": 150
+      },
+
+      "paymentMethods": [
+        "pix"
+      ],
+
+      "availableDays": [
+        "Quarta"
+      ],
+
+      "availableHours": [
+        "10:00"
+      ],
+
       "status": "open"
     },
     {
@@ -71,14 +152,41 @@
       "type": "normal",
       "title": "Reforma do banheiro",
       "description": "Reforma completa do banheiro.",
-      "category": "Pintor",
-      "location": "Centro",
-      "createdAt": "Há 2 dias",
+
+      "categoryId": 2,
+
+      "address": {
+        "street": "Rua São João",
+        "number": "310",
+        "neighborhood": "Centro",
+        "city": "São Paulo",
+        "state": "SP",
+        "zipCode": "01100-000"
+      },
+
+      "createdAt": "2026-06-25T09:00:00",
+
       "proposals": 0,
-      "priceRange": "1000-2000",
-      "paymentMethods": ["credit"],
-      "availableDays": ["Segunda", "Sexta"],
-      "availableHours": ["08:00", "13:00"],
+
+      "priceRange": {
+        "min": 1000,
+        "max": 2000
+      },
+
+      "paymentMethods": [
+        "credit"
+      ],
+
+      "availableDays": [
+        "Segunda",
+        "Sexta"
+      ],
+
+      "availableHours": [
+        "08:00",
+        "13:00"
+      ],
+
       "status": "cancelled"
     }
   ]
