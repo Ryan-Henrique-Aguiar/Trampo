@@ -12,4 +12,8 @@ export class TicketService {
   getAll(): Observable<Ticket[]> {
     return this.http.get<Ticket[]>(`${this.base}/tickets`);
   }
+
+  create(ticket: any): Observable<Ticket> {
+    return this.http.post<Ticket>(`${this.base}/tickets`, ticket);
+  }
 }

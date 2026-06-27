@@ -1,17 +1,195 @@
 @if (isOpen) {
-    <div class="modal-overlay" (click)="onOverlayClick($event)">
-        <div class="modal">
-            <div class="modal-header">
-                <h2>{{ isUrgent ? 'Serviço urgente' : 'Solicitar serviço' }}</h2>
-                <button class="modal-close" (click)="closeModal()">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
+<div class="modal-overlay" (click)="onOverlayClick($event)">
+    <div class="modal">
 
-            <div class="modal-body">
-                <!-- formulário virá aqui -->
-                <p style="color: var(--text-secondary);">Formulário em construção...</p>
+        <div class="modal-header">
+            <h2>{{ isUrgent ? 'Serviço urgente' : 'Solicitar serviço' }}</h2>
+            <button class="modal-close" (click)="closeModal()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- Stepper -->
+        <div class="stepper">
+            <div class="step-wrapper">
+                <div class="step-circle" [class.active]="currentStep === 1" [class.done]="currentStep > 1">
+                    @if (currentStep > 1) { <i class="fa-solid fa-check"></i> } @else { 1 }
+                </div>
+                <span class="step-label" [class.active]="currentStep === 1">Básico</span>
+            </div>
+            <div class="step-line" [class.done]="currentStep > 1"></div>
+
+            <div class="step-wrapper">
+                <div class="step-circle" [class.active]="currentStep === 2" [class.done]="currentStep > 2">
+                    @if (currentStep > 2) { <i class="fa-solid fa-check"></i> } @else { 2 }
+                </div>
+                <span class="step-label" [class.active]="currentStep === 2">Endereço</span>
+            </div>
+            <div class="step-line" [class.done]="currentStep > 2"></div>
+
+            <div class="step-wrapper">
+                <div class="step-circle" [class.active]="currentStep === 3">
+                    3
+                </div>
+                <span class="step-label" [class.active]="currentStep === 3">Detalhes</span>
             </div>
         </div>
+
+        <form (ngSubmit)="onSubmit()">
+
+            <!-- Step 1: Informações básicas -->
+            @if (currentStep === 1) {
+            <div class="form-section">
+                <div class="form-group">
+                    <label>Título</label>
+                    <input type="text" [(ngModel)]="form.title" name="title" placeholder="Ex: Pintura de quarto"
+                        required />
+                </div>
+
+                <div class="form-group">
+                    <label>Descrição</label>
+                    <textarea [(ngModel)]="form.description" name="description"
+                        placeholder="Descreva o serviço com detalhes..." rows="3" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Categoria</label>
+                    <select [(ngModel)]="form.categoryId" name="categoryId" required>
+                        <option [ngValue]="null" disabled>Selecione uma categoria</option>
+                        @for (category of categories; track category.id) {
+                        <option [ngValue]="category.id">{{ category.name }}</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            }
+
+            <!-- Step 2: Endereço -->
+            @if (currentStep === 2) {
+            <div class="form-section">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>CEP</label>
+                        <input type="text" [(ngModel)]="form.address.zipCode" name="zipCode" placeholder="00000-000"
+                            required />
+                    </div>
+                    <div class="form-group">
+                        <label>Estado</label>
+                        <input type="text" [(ngModel)]="form.address.state" name="state" placeholder="SP" maxlength="2"
+                            required />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Cidade</label>
+                    <input type="text" [(ngModel)]="form.address.city" name="city" placeholder="São Paulo" required />
+                </div>
+
+                <div class="form-group">
+                    <label>Bairro</label>
+                    <input type="text" [(ngModel)]="form.address.neighborhood" name="neighborhood" placeholder="Centro"
+                        required />
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Rua</label>
+                        <input type="text" [(ngModel)]="form.address.street" name="street" placeholder="Rua das Flores"
+                            required />
+                    </div>
+                    <div class="form-group">
+                        <label>Número</label>
+                        <input type="text" [(ngModel)]="form.address.number" name="number" placeholder="120" required />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Complemento <span class="optional">(opcional)</span></label>
+                    <input type="text" [(ngModel)]="form.address.complement" name="complement"
+                        placeholder="Apto 12, Casa B..." />
+                </div>
+            </div>
+            }
+
+            <!-- Step 3: Detalhes -->
+            @if (currentStep === 3) {
+            <div class="form-section">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Orçamento mínimo (R$)</label>
+                        <input type="number" [(ngModel)]="form.priceRange.min" name="priceMin" placeholder="100"
+                            min="0" />
+                    </div>
+                    <div class="form-group">
+                        <label>Orçamento máximo (R$)</label>
+                        <input type="number" [(ngModel)]="form.priceRange.max" name="priceMax" placeholder="500"
+                            min="0" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Formas de pagamento</label>
+                    <div class="chip-group">
+                        @for (option of paymentOptions; track option.value) {
+                        <button type="button" class="chip"
+                            [class.chip--selected]="isSelected(form.paymentMethods, option.value)"
+                            (click)="toggleSelection(form.paymentMethods, option.value)">
+                            {{ option.label }}
+                        </button>
+                        }
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Dias disponíveis</label>
+                    <div class="chip-group">
+                        @for (day of dayOptions; track day) {
+                        <button type="button" class="chip" [class.chip--selected]="isSelected(form.availableDays, day)"
+                            (click)="toggleSelection(form.availableDays, day)">
+                            {{ day }}
+                        </button>
+                        }
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Horários disponíveis</label>
+                    <div class="chip-group">
+                        @for (hour of hourOptions; track hour) {
+                        <button type="button" class="chip"
+                            [class.chip--selected]="isSelected(form.availableHours, hour)"
+                            (click)="toggleSelection(form.availableHours, hour)">
+                            {{ hour }}
+                        </button>
+                        }
+                    </div>
+                </div>
+            </div>
+            }
+
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel" (click)="closeModal()">
+                    Cancelar
+                </button>
+                <div class="footer-right">
+                    @if (currentStep > 1) {
+                    <button type="button" class="btn-back" (click)="prevStep()">
+                        Voltar
+                    </button>
+                    }
+                    @if (currentStep < 3) { <button type="button" class="btn-next" (click)="nextStep()">
+                        Próximo
+                        </button>
+                        }
+                        @if (currentStep === 3) {
+                        <button type="submit" class="btn-submit">
+                            Solicitar serviço
+                        </button>
+                        }
+                </div>
+            </div>
+
+        </form>
     </div>
+</div>
 }

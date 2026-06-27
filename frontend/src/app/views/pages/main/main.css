@@ -130,7 +130,8 @@
 .page-content {
   flex: 1;
   padding: 28px;
-  overflow-y: auto; /* só aqui rola */
+  overflow-y: auto;
+  position: relative; 
 }
 
 .footer {

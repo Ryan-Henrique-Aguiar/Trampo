@@ -1,1 +1,4 @@
-export enum TicketType {}
+export enum TicketType {
+  NORMAL = 'normal',
+  URGENT = 'urgent'
+}
