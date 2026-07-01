@@ -18,224 +18,36 @@
   ],
   "tickets": [
     {
-      "id": "1",
-      "code": "#TRP-000001",
-      "type": "normal",
-      "title": "Vazamento na cozinha",
-      "description": "Existe um vazamento embaixo da pia.",
-      "categoryId": 2,
+      "title": "Pintura de quarto2",
+      "description": "Pintura completa do quarto, parede e teto",
+      "categoryId": 3,
       "address": {
         "street": "Rua das Flores",
         "number": "120",
         "neighborhood": "Centro",
         "city": "São Paulo",
         "state": "SP",
-        "zipCode": "01000-000",
-        "complement": "Casa"
+        "zipCode": "01310-100",
+        "complement": "Apto 12"
       },
-      "createdAt": "2026-06-27T09:30:00",
-      "proposals": 3,
       "priceRange": {
         "min": 100,
-        "max": 200
-      },
-      "paymentMethods": [
-        "pix"
-      ],
-      "availableDays": [
-        "Segunda",
-        "Terça"
-      ],
-      "availableHours": [
-        "09:00",
-        "14:00"
-      ],
-      "status": "with_proposals"
-    },
-    {
-      "id": "2",
-      "code": "#TRP-000002",
-      "type": "normal",
-      "title": "Pintura do quarto",
-      "description": "Pintura completa de um quarto.",
-      "categoryId": 1,
-      "address": {
-        "street": "Rua das Palmeiras",
-        "number": "85",
-        "neighborhood": "Jardim América",
-        "city": "São Paulo",
-        "state": "SP",
-        "zipCode": "01400-000",
-        "complement": "Apartamento 52"
-      },
-      "createdAt": "2026-06-26T15:20:00",
-      "proposals": 0,
-      "priceRange": {
-        "min": 300,
         "max": 500
       },
       "paymentMethods": [
-        "credit",
-        "pix"
-      ],
-      "availableDays": [
-        "Sábado"
-      ],
-      "availableHours": [
-        "08:00"
-      ],
-      "status": "in_progress"
-    },
-    {
-      "id": "3",
-      "code": "#TRP-000003",
-      "type": "normal",
-      "title": "Instalação de tomadas",
-      "description": "Instalar 3 tomadas na sala.",
-      "categoryId": 3,
-      "address": {
-        "street": "Rua das Acácias",
-        "number": "450",
-        "neighborhood": "Bairro Novo",
-        "city": "São Paulo",
-        "state": "SP",
-        "zipCode": "02000-000"
-      },
-      "createdAt": "2026-06-27T11:00:00",
-      "proposals": 1,
-      "priceRange": {
-        "min": 80,
-        "max": 150
-      },
-      "paymentMethods": [
-        "pix"
-      ],
-      "availableDays": [
-        "Quarta"
-      ],
-      "availableHours": [
-        "10:00"
-      ],
-      "status": "open"
-    },
-    {
-      "id": "4",
-      "code": "#TRP-000004",
-      "type": "normal",
-      "title": "Reforma do banheiro",
-      "description": "Reforma completa do banheiro.",
-      "categoryId": 2,
-      "address": {
-        "street": "Rua São João",
-        "number": "310",
-        "neighborhood": "Centro",
-        "city": "São Paulo",
-        "state": "SP",
-        "zipCode": "01100-000"
-      },
-      "createdAt": "2026-06-25T09:00:00",
-      "proposals": 0,
-      "priceRange": {
-        "min": 1000,
-        "max": 2000
-      },
-      "paymentMethods": [
-        "credit"
+        "PIX",
+        "CREDIT"
       ],
       "availableDays": [
         "Segunda",
-        "Sexta"
+        "Quarta"
       ],
       "availableHours": [
         "08:00",
-        "13:00"
+        "14:00"
       ],
-      "status": "cancelled"
-    },
-    {
-      "title": "",
-      "description": "",
-      "categoryId": null,
-      "address": {
-        "street": "",
-        "number": "",
-        "neighborhood": "",
-        "city": "",
-        "state": "",
-        "zipCode": "",
-        "complement": ""
-      },
-      "priceRange": {
-        "min": null,
-        "max": null
-      },
-      "paymentMethods": [],
-      "availableDays": [],
-      "availableHours": [
-        "10:00",
-        "08:00",
-        "09:00",
-        "16:00",
-        "15:00",
-        "17:00",
-        "18:00",
-        "11:00",
-        "12:00",
-        "13:00",
-        "14:00",
-        "07:00"
-      ],
-      "type": "normal",
-      "id": "Jg72EXA1Fg0"
-    },
-    {
-      "title": "",
-      "description": "",
-      "categoryId": null,
-      "address": {
-        "street": "",
-        "number": "",
-        "neighborhood": "",
-        "city": "",
-        "state": "",
-        "zipCode": "",
-        "complement": ""
-      },
-      "priceRange": {
-        "min": null,
-        "max": null
-      },
-      "paymentMethods": [],
-      "availableDays": [],
-      "availableHours": [],
-      "type": "normal",
-      "id": "NvjxvJMgDRI"
-    },
-    {
-      "title": "",
-      "description": "",
-      "categoryId": "1",
-      "address": {
-        "street": "",
-        "number": "",
-        "neighborhood": "",
-        "city": "",
-        "state": "",
-        "zipCode": "",
-        "complement": ""
-      },
-      "priceRange": {
-        "min": null,
-        "max": null
-      },
-      "paymentMethods": [],
-      "availableDays": [
-        "Sexta",
-        "Quinta"
-      ],
-      "availableHours": [],
-      "type": "normal",
-      "id": "-8Cu_jnSY2k"
+      "type": "NORMAL",
+      "id": "1"
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"

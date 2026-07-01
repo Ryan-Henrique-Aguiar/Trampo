@@ -35,78 +35,99 @@
             </div>
         </div>
 
-        <form (ngSubmit)="onSubmit()">
+        <form [formGroup]="ticketForm">
 
             <!-- Step 1: Informações básicas -->
             @if (currentStep === 1) {
             <div class="form-section">
                 <div class="form-group">
                     <label>Título</label>
-                    <input type="text" [(ngModel)]="form.title" name="title" placeholder="Ex: Pintura de quarto"
-                        required />
+                    <input type="text" formControlName="title" placeholder="Ex: Pintura de quarto" />
+                    @if (isInvalid('title')) {
+                    <span class="field-error">Título é obrigatório.</span>
+                    }
                 </div>
 
                 <div class="form-group">
                     <label>Descrição</label>
-                    <textarea [(ngModel)]="form.description" name="description"
-                        placeholder="Descreva o serviço com detalhes..." rows="3" required></textarea>
+                    <textarea formControlName="description" placeholder="Descreva o serviço com detalhes..."
+                        rows="3"></textarea>
+                    @if (isInvalid('description')) {
+                    <span class="field-error">Descrição é obrigatória.</span>
+                    }
                 </div>
 
                 <div class="form-group">
                     <label>Categoria</label>
-                    <select [(ngModel)]="form.categoryId" name="categoryId" required>
+                    <select formControlName="categoryId">
                         <option [ngValue]="null" disabled>Selecione uma categoria</option>
                         @for (category of categories; track category.id) {
                         <option [ngValue]="category.id">{{ category.name }}</option>
                         }
                     </select>
+                    @if (isInvalid('categoryId')) {
+                    <span class="field-error">Selecione uma categoria.</span>
+                    }
                 </div>
             </div>
             }
 
             <!-- Step 2: Endereço -->
             @if (currentStep === 2) {
-            <div class="form-section">
+            <div class="form-section" formGroupName="address">
                 <div class="form-row">
                     <div class="form-group">
                         <label>CEP</label>
-                        <input type="text" [(ngModel)]="form.address.zipCode" name="zipCode" placeholder="00000-000"
-                            required />
+                        <input type="text" formControlName="zipCode" placeholder="00000-000" />
+                        @if (isInvalid('address.zipCode')) {
+                        <span class="field-error">CEP é obrigatório.</span>
+                        }
                     </div>
                     <div class="form-group">
                         <label>Estado</label>
-                        <input type="text" [(ngModel)]="form.address.state" name="state" placeholder="SP" maxlength="2"
-                            required />
+                        <input type="text" formControlName="state" placeholder="SP" maxlength="2" />
+                        @if (isInvalid('address.state')) {
+                        <span class="field-error">Estado é obrigatório.</span>
+                        }
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label>Cidade</label>
-                    <input type="text" [(ngModel)]="form.address.city" name="city" placeholder="São Paulo" required />
+                    <input type="text" formControlName="city" placeholder="São Paulo" />
+                    @if (isInvalid('address.city')) {
+                    <span class="field-error">Cidade é obrigatória.</span>
+                    }
                 </div>
 
                 <div class="form-group">
                     <label>Bairro</label>
-                    <input type="text" [(ngModel)]="form.address.neighborhood" name="neighborhood" placeholder="Centro"
-                        required />
+                    <input type="text" formControlName="neighborhood" placeholder="Centro" />
+                    @if (isInvalid('address.neighborhood')) {
+                    <span class="field-error">Bairro é obrigatório.</span>
+                    }
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
                         <label>Rua</label>
-                        <input type="text" [(ngModel)]="form.address.street" name="street" placeholder="Rua das Flores"
-                            required />
+                        <input type="text" formControlName="street" placeholder="Rua das Flores" />
+                        @if (isInvalid('address.street')) {
+                        <span class="field-error">Rua é obrigatória.</span>
+                        }
                     </div>
                     <div class="form-group">
                         <label>Número</label>
-                        <input type="text" [(ngModel)]="form.address.number" name="number" placeholder="120" required />
+                        <input type="text" formControlName="number" placeholder="120" />
+                        @if (isInvalid('address.number')) {
+                        <span class="field-error">Número é obrigatório.</span>
+                        }
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label>Complemento <span class="optional">(opcional)</span></label>
-                    <input type="text" [(ngModel)]="form.address.complement" name="complement"
-                        placeholder="Apto 12, Casa B..." />
+                    <input type="text" formControlName="complement" placeholder="Apto 12, Casa B..." />
                 </div>
             </div>
             }
@@ -114,16 +135,20 @@
             <!-- Step 3: Detalhes -->
             @if (currentStep === 3) {
             <div class="form-section">
-                <div class="form-row">
+                <div class="form-row" formGroupName="priceRange">
                     <div class="form-group">
                         <label>Orçamento mínimo (R$)</label>
-                        <input type="number" [(ngModel)]="form.priceRange.min" name="priceMin" placeholder="100"
-                            min="0" />
+                        <input type="number" formControlName="min" placeholder="100" min="0" />
+                        @if (isInvalid('priceRange.min')) {
+                        <span class="field-error">Orçamento mínimo é obrigatório.</span>
+                        }
                     </div>
                     <div class="form-group">
                         <label>Orçamento máximo (R$)</label>
-                        <input type="number" [(ngModel)]="form.priceRange.max" name="priceMax" placeholder="500"
-                            min="0" />
+                        <input type="number" formControlName="max" placeholder="500" min="0" />
+                        @if (isInvalid('priceRange.max')) {
+                        <span class="field-error">Orçamento máximo é obrigatório.</span>
+                        }
                     </div>
                 </div>
 
@@ -132,37 +157,45 @@
                     <div class="chip-group">
                         @for (option of paymentOptions; track option.value) {
                         <button type="button" class="chip"
-                            [class.chip--selected]="isSelected(form.paymentMethods, option.value)"
-                            (click)="toggleSelection(form.paymentMethods, option.value)">
+                            [class.chip--selected]="isSelected('paymentMethods', option.value)"
+                            (click)="toggleSelection('paymentMethods', option.value)">
                             {{ option.label }}
                         </button>
                         }
                     </div>
+                    @if (isInvalid('paymentMethods')) {
+                    <span class="field-error">Selecione pelo menos uma forma de pagamento.</span>
+                    }
                 </div>
 
                 <div class="form-group">
                     <label>Dias disponíveis</label>
                     <div class="chip-group">
                         @for (day of dayOptions; track day) {
-                        <button type="button" class="chip" [class.chip--selected]="isSelected(form.availableDays, day)"
-                            (click)="toggleSelection(form.availableDays, day)">
+                        <button type="button" class="chip" [class.chip--selected]="isSelected('availableDays', day)"
+                            (click)="toggleSelection('availableDays', day)">
                             {{ day }}
                         </button>
                         }
                     </div>
+                    @if (isInvalid('availableDays')) {
+                    <span class="field-error">Selecione pelo menos um dia.</span>
+                    }
                 </div>
 
                 <div class="form-group">
                     <label>Horários disponíveis</label>
                     <div class="chip-group">
                         @for (hour of hourOptions; track hour) {
-                        <button type="button" class="chip"
-                            [class.chip--selected]="isSelected(form.availableHours, hour)"
-                            (click)="toggleSelection(form.availableHours, hour)">
+                        <button type="button" class="chip" [class.chip--selected]="isSelected('availableHours', hour)"
+                            (click)="toggleSelection('availableHours', hour)">
                             {{ hour }}
                         </button>
                         }
                     </div>
+                    @if (isInvalid('availableHours')) {
+                    <span class="field-error">Selecione pelo menos um horário.</span>
+                    }
                 </div>
             </div>
             }
@@ -182,7 +215,7 @@
                         </button>
                         }
                         @if (currentStep === 3) {
-                        <button type="submit" class="btn-submit">
+                        <button type="button" class="btn-submit" (click)="saveTicket()">
                             Solicitar serviço
                         </button>
                         }

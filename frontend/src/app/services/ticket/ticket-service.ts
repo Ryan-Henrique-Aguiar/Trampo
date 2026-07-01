@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Ticket } from '../../models/ticket.model';
+import { CreateTicket } from '../../models/createTicket';
 
 @Injectable({ providedIn: 'root' })
 export class TicketService {
@@ -13,7 +14,14 @@ export class TicketService {
     return this.http.get<Ticket[]>(`${this.base}/tickets`);
   }
 
-  create(ticket: any): Observable<Ticket> {
+  create(ticket: CreateTicket): Observable<Ticket> {
     return this.http.post<Ticket>(`${this.base}/tickets`, ticket);
+  }
+  update(id: number, ticket: Ticket): Observable<Ticket> {
+    return this.http.put<Ticket>(`${this.base}/tickets/${id}`, ticket);
+  }
+
+  delete(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/tickets/${id}`);
   }
 }

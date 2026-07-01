@@ -3,7 +3,7 @@
     inset: 0;
     background: rgba(0, 0, 0, 0.5);
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: center;
     z-index: 1000;
 }
@@ -261,11 +261,18 @@
     display: flex;
     gap: 12px;
 }
+.field-error {
+  display: block;
+  color: #e53935;
+  font-size: 0.8rem;
+  margin-top: 4px;
+}
 
 @media (max-width: 600px) {
     .modal {
         max-height: 92vh;
         padding: 20px 16px;
+        width: 90%;
     }
 
     .form-row {
