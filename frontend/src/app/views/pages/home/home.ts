@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, computed, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { CategoryService } from '../../../services/category/category-service';
@@ -19,8 +19,8 @@ import { ActionCards } from "../../../shared/components/action-cards/action-card
 })
 export class Home implements OnInit {
 
-  categories: Category[] = [];
-  tickets: Ticket[] = [];
+  categories=  signal<Category[]>([]);
+  tickets = signal<Ticket[]>([]);
 
   constructor(
     private categoryService: CategoryService,
@@ -32,27 +32,34 @@ export class Home implements OnInit {
     this.loadTickets();
   }
 
+
+  private loadTickets(): void {
+      this.ticketService.getAll().subscribe({
+        next: (tickets) => {
+          this.tickets.set(tickets);
+        },
+        error: (err) => {
+          console.error('Erro ao carregar tickets:', err);
+          this.tickets.set([]); 
+        }
+      });
+    }
+
   private loadCategories(): void {
     this.categoryService.getAll().subscribe({
       next: (categories) => {
-        this.categories = categories;
+        this.categories.set(categories);
       },
       error: (err) => {
         console.error('Erro ao carregar categorias:', err);
+        this.tickets.set([]); 
       }
     });
   }
 
-  private loadTickets(): void {
-    this.ticketService.getAll().subscribe({
-      next: (tickets) => {
-        this.tickets = tickets;
-      },
-      error: (err) => {
-        console.error('Erro ao carregar tickets:', err);
-      }
-    });
-  }
+
+  firstThreeTickets = computed(() => this.tickets().slice(0, 3));
+  firstThreeCategories = computed(() => this.categories().slice(0, 6));
 
   getStatusLabel(status: TicketStatus): string {
     const labels: Record<TicketStatus, string> = {

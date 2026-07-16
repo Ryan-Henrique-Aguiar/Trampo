@@ -1,9 +1,12 @@
-<section class="home">
+<!-- tickets.html -->
+<section>
     <app-action-cards />
     <div class="tickets">
         <h1>Meus serviços</h1>
-        @for (ticket of tickets.slice(0, 3); track ticket.code) {
+        @for (ticket of tickets(); track ticket.code) {
             <app-ticket-card [ticket]="ticket" />
+        } @empty {
+            <p class="no-tickets">Nenhum ticket encontrado</p>
         }
     </div>
 </section>
