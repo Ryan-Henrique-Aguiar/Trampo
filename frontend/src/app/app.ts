@@ -1,5 +1,6 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { AuthService } from './services/auth/auth';
 
 @Component({
   selector: 'app-root',
@@ -7,6 +8,13 @@ import { RouterOutlet } from '@angular/router';
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
-export class App {
-  protected readonly title = signal('frontend');
+export class App implements OnInit {
+  private authService = inject(AuthService);
+
+  ngOnInit(): void {
+    // Só para desenvolvimento - remove depois
+    if (!this.authService.isAuthenticated) {
+      this.authService.setMockUser();
+    }
+  }
 }

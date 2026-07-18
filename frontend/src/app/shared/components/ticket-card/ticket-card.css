@@ -78,7 +78,11 @@
     border-radius: 12px;
     background: none;
 }
-
+.ticket-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
 @media (max-width: 600px) {
     .btn-detail {
         max-width: 70px;

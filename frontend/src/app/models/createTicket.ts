@@ -4,18 +4,14 @@ import { TicketType } from "../enums/ticket-type";
 import { Address } from "./address.model";
 
 export interface CreateTicket {
-    type: TicketType;
     title: string;
     description: string;
+    userId: number;
     categoryId: number;
-
     address: Address;
-
     priceRange: PriceRange;
-
     paymentMethods: PaymentMethod[];
-
     availableDays: string[];
-
     availableHours: string[];
+    type: TicketType;
 }

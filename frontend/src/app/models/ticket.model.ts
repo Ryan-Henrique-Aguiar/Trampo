@@ -10,7 +10,7 @@ export interface Ticket {
     type: TicketType;
     title: string;
     description: string;
-
+    userId: number;
     categoryId: number;
 
     address: Address;

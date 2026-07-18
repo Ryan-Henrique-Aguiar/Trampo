@@ -18,9 +18,13 @@
   ],
   "tickets": [
     {
-      "title": "Pintura de quarto2",
-      "description": "Pintura completa do quarto, parede e teto",
-      "categoryId": 3,
+      "id": 1,
+      "code": "TRAMPO-001",
+      "type": "NORMAL",
+      "title": "Pintura de quarto",
+      "description": "Pintura completa do quarto, paredes e teto. O quarto tem aproximadamente 15m².",
+      "userId":1,
+      "categoryId": 1,
       "address": {
         "street": "Rua das Flores",
         "number": "120",
@@ -30,9 +34,11 @@
         "zipCode": "01310-100",
         "complement": "Apto 12"
       },
+      "createdAt": "2026-07-18T10:30:00Z",
+      "proposals": 2,
       "priceRange": {
-        "min": 100,
-        "max": 500
+        "min": 150,
+        "max": 400
       },
       "paymentMethods": [
         "PIX",
@@ -40,14 +46,97 @@
       ],
       "availableDays": [
         "Segunda",
-        "Quarta"
+        "Quarta",
+        "Sexta"
       ],
       "availableHours": [
         "08:00",
-        "14:00"
+        "14:00",
+        "18:00"
       ],
+      "status": "OPEN"
+    },
+    {
+      "id": 2,
+      "code": "TRAMPO-002",
       "type": "NORMAL",
-      "id": "1"
+      "title": "Manutenção em sistema legado",
+      "description": "Manutenção corretiva em sistema de gestão de estoque Java/Spring Boot.",
+      "userId": 2,
+      "categoryId": 3,
+      "address": {
+        "street": "Avenida Paulista",
+        "number": "1500",
+        "neighborhood": "Bela Vista",
+        "city": "São Paulo",
+        "state": "SP",
+        "zipCode": "01310-200",
+        "complement": "Sala 45"
+      },
+      "createdAt": "2026-07-18T14:20:00Z",
+      "proposals": 0,
+      "priceRange": {
+        "min": 500,
+        "max": 2000
+      },
+      "paymentMethods": [
+        "PIX",
+        "BOLETO"
+      ],
+      "availableDays": [
+        "Segunda",
+        "Terça",
+        "Quarta",
+        "Quinta",
+        "Sexta"
+      ],
+      "availableHours": [
+        "09:00",
+        "11:00",
+        "14:00",
+        "16:00"
+      ],
+      "status": "OPEN"
+    },
+    {
+      "id": 3,
+      "code": "TRAMPO-003",
+      "type": "NORMAL",
+      "title": "Assentar piso cerâmico na cozinha",
+      "description": "Assentamento de piso cerâmico na cozinha de aproximadamente 20m².",
+      "userId": 1,
+      "categoryId": 2,
+      "address": {
+        "street": "Rua das Palmeiras",
+        "number": "45",
+        "neighborhood": "Jardim América",
+        "city": "São Paulo",
+        "state": "SP",
+        "zipCode": "01450-300",
+        "complement": ""
+      },
+      "createdAt": "2026-07-18T16:45:00Z",
+      "proposals": 1,
+      "priceRange": {
+        "min": 300,
+        "max": 800
+      },
+      "paymentMethods": [
+        "PIX",
+        "CREDIT",
+        "DEBIT"
+      ],
+      "availableDays": [
+        "Terça",
+        "Quinta",
+        "Sábado"
+      ],
+      "availableHours": [
+        "08:00",
+        "13:00",
+        "17:00"
+      ],
+      "status": "OPEN"
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"
