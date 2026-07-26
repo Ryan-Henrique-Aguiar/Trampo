@@ -109,121 +109,25 @@
         "08:00",
         "14:00"
       ]
-    },
-    {
-      "id": "N6rNA3XPz6c",
-      "title": "teste",
-      "description": "teste",
-      "categoryId": 1,
-      "address": {
-        "street": "MG",
-        "number": "15",
-        "neighborhood": "MG",
-        "city": "SP",
-        "state": "SP",
-        "zipCode": "525",
-        "complement": ""
-      },
-      "priceRange": {
-        "min": 15,
-        "max": 200
-      },
-      "paymentMethods": [
-        "PIX",
-        "CREDITO",
-        "DEBITO"
-      ],
-      "availableDays": [
-        "SEGUNDA",
-        "DOMINGO",
-        "TERCA",
-        "QUARTA"
-      ],
-      "availableHours": [
-        "07:00",
-        "08:00",
-        "14:00",
-        "15:00",
-        "09:00",
-        "16:00",
-        "17:00",
-        "10:00",
-        "11:00",
-        "18:00",
-        "12:00",
-        "13:00"
-      ],
-      "serviceDate": "2026-07-26T04:09:34.575Z",
-      "createdAt": "2026-07-26T04:09:34.575Z",
-      "status": "ABERTO",
-      "userId": 2,
-      "proposalsCount": 0
-    },
-    {
-      "id": "U1jdziYoeNc",
-      "title": "teste2",
-      "description": "teste",
-      "categoryId": 1,
-      "address": {
-        "street": "sp",
-        "number": "sp",
-        "neighborhood": "sp",
-        "city": "sp",
-        "state": "sp",
-        "zipCode": "151",
-        "complement": "sp"
-      },
-      "priceRange": {
-        "min": 555,
-        "max": 555
-      },
-      "paymentMethods": [
-        "PIX",
-        "CREDITO",
-        "DEBITO"
-      ],
-      "availableDays": [
-        "SEGUNDA",
-        "DOMINGO",
-        "TERCA",
-        "QUARTA"
-      ],
-      "availableHours": [
-        "15:00",
-        "14:00"
-      ],
-      "serviceDate": "2026-07-26T04:14:34.929Z",
-      "createdAt": "2026-07-26T04:14:34.929Z",
-      "status": "ABERTO",
-      "userId": 2,
-      "proposalsCount": 0
-    }
-  ],
-  "proposals": [
-    {
-      "id": "1",
-      "priceRange": 180,
-      "status": "PENDENTE",
-      "professionalId": 2,
-      "ticketId": 1
     }
   ],
   "urgentTickets": [
     {
-      "id": "1",
-      "description": "Vazamento urgente no banheiro",
-      "createdAt": "2026-07-22T08:00:00",
-      "userId": 1,
-      "categoryId": 2,
+      "id": "eXgZ2eLjLyg",
+      "title": "teste",
+      "description": "teste",
+      "categoryId": 1,
       "address": {
-        "street": "Rua das Flores",
-        "number": "120",
-        "neighborhood": "Centro",
-        "city": "Santa Rita do Sapucaí",
-        "state": "MG",
-        "zipCode": "37540000",
-        "complement": "Apto 302"
-      }
+        "street": "252",
+        "number": "255",
+        "neighborhood": "2552",
+        "city": "5225",
+        "state": "25",
+        "zipCode": "51252",
+        "complement": "2525"
+      },
+      "createdAt": "2026-07-26T22:55:00.294Z",
+      "userId": 2
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"

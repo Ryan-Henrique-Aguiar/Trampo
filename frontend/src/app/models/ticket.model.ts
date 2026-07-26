@@ -30,5 +30,4 @@ export interface UrgentTicket {
     createdAt: string;
     userId: number;
     categoryId: number;
-    address: Address;
 }

@@ -15,10 +15,11 @@ export class TicketService {
 
   private http = inject(HttpClient);
   private baseUrl = `${environment.apiUrl}/tickets`;
+  private urgentBaseUrl = `${environment.apiUrl}/urgentTickets`;
   private authService = inject(AuthService
 
-);
-  nextId(): number{
+  );
+  nextId(): number {
     return this.idFake++;
   }
 
@@ -52,17 +53,15 @@ export class TicketService {
   }
 
   create(dto: CreateTicketRequest): Observable<Ticket> {
-
-
     const payload = {
-      id: this.nextId(),                      
+      id: this.nextId(),
       title: dto.title,
       description: dto.description,
       categoryId: Number(dto.categoryId),
       address: {
-      ...dto.address,
-      complement: dto.address.complement || '' // evita null
-    },
+        ...dto.address,
+        complement: dto.address.complement || '' // evita null
+      },
       priceRange: {
         min: dto.priceMin ?? 0,
         max: dto.priceMax ?? 0,
@@ -72,7 +71,7 @@ export class TicketService {
       availableHours: dto.availableHours || [],
       serviceDate: dto.serviceDate || new Date().toISOString(),
       createdAt: new Date().toISOString(),
-      status: TicketStatus.OPEN,              
+      status: TicketStatus.OPEN,
       userId: this.authService.userId,
       proposalsCount: 0,
     };
@@ -80,8 +79,19 @@ export class TicketService {
     return this.http.post<Ticket>(this.baseUrl, payload);
   }
 
+
   createUrgent(dto: CreateUrgentTicketRequest): Observable<UrgentTicket> {
-    return this.http.post<UrgentTicket>(`${this.baseUrl}/urgentTickets`, dto);
+    const payload = {
+      id: this.nextId(),
+      title: dto.title,
+      description: dto.description,
+      categoryId: Number(dto.categoryId),
+      address: dto.address,
+      createdAt: new Date().toISOString(),
+      userId: this.authService.userId,
+    };
+
+    return this.http.post<UrgentTicket>(this.urgentBaseUrl, payload);
   }
 
   updateStatus(id: number, dto: UpdateTicketStatusRequest): Observable<Ticket> {

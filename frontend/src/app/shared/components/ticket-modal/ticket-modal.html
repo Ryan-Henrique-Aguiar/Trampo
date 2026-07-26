@@ -3,7 +3,7 @@
     <div class="modal">
 
         <div class="modal-header">
-            <h2>Solicitar serviço</h2>
+            <h2>{{ isUrgent ? 'Serviço urgente' : 'Solicitar serviço' }}</h2>
             <button class="modal-close" (click)="closeModal()">
                 <i class="fa-solid fa-xmark"></i>
             </button>
@@ -12,33 +12,35 @@
         <!-- Stepper -->
         <div class="stepper">
             <div class="step-wrapper">
-                <div class="step-circle" [class.active]="currentStep === 1" [class.done]="currentStep > 1">
-                    @if (currentStep > 1) { <i class="fa-solid fa-check"></i> } @else { 1 }
+                <div class="step-circle" [class.active]="currentStep() === 1" [class.done]="currentStep() > 1">
+                    @if (currentStep() > 1) { <i class="fa-solid fa-check"></i> } @else { 1 }
                 </div>
-                <span class="step-label" [class.active]="currentStep === 1">Básico</span>
+                <span class="step-label" [class.active]="currentStep() === 1">Básico</span>
             </div>
-            <div class="step-line" [class.done]="currentStep > 1"></div>
+            <div class="step-line" [class.done]="currentStep() > 1"></div>
 
             <div class="step-wrapper">
-                <div class="step-circle" [class.active]="currentStep === 2" [class.done]="currentStep > 2">
-                    @if (currentStep > 2) { <i class="fa-solid fa-check"></i> } @else { 2 }
+                <div class="step-circle" [class.active]="currentStep() === 2" [class.done]="currentStep() > 2">
+                    @if (currentStep() > 2) { <i class="fa-solid fa-check"></i> } @else { 2 }
                 </div>
-                <span class="step-label" [class.active]="currentStep === 2">Endereço</span>
+                <span class="step-label" [class.active]="currentStep() === 2">Endereço</span>
             </div>
-            <div class="step-line" [class.done]="currentStep > 2"></div>
+            <div class="step-line" [class.done]="currentStep() > 2"></div>
 
             <div class="step-wrapper">
-                <div class="step-circle" [class.active]="currentStep === 3">
+                <div class="step-circle" [class.active]="currentStep() === 3">
                     3
                 </div>
-                <span class="step-label" [class.active]="currentStep === 3">Detalhes</span>
+                <span class="step-label" [class.active]="currentStep() === 3">
+                    {{ isUrgent ? 'Prestadores' : 'Detalhes' }}
+                </span>
             </div>
         </div>
 
         <form [formGroup]="ticketForm">
 
             <!-- Step 1: Informações básicas -->
-            @if (currentStep === 1) {
+            @if (currentStep() === 1) {
             <div class="form-section">
                 <div class="form-group">
                     <label>Título</label>
@@ -61,7 +63,7 @@
                     <label>Categoria</label>
                     <select formControlName="categoryId">
                         <option [ngValue]="null" disabled>Selecione uma categoria</option>
-                        @for (category of categories; track category.id) {
+                        @for (category of categories(); track category.id) {
                         <option [ngValue]="category.id">{{ category.name }}</option>
                         }
                     </select>
@@ -73,7 +75,7 @@
             }
 
             <!-- Step 2: Endereço -->
-            @if (currentStep === 2) {
+            @if (currentStep() === 2) {
             <div class="form-section" formGroupName="address">
                 <div class="form-row">
                     <div class="form-group">
@@ -132,8 +134,8 @@
             </div>
             }
 
-            <!-- Step 3: Detalhes -->
-            @if (currentStep === 3) {
+            <!-- Step 3 (normal): Detalhes -->
+            @if (currentStep() === 3 && !isUrgent) {
             <div class="form-section">
                 <div class="form-row" formGroupName="priceRange">
                     <div class="form-group">
@@ -200,25 +202,75 @@
             </div>
             }
 
+            <!-- Step 3 (urgente): Prestadores disponíveis -->
+            @if (currentStep() === 3 && isUrgent) {
+            <div class="form-section">
+                <p class="providers-intro">
+                    Encontramos prestadores atendendo em modo urgente perto de você.
+                    Envie uma mensagem no WhatsApp para negociar diretamente.
+                </p>
+
+                <div class="provider-list">
+                    @for (provider of providers(); track provider.id) {
+                    <div class="provider-card">
+                        <div class="provider-info">
+                            <span class="provider-name">{{ provider.name }}</span>
+                            <span class="provider-meta">
+                                {{ provider.category }} · {{ provider.rating }}
+                                <i class="fa-solid fa-star"></i> · {{ provider.distanceKm }} km
+                            </span>
+                        </div>
+                        <button type="button" class="btn-whatsapp" (click)="openWhatsapp(provider)">
+                            <i class="fa-brands fa-whatsapp"></i>
+                            Chamar no WhatsApp
+                        </button>
+                    </div>
+                    }
+
+                    @if (!providers().length) {
+                    <p class="providers-empty">Nenhum prestador disponível no momento.</p>
+                    }
+                </div>
+            </div>
+            }
+
             <div class="modal-footer">
+                @if (!(isUrgent && currentStep() === 3)) {
                 <button type="button" class="btn-cancel" (click)="closeModal()">
                     Cancelar
                 </button>
+                }
+
                 <div class="footer-right">
-                    @if (currentStep > 1) {
+                    @if (currentStep() > 1 && !(isUrgent && currentStep() === 3)) {
                     <button type="button" class="btn-back" (click)="prevStep()">
                         Voltar
                     </button>
                     }
-                    @if (currentStep < 3) { <button type="button" class="btn-next" (click)="nextStep()">
-                        Próximo
+
+                    @if (isUrgent) {
+                        @if (currentStep() < 3) {
+                        <button type="button" class="btn-next" [disabled]="isSubmitting()" (click)="nextStep()">
+                            {{ currentStep() === 2 ? (isSubmitting() ? 'Buscando prestadores...' : 'Buscar prestadores') : 'Próximo' }}
                         </button>
                         }
-                        @if (currentStep === 3) {
+                        @if (currentStep() === 3) {
+                        <button type="button" class="btn-submit" (click)="closeModal()">
+                            Concluir
+                        </button>
+                        }
+                    } @else {
+                        @if (currentStep() < 3) {
+                        <button type="button" class="btn-next" (click)="nextStep()">
+                            Próximo
+                        </button>
+                        }
+                        @if (currentStep() === 3) {
                         <button type="button" class="btn-submit" (click)="saveTicket()">
                             Solicitar serviço
                         </button>
                         }
+                    }
                 </div>
             </div>
 
