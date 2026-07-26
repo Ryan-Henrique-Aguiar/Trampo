@@ -1,38 +1,89 @@
 -- ==========================================================
--- SCRIPT SQL - APENAS AS INTERFACES ENVIADAS NESTA CONVERSA
--- User, Category, Address, Urgency, Ticket, UrgentTicket, Proposal
--- Sem tabelas auxiliares (notification, review) que não têm
--- interface TS correspondente ainda.
+-- SCRIPT DDL ADAPTADO - PROJETO TRAMPO (v3)
+-- Alinhado às interfaces TypeScript atuais do front-end.
+-- v2 -> v3: padronizado "service" para "ticket" em todo o schema
+-- (tabela, colunas de FK e tabelas multivaloradas).
 -- ==========================================================
 
--- Interface: User
+-- ==========================================================
+-- TABELA: USERS
+-- Antes: users (base) + client + professional (herança).
+-- Agora: uma tabela só, com is_provider dizendo o "tipo".
+-- Campos exclusivos de cliente e de profissional convivem aqui,
+-- ficando NULL para quem não se aplica.
+-- ==========================================================
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
-    email VARCHAR(150) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
+    email VARCHAR(150) UNIQUE NOT NULL,
     phone VARCHAR(20),
     nickname VARCHAR(100),
     cpf CHAR(11) UNIQUE NOT NULL,
     rating NUMERIC(3,2),
     is_provider BOOLEAN NOT NULL DEFAULT FALSE,
-    created_services_count INT,
+
+    -- Específico de cliente (User.createdServicesCount)
+    created_services_count INT DEFAULT 0,
+
+    -- Específico de profissional (User.serviceStartDate / completedServicesCount)
     service_start_date DATE,
-    completed_services_count INT,
-    urgency_id INT,       -- FK adicionada abaixo, depois de "urgency" existir
-    category_ids INT[],   -- User.categoryIds -- array direto, pra espelhar a interface 1:1
+    completed_services_count INT DEFAULT 0,
+
+    urgency_id INT UNIQUE,
+
+    -- Localização (User.city / User.state)
     city VARCHAR(100),
     state VARCHAR(2)
 );
 
--- Interface: Category
+-- ==========================================================
+-- TABELA: URGENCY
+-- ATENÇÃO: no DDL antigo o FK ficava em professional.urgency_id
+-- (professional -> urgency). Sua interface Urgency inverteu isso:
+-- ela carrega professionalId. Aqui a FK "oficial" fica na urgency,
+-- e users.urgency_id vira só um cache do lado contrário.
+-- price_range e minimum_rate foram removidos: preço é negociado
+-- direto entre cliente e profissional (via WhatsApp).
+-- ==========================================================
+CREATE TABLE IF NOT EXISTS urgency (
+    id SERIAL PRIMARY KEY,
+    status VARCHAR(30) NOT NULL,
+    completed_services_count INT DEFAULT 0,
+    professional_id INT NOT NULL UNIQUE,
+    FOREIGN KEY (professional_id) REFERENCES users(id)
+);
+
+ALTER TABLE users
+ADD CONSTRAINT fk_users_urgency
+FOREIGN KEY (urgency_id) REFERENCES urgency(id);
+
+-- ==========================================================
+-- TABELA: CATEGORY
+-- ==========================================================
 CREATE TABLE IF NOT EXISTS category (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL UNIQUE,
     icon_url TEXT NOT NULL
 );
 
--- Interface: Address
+-- ==========================================================
+-- TABELA: USER_CATEGORY (antiga professional_category)
+-- Interface: User.categoryIds. Continua N:N, só trocou a FK
+-- de professional(user_id) pra users(id) direto.
+-- ==========================================================
+CREATE TABLE IF NOT EXISTS user_category (
+    user_id INT NOT NULL,
+    category_id INT NOT NULL,
+    PRIMARY KEY (user_id, category_id),
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (category_id) REFERENCES category(id)
+);
+
+-- ==========================================================
+-- TABELA: ADDRESS
+-- Sem mudanças em relação ao script original.
+-- ==========================================================
 CREATE TABLE IF NOT EXISTS address (
     id SERIAL PRIMARY KEY,
     street VARCHAR(150) NOT NULL,
@@ -41,72 +92,117 @@ CREATE TABLE IF NOT EXISTS address (
     city VARCHAR(100) NOT NULL,
     state VARCHAR(2) NOT NULL,
     zip_code VARCHAR(10),
-    complement VARCHAR(100)
+    complement VARCHAR(100),
+    UNIQUE(street, number, neighborhood, city, state)
 );
 
--- Interface: Urgency
--- OBS: a interface já carrega professionalId dentro dela mesma,
--- então a FK fica aqui (e não em users.urgency_id, que é só um espelho).
-CREATE TABLE IF NOT EXISTS urgency (
-    id SERIAL PRIMARY KEY,
-    status VARCHAR(30) NOT NULL,          -- liga/desliga o modo urgente (UrgencyStatus)
-    completed_services_count INT DEFAULT 0,
-    professional_id INT NOT NULL UNIQUE,  -- UNIQUE garante o 1:1 profissional <-> urgency
-    FOREIGN KEY (professional_id) REFERENCES users(id)
-);
--- price_range e minimum_rate foram removidos: preço é negociado direto
--- entre cliente e profissional (via WhatsApp), não configurado antecipadamente.
-
-ALTER TABLE users
-ADD CONSTRAINT fk_users_urgency
-FOREIGN KEY (urgency_id) REFERENCES urgency(id);
-
--- Interface: Ticket
+-- ==========================================================
+-- TABELA: TICKET (renomeada de "service" para padronizar com o
+-- restante do sistema, que já chama tudo de "ticket")
+-- Adicionei "code", que existe na interface Ticket mas não
+-- existia no DDL original. client_id virou user_id porque
+-- não existe mais tabela client separada.
+-- ==========================================================
 CREATE TABLE IF NOT EXISTS ticket (
     id SERIAL PRIMARY KEY,
     code VARCHAR(20) UNIQUE NOT NULL,
     title VARCHAR(100) NOT NULL,
     description TEXT NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     price_min NUMERIC(10,2),
     price_max NUMERIC(10,2),
     service_date TIMESTAMP NOT NULL,
-    status VARCHAR(30) NOT NULL,
-    user_id INT NOT NULL,
+    status VARCHAR(30) NOT NULL DEFAULT 'ABERTO',
+    proposals_count INT DEFAULT 0,
+
+    user_id INT NOT NULL,     -- antigo client_id
     category_id INT NOT NULL,
     address_id INT NOT NULL,
-    proposals_count INT DEFAULT 0,
-    payment_methods TEXT[],   -- Ticket.paymentMethods
-    available_days TEXT[],   -- Ticket.availableDays
-    available_hours TEXT[],   -- Ticket.availableHours
+
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (category_id) REFERENCES category(id),
     FOREIGN KEY (address_id) REFERENCES address(id)
 );
 
--- Interface: UrgentTicket
--- Reflete a interface EXATAMENTE como está hoje: sem title e sem address.
--- Isso bate com o payload mínimo, mas diverge do que seu front realmente
--- envia (title + address) pro POST /urgentTickets. Se for pra manter esse
--- schema fiel à interface, o back vai precisar aceitar/persistir title e
--- address por fora do tipo UrgentTicket, ou você atualiza a interface.
-CREATE TABLE IF NOT EXISTS urgent_ticket (
+-- Multivalorados de ticket (Ticket.paymentMethods / availableDays / availableHours)
+CREATE TABLE IF NOT EXISTS ticket_payment_method (
     id SERIAL PRIMARY KEY,
-    description TEXT NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    user_id INT NOT NULL,
-    category_id INT NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (category_id) REFERENCES category(id)
+    ticket_id INT NOT NULL,
+    payment_method VARCHAR(50) NOT NULL,
+    FOREIGN KEY (ticket_id) REFERENCES ticket(id) ON DELETE CASCADE
 );
 
--- Interface: Proposal
+CREATE TABLE IF NOT EXISTS ticket_available_day (
+    id SERIAL PRIMARY KEY,
+    ticket_id INT NOT NULL,
+    available_day VARCHAR(20) NOT NULL,
+    FOREIGN KEY (ticket_id) REFERENCES ticket(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS ticket_available_hour (
+    id SERIAL PRIMARY KEY,
+    ticket_id INT NOT NULL,
+    available_hour TIME NOT NULL,
+    FOREIGN KEY (ticket_id) REFERENCES ticket(id) ON DELETE CASCADE
+);
+
+-- ==========================================================
+-- TABELA: PROPOSAL
+-- Interface: price_range é número único (não min/max como Ticket).
+-- ==========================================================
 CREATE TABLE IF NOT EXISTS proposal (
     id SERIAL PRIMARY KEY,
     price_range NUMERIC(10,2) NOT NULL,
-    status VARCHAR(30) NOT NULL,
+    status VARCHAR(30) NOT NULL DEFAULT 'PENDENTE',
     professional_id INT NOT NULL,
-    ticket_id INT NOT NULL,
+    ticket_id INT NOT NULL,  -- Proposal.ticketId na interface TS
     FOREIGN KEY (professional_id) REFERENCES users(id),
     FOREIGN KEY (ticket_id) REFERENCES ticket(id)
+);
+
+-- ==========================================================
+-- TABELA: URGENT_TICKET (renomeada de "urgent_service")
+-- ATENÇÃO: a interface UrgentTicket hoje NÃO tem "title" nem
+-- "address", mas o payload real que seu front envia pro
+-- POST /urgentTickets manda os dois. Mantive as colunas aqui
+-- porque o backend precisa delas -- sugiro atualizar a
+-- interface UrgentTicket no TS pra refletir isso.
+-- ==========================================================
+CREATE TABLE IF NOT EXISTS urgent_ticket (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(100),
+    description TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    user_id INT NOT NULL,      -- antigo client_id
+    category_id INT NOT NULL,
+    address_id INT,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (category_id) REFERENCES category(id),
+    FOREIGN KEY (address_id) REFERENCES address(id)
+);
+
+-- ==========================================================
+-- TABELA: NOTIFICATION
+-- ticket_id em vez de service_id, seguindo a padronização.
+-- ==========================================================
+CREATE TABLE IF NOT EXISTS notification (
+    id SERIAL PRIMARY KEY,
+    message TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ticket_id INT NOT NULL,
+    FOREIGN KEY (ticket_id) REFERENCES ticket(id)
+);
+
+-- ==========================================================
+-- TABELA: REVIEW
+-- professional_id e client_id referenciam users(id) direto.
+-- ==========================================================
+CREATE TABLE IF NOT EXISTS review (
+    id SERIAL PRIMARY KEY,
+    score INT NOT NULL CHECK(score BETWEEN 0 AND 5),
+    comment TEXT NOT NULL,
+    professional_id INT NOT NULL,
+    client_id INT NOT NULL,
+    FOREIGN KEY (professional_id) REFERENCES users(id),
+    FOREIGN KEY (client_id) REFERENCES users(id),
+    UNIQUE(professional_id, client_id)
 );
