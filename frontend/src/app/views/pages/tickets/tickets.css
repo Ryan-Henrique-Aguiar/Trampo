@@ -2,6 +2,35 @@
     display: block;
 }
 
+
+
+/* Loading / Error states */
+.loading-state,
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px 20px;
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.loading-state i {
+  font-size: 32px;
+}
+
+.error-state i {
+  font-size: 32px;
+  color: #E8525B;
+}
+
+.error-state p {
+  margin: 0;
+  text-align: center;
+}
+
 /* Section headers */
 .section-header {
     display: flex;
@@ -22,4 +51,36 @@
     display: flex;
     flex-direction: column;
     gap: 14px;
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-secondary);
+}
+
+.empty-state i {
+  font-size: 40px;
+  margin-bottom: 12px;
+}
+
+.empty-state h3 {
+  font-size: var(--font-size-md);
+  margin-bottom: 8px;
+  color: var(--text-primary);
+}
+
+/* Button */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 12px 20px;
+  background-color: var(--primary);
+  color: white;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  font-weight: var(--font-weight-medium);
 }

@@ -6,6 +6,7 @@ import { Main } from './views/pages/main/main';
 import { Home } from './views/pages/home/home';
 import { Tickets } from './views/pages/tickets/tickets';
 import { Categories } from './views/pages/categories/categories';
+import { authGuard } from './guards/auth-guard';
 
 export const routes: Routes = [
   // Rotas públicas (sem sidebar/navbar/footer)
@@ -16,12 +17,13 @@ export const routes: Routes = [
   {
     path: '',
     component: Main,
+    canActivate: [authGuard],
     children: [
-      { path: '', component: Home},
+      { path: '', component: Home },
       { path: 'tickets', component: Tickets },
       { path: 'categories', component: Categories }
     ],
   },
 
-  { path: '**', redirectTo: ''},
+  { path: '**', redirectTo: '' },
 ];

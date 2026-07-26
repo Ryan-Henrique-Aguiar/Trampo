@@ -1,142 +1,229 @@
 {
-  "categories": [
+  "users": [
     {
       "id": "1",
-      "name": "Pintura",
-      "iconUrl": "https://thuopnsbyvbaoviwwqgb.supabase.co/storage/v1/object/public/assets/pintor.svg"
+      "name": "Maria Silva",
+      "password": "123456",
+      "email": "maria@email.com",
+      "phone": "35999990000",
+      "nickname": "Mari",
+      "cpf": "11111111111",
+      "rating": 4.8,
+      "isProvider": false,
+      "createdServicesCount": 3
     },
     {
       "id": "2",
-      "name": "Alvenaria",
-      "iconUrl": "https://thuopnsbyvbaoviwwqgb.supabase.co/storage/v1/object/public/assets/alvenaria.svg"
+      "name": "João Pereira",
+      "password": "123456",
+      "email": "joao@email.com",
+      "phone": "35999991111",
+      "nickname": "Joãozinho",
+      "cpf": "22222222222",
+      "rating": 4.5,
+      "isProvider": true,
+      "serviceStartDate": "2023-02-10",
+      "completedServicesCount": 12,
+      "urgencyId": 1,
+      "categoryIds": [
+        1,
+        3
+      ]
     },
     {
       "id": "3",
-      "name": "Desenvolvimento de software",
-      "iconUrl": "https://thuopnsbyvbaoviwwqgb.supabase.co/storage/v1/object/public/assets/software.svg"
+      "name": "Ana Costa",
+      "password": "123456",
+      "email": "ana@email.com",
+      "cpf": "33333333333",
+      "rating": 5,
+      "isProvider": true,
+      "serviceStartDate": "2022-08-01",
+      "completedServicesCount": 30,
+      "categoryIds": [
+        2
+      ]
+    }
+  ],
+  "categories": [
+    {
+      "id": "1",
+      "name": "Elétrica",
+      "iconUrl": "assets/icons/eletrica.svg"
+    },
+    {
+      "id": "2",
+      "name": "Encanamento",
+      "iconUrl": "assets/icons/encanamento.svg"
+    },
+    {
+      "id": "3",
+      "name": "Pintura",
+      "iconUrl": "assets/icons/pintura.svg"
+    }
+  ],
+  "urgencies": [
+    {
+      "id": "1",
+      "status": "ACTIVE",
+      "priceRange": 150,
+      "minimumRate": 4,
+      "completedServicesCount": 5,
+      "professionalId": 2
     }
   ],
   "tickets": [
     {
-      "id": 1,
-      "code": "TRAMPO-001",
-      "type": "NORMAL",
-      "title": "Pintura de quarto",
-      "description": "Pintura completa do quarto, paredes e teto. O quarto tem aproximadamente 15m².",
-      "userId":1,
+      "id": "1",
+      "code": "TCK-0001",
+      "title": "Troca de tomadas",
+      "description": "Preciso trocar 5 tomadas da sala e cozinha",
+      "priceRange": {
+        "min": 100,
+        "max": 200
+      },
+      "serviceDate": "2026-08-01T09:00:00",
+      "createdAt": "2026-07-15T10:30:00",
+      "status": "ABERTO",
+      "userId": 1,
       "categoryId": 1,
+      "proposalsCount": 1,
       "address": {
         "street": "Rua das Flores",
         "number": "120",
         "neighborhood": "Centro",
-        "city": "São Paulo",
-        "state": "SP",
-        "zipCode": "01310-100",
-        "complement": "Apto 12"
-      },
-      "createdAt": "2026-07-18T10:30:00Z",
-      "proposals": 2,
-      "priceRange": {
-        "min": 150,
-        "max": 400
+        "city": "Santa Rita do Sapucaí",
+        "state": "MG",
+        "zipCode": "37540000",
+        "complement": "Apto 302"
       },
       "paymentMethods": [
         "PIX",
-        "CREDIT"
+        "DINHEIRO"
       ],
       "availableDays": [
-        "Segunda",
-        "Quarta",
-        "Sexta"
+        "SEGUNDA",
+        "QUARTA"
       ],
       "availableHours": [
         "08:00",
-        "14:00",
-        "18:00"
-      ],
-      "status": "OPEN"
+        "14:00"
+      ]
     },
     {
-      "id": 2,
-      "code": "TRAMPO-002",
-      "type": "NORMAL",
-      "title": "Manutenção em sistema legado",
-      "description": "Manutenção corretiva em sistema de gestão de estoque Java/Spring Boot.",
-      "userId": 2,
-      "categoryId": 3,
+      "id": "N6rNA3XPz6c",
+      "title": "teste",
+      "description": "teste",
+      "categoryId": 1,
       "address": {
-        "street": "Avenida Paulista",
-        "number": "1500",
-        "neighborhood": "Bela Vista",
-        "city": "São Paulo",
+        "street": "MG",
+        "number": "15",
+        "neighborhood": "MG",
+        "city": "SP",
         "state": "SP",
-        "zipCode": "01310-200",
-        "complement": "Sala 45"
+        "zipCode": "525",
+        "complement": ""
       },
-      "createdAt": "2026-07-18T14:20:00Z",
-      "proposals": 0,
       "priceRange": {
-        "min": 500,
-        "max": 2000
+        "min": 15,
+        "max": 200
       },
       "paymentMethods": [
         "PIX",
-        "BOLETO"
+        "CREDITO",
+        "DEBITO"
       ],
       "availableDays": [
-        "Segunda",
-        "Terça",
-        "Quarta",
-        "Quinta",
-        "Sexta"
+        "SEGUNDA",
+        "DOMINGO",
+        "TERCA",
+        "QUARTA"
       ],
       "availableHours": [
-        "09:00",
-        "11:00",
+        "07:00",
+        "08:00",
         "14:00",
-        "16:00"
+        "15:00",
+        "09:00",
+        "16:00",
+        "17:00",
+        "10:00",
+        "11:00",
+        "18:00",
+        "12:00",
+        "13:00"
       ],
-      "status": "OPEN"
+      "serviceDate": "2026-07-26T04:09:34.575Z",
+      "createdAt": "2026-07-26T04:09:34.575Z",
+      "status": "ABERTO",
+      "userId": 2,
+      "proposalsCount": 0
     },
     {
-      "id": 3,
-      "code": "TRAMPO-003",
-      "type": "NORMAL",
-      "title": "Assentar piso cerâmico na cozinha",
-      "description": "Assentamento de piso cerâmico na cozinha de aproximadamente 20m².",
+      "id": "U1jdziYoeNc",
+      "title": "teste2",
+      "description": "teste",
+      "categoryId": 1,
+      "address": {
+        "street": "sp",
+        "number": "sp",
+        "neighborhood": "sp",
+        "city": "sp",
+        "state": "sp",
+        "zipCode": "151",
+        "complement": "sp"
+      },
+      "priceRange": {
+        "min": 555,
+        "max": 555
+      },
+      "paymentMethods": [
+        "PIX",
+        "CREDITO",
+        "DEBITO"
+      ],
+      "availableDays": [
+        "SEGUNDA",
+        "DOMINGO",
+        "TERCA",
+        "QUARTA"
+      ],
+      "availableHours": [
+        "15:00",
+        "14:00"
+      ],
+      "serviceDate": "2026-07-26T04:14:34.929Z",
+      "createdAt": "2026-07-26T04:14:34.929Z",
+      "status": "ABERTO",
+      "userId": 2,
+      "proposalsCount": 0
+    }
+  ],
+  "proposals": [
+    {
+      "id": "1",
+      "priceRange": 180,
+      "status": "PENDENTE",
+      "professionalId": 2,
+      "ticketId": 1
+    }
+  ],
+  "urgentTickets": [
+    {
+      "id": "1",
+      "description": "Vazamento urgente no banheiro",
+      "createdAt": "2026-07-22T08:00:00",
       "userId": 1,
       "categoryId": 2,
       "address": {
-        "street": "Rua das Palmeiras",
-        "number": "45",
-        "neighborhood": "Jardim América",
-        "city": "São Paulo",
-        "state": "SP",
-        "zipCode": "01450-300",
-        "complement": ""
-      },
-      "createdAt": "2026-07-18T16:45:00Z",
-      "proposals": 1,
-      "priceRange": {
-        "min": 300,
-        "max": 800
-      },
-      "paymentMethods": [
-        "PIX",
-        "CREDIT",
-        "DEBIT"
-      ],
-      "availableDays": [
-        "Terça",
-        "Quinta",
-        "Sábado"
-      ],
-      "availableHours": [
-        "08:00",
-        "13:00",
-        "17:00"
-      ],
-      "status": "OPEN"
+        "street": "Rua das Flores",
+        "number": "120",
+        "neighborhood": "Centro",
+        "city": "Santa Rita do Sapucaí",
+        "state": "MG",
+        "zipCode": "37540000",
+        "complement": "Apto 302"
+      }
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"

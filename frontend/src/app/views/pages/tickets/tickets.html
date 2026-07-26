@@ -1,12 +1,73 @@
-<!-- tickets.html -->
-<section>
-    <app-action-cards />
-    <div class="tickets">
-        <h1>Meus serviços</h1>
-        @for (ticket of tickets(); track ticket.code) {
-            <app-ticket-card [ticket]="ticket" />
-        } @empty {
-            <p class="no-tickets">Nenhum ticket encontrado</p>
-        }
+<section class="tickets-page">
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="loading-state">
+      <i class="fa-solid fa-spinner fa-spin"></i>
+      <span>Carregando...</span>
     </div>
+  }
+
+  <!-- Error -->
+  @if (error()) {
+    <div class="error-state">
+      <i class="fa-solid fa-exclamation-circle"></i>
+      <p>{{ error() }}</p>
+    </div>
+  }
+
+  <!-- Conteúdo principal -->
+  @if (!loading() && !error()) {
+
+    <!-- ========== MODO PRESTADOR ========== -->
+    @if (isProviderMode) {
+      <div class="section-header">
+        <h2>Serviços disponíveis para você</h2>
+        <span class="tickets-count">{{ availableTickets().length }} serviços</span>
+      </div>
+
+      @if (availableTickets().length > 0) {
+        <div class="tickets">
+          @for (ticket of availableTickets(); track ticket.code) {
+            <app-ticket-card [ticket]="ticket" />
+          }
+        </div>
+      } @else {
+        <div class="empty-state">
+          <i class="fa-regular fa-face-smile"></i>
+          <h3>Nenhum serviço disponível</h3>
+          <p>Não há serviços disponíveis nas suas categorias de atuação no momento.</p>
+        </div>
+      }
+    }
+
+    <!-- ========== MODO CLIENTE ========== -->
+    @else {
+      <app-action-cards />
+
+      <div class="section-header">
+        <h2>Meus serviços publicados</h2>
+        <span class="tickets-count">{{ tickets().length }} serviços</span>
+      </div>
+
+      @if (tickets().length > 0) {
+        <div class="tickets">
+          @for (ticket of tickets(); track ticket.code) {
+            <app-ticket-card [ticket]="ticket" />
+          }
+        </div>
+      } @else {
+        <div class="empty-state">
+          <i class="fa-regular fa-face-smile"></i>
+          <h3>Nenhum serviço publicado</h3>
+          <p>Você ainda não publicou nenhum serviço. Comece agora!</p>
+          <a routerLink="/tickets/create" class="btn-primary">
+            <i class="fa-solid fa-plus"></i>
+            Publicar meu primeiro serviço
+          </a>
+        </div>
+      }
+    }
+  }
+
 </section>

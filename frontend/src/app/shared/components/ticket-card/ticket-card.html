@@ -21,15 +21,17 @@
         {{ formatDate(ticket.createdAt) }}
       </span>
 
-      <span>
-        <i class="fa-solid fa-sack-dollar"></i>
-        {{ formatCurrency(ticket.priceRange.min) }} - {{ formatCurrency(ticket.priceRange.max) }}
-      </span>
+      @if (ticket.priceRange) {
+        <span>
+          <i class="fa-solid fa-sack-dollar"></i>
+          {{ formatCurrency(ticket.priceRange.min) }} - {{ formatCurrency(ticket.priceRange.max) }}
+        </span>
+      }
 
-      @if (ticket.proposals) {
+      @if (ticket.proposalsCount) {
         <span>
           <i class="fa-solid fa-comment-dots"></i>
-          {{ ticket.proposals }} propostas
+          {{ ticket.proposalsCount }} propostas
         </span>
       }
     </div>

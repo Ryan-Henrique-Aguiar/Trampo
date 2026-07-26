@@ -11,13 +11,7 @@ import { TicketStatus } from '../../../enums/ticket-status';
 import { TicketCard } from "../../../shared/components/ticket-card/ticket-card";
 import { ActionCards } from "../../../shared/components/action-cards/action-cards";
 import { AuthService } from '../../../services/auth/auth';
-
-interface User {
-  id: number;
-  name: string;
-  type: 'client' | 'provider';
-  categories?: number[]; 
-}
+import { ViewModeService } from '../../../services/view-mode/view-mode-service';
 
 @Component({
   selector: 'app-home',
@@ -29,14 +23,16 @@ export class Home implements OnInit {
 
   categories = signal<Category[]>([]);
   tickets = signal<Ticket[]>([]);
+  availableTickets = signal<Ticket[]>([]);
+
   loading = signal<boolean>(false);
   error = signal<string | null>(null);
 
   private categoryService = inject(CategoryService);
   private ticketService = inject(TicketService);
   private authService = inject(AuthService);
+  private viewModeService = inject(ViewModeService);
 
-  // Computed para usar no template
   get isProvider() {
     return this.authService.isProvider;
   }
@@ -49,46 +45,62 @@ export class Home implements OnInit {
     return this.authService.currentUser;
   }
 
+  get isProviderMode() {
+    return this.viewModeService.isProviderMode;
+  }
+
   ngOnInit(): void {
+    if (this.authService.isProvider) {
+      this.viewModeService.setMode('provider');
+    }
     this.loadCategories();
     this.loadTickets();
   }
 
   private loadTickets(): void {
-    this.loading.set(true);
-    this.error.set(null);
-    
-    this.ticketService.getAll().subscribe({
-      next: (tickets) => {
-        let filteredTickets: Ticket[] = [];
+  const userId = this.authService.userId;
+  if (userId === undefined) {
+    this.error.set('Usuário não autenticado.');
+    return;
+  }
 
-        if (this.authService.isProvider) {
-          // PROFISSIONAL: Vê tickets abertos das suas categorias (exceto os próprios)
-          filteredTickets = tickets.filter(t => 
-            t.status === TicketStatus.OPEN && 
-            this.authService.hasCategory(t.categoryId) &&
-            !this.authService.isOwner(t.userId) // Não mostra os próprios tickets
-          );
-          console.log(`Tickets disponíveis para o profissional: ${filteredTickets.length}`);
-        } else {
-          // CLIENTE (usuário comum): Vê apenas os tickets que ele criou
-          filteredTickets = tickets.filter(t => 
-            t.userId === this.authService.userId
-          );
-          console.log(`Tickets do cliente: ${filteredTickets.length}`);
-        }
+  this.loading.set(true);
+  this.error.set(null);
 
-        this.tickets.set(filteredTickets);
-        this.loading.set(false);
-      },
-      error: (err) => {
-        console.error('Erro ao carregar tickets:', err);
-        this.error.set('Erro ao carregar tickets.');
-        this.tickets.set([]);
+  // Carrega "meus tickets" (backend cuida via token)
+  this.ticketService.getTickets().subscribe({
+    next: (myTickets) => {
+      this.tickets.set(myTickets);
+
+      // Se for prestador, carrega "tickets disponíveis"
+      if (this.authService.isProvider) {
+        this.ticketService.getTickets({
+          status: TicketStatus.OPEN,
+          categoryId: this.authService.userCategories
+        }).subscribe({
+          next: (availableTickets) => {
+            // Sem filtro local de isOwner - backend já cuida disso
+            this.availableTickets.set(availableTickets);
+            this.loading.set(false);
+          },
+          error: (err) => {
+            console.error('Erro ao carregar tickets disponíveis:', err);
+            this.availableTickets.set([]);
+            this.loading.set(false);
+          }
+        });
+      } else {
         this.loading.set(false);
       }
-    });
-  }
+    },
+    error: (err) => {
+      console.error('Erro ao carregar seus tickets:', err);
+      this.error.set('Erro ao carregar tickets.');
+      this.tickets.set([]);
+      this.loading.set(false);
+    }
+  });
+}
 
   private loadCategories(): void {
     this.categoryService.getAll().subscribe({
@@ -102,27 +114,17 @@ export class Home implements OnInit {
     });
   }
 
-  // Computed: Primeiros 3 tickets (já filtrados)
-  firstThreeTickets = computed(() => {
-    const allTickets = this.tickets();
-    return allTickets.slice(0, 3);
-  });
-
-  // Computed: Primeiras 3 categorias
-  firstThreeCategories = computed(() => {
-    const allCategories = this.categories();
-    return allCategories.slice(0, 3);
-  });
+  firstThreeMyTickets = computed(() => this.tickets().slice(0, 3));
+  firstThreeCategories = computed(() => this.categories().slice(0, 3));
+  firstThreeAvailableTickets = computed(() => this.availableTickets().slice(0, 3));
 
   getStatusLabel(status: TicketStatus): string {
     const labels: Record<TicketStatus, string> = {
       [TicketStatus.OPEN]: 'Aberto',
-      [TicketStatus.WITH_PROPOSALS]: 'Com propostas',
       [TicketStatus.IN_PROGRESS]: 'Em andamento',
       [TicketStatus.COMPLETED]: 'Finalizado',
       [TicketStatus.CANCELLED]: 'Cancelado'
     };
     return labels[status] || status;
   }
-
 }

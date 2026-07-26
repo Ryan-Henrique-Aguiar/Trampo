@@ -1,5 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { AuthService } from '../../../services/auth/auth';
+import { ViewModeService } from '../../../services/view-mode/view-mode-service';
 
 @Component({
   selector: 'app-main',
@@ -11,23 +13,27 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
   templateUrl: './main.html',
   styleUrl: './main.css',
 })
+export class Main implements OnInit {
+  name: string | null = null;
 
-export class Main {
+  private authService = inject(AuthService);
+  private viewModeService = inject(ViewModeService);
 
-  lista: string[] = ['marcus', 'ryan', 'saimon', 'jaison', 'luciano tiburcio'];
-  name: string | null = '';
   isHelpOpen = false;
-  ngOnInit(): void {
-    this.name = this.getRandomElement(this.lista);
-  }
-  getRandomElement<T>(list: T[]): T | null {
-    if (!Array.isArray(list) || list.length === 0) {
-      console.error("A lista está vazia ou não é um array válido.");
-      return null;
-    }
 
-    const randomIndex = Math.floor(Math.random() * list.length);
-    return list[randomIndex];
+  get isProvider() {
+    return this.authService.isProvider;
   }
-  
+
+  get isProviderMode() {
+    return this.viewModeService.isProviderMode;
+  }
+
+  ngOnInit(): void {
+    this.name = this.authService.currentUser?.name ?? null;
+  }
+
+  toggleMode(): void {
+    this.viewModeService.toggle();
+  }
 }

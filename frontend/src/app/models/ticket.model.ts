@@ -1,24 +1,34 @@
-import { Address } from './address.model';
-import { PaymentMethod } from '../enums/payment-method';
 import { TicketStatus } from '../enums/ticket-status';
-import { TicketType } from '../enums/ticket-type';
-import { PriceRange } from './price-range.model';
+import { Address } from './address.model';
+
+export interface PriceRange {
+  min: number;
+  max: number;
+}
 
 export interface Ticket {
     id: number;
     code: string;
-    type: TicketType;
     title: string;
     description: string;
+    createdAt: string;
+    priceRange?: PriceRange;
+    serviceDate: string;
+    status: TicketStatus;
     userId: number;
     categoryId: number;
-
+    proposalsCount?: number;
     address: Address;
+    paymentMethods?: string[];
+    availableDays?: string[];
+    availableHours?: string[];
+}
+
+export interface UrgentTicket {
+    id: number;
+    description: string;
     createdAt: string;
-    proposals: number;
-    priceRange: PriceRange;
-    paymentMethods: PaymentMethod[];
-    availableDays: string[];
-    availableHours: string[];
-    status: TicketStatus;
+    userId: number;
+    categoryId: number;
+    address: Address;
 }

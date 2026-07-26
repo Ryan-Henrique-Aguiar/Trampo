@@ -4,8 +4,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { CategoryService } from '../../../services/category/category-service';
 import { TicketService } from '../../../services/ticket/ticket-service';
 import { Category } from '../../../models/category.model';
-import { PaymentMethod } from '../../../enums/payment-method';
-import { TicketType } from '../../../enums/ticket-type';
+import { CreateTicketRequest } from '../../../dto/ticket/create-ticket-request';
 
 @Component({
   selector: 'app-ticket-modal',
@@ -14,30 +13,31 @@ import { TicketType } from '../../../enums/ticket-type';
   styleUrl: './ticket-modal.css',
 })
 export class TicketModal implements OnInit {
-
   @Input() isOpen = false;
-  @Input() isUrgent = false;
   @Output() close = new EventEmitter<void>();
 
-  public categories: Category[] = [];
-  public currentStep = 1;
-  public ticketForm!: FormGroup;
+  categories: Category[] = [];
+  currentStep = 1;
+  ticketForm!: FormGroup;
+  isSubmitting = false;
+  errorMessage: string | null = null;
+  successMessage: string | null = null;
 
-  public paymentOptions = [
-    { label: 'Pix', value: PaymentMethod.PIX },
-    { label: 'Crédito', value: PaymentMethod.CREDIT },
-    { label: 'Débito', value: PaymentMethod.DEBIT },
-    { label: 'Dinheiro', value: PaymentMethod.CASH },
+  // Valores alinhados com o mock/backend
+  paymentOptions = [
+    { label: 'Pix', value: 'PIX' },
+    { label: 'Crédito', value: 'CREDITO' },
+    { label: 'Débito', value: 'DEBITO' },
+    { label: 'Dinheiro', value: 'DINHEIRO' },
   ];
 
-  public dayOptions = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
+  dayOptions = ['SEGUNDA', 'TERCA', 'QUARTA', 'QUINTA', 'SEXTA', 'SABADO', 'DOMINGO'];
 
-  public hourOptions = [
+  hourOptions = [
     '07:00', '08:00', '09:00', '10:00', '11:00', '12:00',
     '13:00', '14:00', '15:00', '16:00', '17:00', '18:00',
   ];
 
-  // Campos que pertencem a cada step, usados na validação por etapa
   private stepFields: Record<number, string[]> = {
     1: ['title', 'description', 'categoryId'],
     2: ['address.street', 'address.number', 'address.neighborhood', 'address.city', 'address.state', 'address.zipCode'],
@@ -51,7 +51,10 @@ export class TicketModal implements OnInit {
 
   ngOnInit(): void {
     this.getCategories();
+    this.buildForm();
+  }
 
+  private buildForm(): void {
     this.ticketForm = new FormGroup({
       title: new FormControl(null, [Validators.required, Validators.maxLength(50)]),
       description: new FormControl(null, [Validators.required, Validators.maxLength(500)]),
@@ -77,79 +80,95 @@ export class TicketModal implements OnInit {
 
   private getCategories(): void {
     this.categoryService.getAll().subscribe({
-      next: (categories) => this.categories = categories,
+      next: (categories) => (this.categories = categories),
       error: (err: HttpErrorResponse) => console.error('Erro ao carregar categorias:', err),
     });
   }
-   public saveTicket(): void {
+
+  saveTicket(): void {
     if (this.ticketForm.invalid) {
       this.ticketForm.markAllAsTouched();
       return;
     }
 
-    const form = {
-      ...this.ticketForm.value,
-      type: this.isUrgent ? TicketType.URGENT : TicketType.NORMAL,
+    this.isSubmitting = true;
+    this.errorMessage = null;
+    this.successMessage = null;
+
+    const formValue = this.ticketForm.value;
+    const dto: CreateTicketRequest = {
+      title: formValue.title,
+      description: formValue.description,
+      categoryId: formValue.categoryId,
+      address: formValue.address,
+      priceMin: formValue.priceRange?.min ?? undefined,
+      priceMax: formValue.priceRange?.max ?? undefined,
+      paymentMethods: formValue.paymentMethods?.length ? formValue.paymentMethods : undefined,
+      availableDays: formValue.availableDays?.length ? formValue.availableDays : undefined,
+      availableHours: formValue.availableHours?.length ? formValue.availableHours : undefined,
+      serviceDate: new Date().toISOString(), // idealmente você teria um campo de data no form; por enquanto, data atual
     };
 
-    this.ticketService.create(form).subscribe({
+    this.ticketService.create(dto).subscribe({
       next: () => {
-        this.closeModal();
-        this.resetForm();
+        this.successMessage = 'Serviço publicado com sucesso!';
+        this.isSubmitting = false;
+        setTimeout(() => {
+          this.closeModal();
+        }, 1500);
       },
       error: (err: HttpErrorResponse) => {
         console.error('Erro ao criar ticket:', err);
+        this.errorMessage = 'Erro ao publicar serviço. Tente novamente.';
+        this.isSubmitting = false;
       },
     });
   }
 
-  public nextStep(): void {
+  nextStep(): void {
     if (!this.isStepValid(this.currentStep)) {
       this.markStepAsTouched(this.currentStep);
       return;
     }
-
     if (this.currentStep < 3) this.currentStep++;
   }
 
-  public prevStep(): void {
+  prevStep(): void {
     if (this.currentStep > 1) this.currentStep--;
   }
 
   private isStepValid(step: number): boolean {
-    return this.stepFields[step].every(field => this.ticketForm.get(field)?.valid);
+    return this.stepFields[step].every((field) => this.ticketForm.get(field)?.valid);
   }
 
   private markStepAsTouched(step: number): void {
-    this.stepFields[step].forEach(field => this.ticketForm.get(field)?.markAsTouched());
+    this.stepFields[step].forEach((field) => this.ticketForm.get(field)?.markAsTouched());
   }
 
-  /** Usado no HTML para exibir mensagem de erro só quando o campo foi tocado e está inválido. */
-  public isInvalid(field: string): boolean {
+  isInvalid(field: string): boolean {
     const control = this.ticketForm.get(field);
     return !!control && control.invalid && control.touched;
   }
 
-  public isSelected(field: string, value: any): boolean {
+  isSelected(field: string, value: any): boolean {
     return (this.ticketForm.get(field)?.value || []).includes(value);
   }
 
-  public toggleSelection(field: string, value: any): void {
+  toggleSelection(field: string, value: any): void {
     const current = this.ticketForm.get(field)?.value || [];
     const updated = current.includes(value)
       ? current.filter((item: any) => item !== value)
       : [...current, value];
-
     this.ticketForm.get(field)?.setValue(updated);
     this.ticketForm.get(field)?.markAsTouched();
   }
 
-  public closeModal(): void {
+  closeModal(): void {
     this.resetForm();
     this.close.emit();
   }
 
-  public onOverlayClick(event: MouseEvent): void {
+  onOverlayClick(event: MouseEvent): void {
     if ((event.target as HTMLElement).classList.contains('modal-overlay')) {
       this.closeModal();
     }
@@ -157,9 +176,25 @@ export class TicketModal implements OnInit {
 
   private resetForm(): void {
     this.currentStep = 1;
-    this.ticketForm.reset();
-    this.ticketForm.get('paymentMethods')?.setValue([]);
-    this.ticketForm.get('availableDays')?.setValue([]);
-    this.ticketForm.get('availableHours')?.setValue([]);
+    this.errorMessage = null;
+    this.successMessage = null;
+    this.ticketForm.reset({
+      title: null,
+      description: null,
+      categoryId: null,
+      priceRange: { min: null, max: null },
+      paymentMethods: [],
+      availableDays: [],
+      availableHours: [],
+      address: {
+        street: null,
+        number: null,
+        neighborhood: null,
+        city: null,
+        state: null,
+        zipCode: null,
+        complement: null,
+      },
+    });
   }
 }

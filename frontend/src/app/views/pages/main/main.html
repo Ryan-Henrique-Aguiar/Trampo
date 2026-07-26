@@ -60,7 +60,22 @@
                 <img src="logos/branco-transparente.png" alt="Trampo" width="100px" class="logo-navbar-mobile">
                 <span class="navbar-title">Olá, {{name}}</span>
             </div>
+
             <div class="navbar-icon">
+                @if (isProvider) {
+                <div class="view-mode-switch-wrapper">
+                    <button type="button" class="view-mode-switch" [class.view-mode-switch--provider]="isProviderMode"
+                        (click)="toggleMode()">
+                        <span class="view-mode-switch-track">
+                            <span class="view-mode-switch-knob"></span>
+                        </span>
+                        <span class="view-mode-switch-label">
+                            {{ isProviderMode ? 'Quero trabalhar' : 'Quero contratar' }}
+                        </span>
+                    </button>
+                </div>
+                }
+
                 <i class="fa-solid fa-bell"></i>
                 <i class="fa-solid fa-gear icon-settings"></i>
             </div>

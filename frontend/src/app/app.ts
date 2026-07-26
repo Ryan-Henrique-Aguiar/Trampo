@@ -8,13 +8,6 @@ import { AuthService } from './services/auth/auth';
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
-export class App implements OnInit {
-  private authService = inject(AuthService);
+export class App {
 
-  ngOnInit(): void {
-    // Só para desenvolvimento - remove depois
-    if (!this.authService.isAuthenticated) {
-      this.authService.setMockUser();
-    }
-  }
 }

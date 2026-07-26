@@ -17,7 +17,6 @@ export class TicketCard {
   getStatusLabel(status: TicketStatus): string {
     const labels: Record<TicketStatus, string> = {
       [TicketStatus.OPEN]: 'Aberto',
-      [TicketStatus.WITH_PROPOSALS]: 'Com propostas',
       [TicketStatus.IN_PROGRESS]: 'Em andamento',
       [TicketStatus.COMPLETED]: 'Finalizado',
       [TicketStatus.CANCELLED]: 'Cancelado'
