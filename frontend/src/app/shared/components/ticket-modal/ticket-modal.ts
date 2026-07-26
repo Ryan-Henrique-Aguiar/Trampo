@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, EventEmitter, Input, OnInit, Output, signal, computed } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, signal, computed, SimpleChanges } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CategoryService } from '../../../services/category/category-service';
 import { TicketService } from '../../../services/ticket/ticket-service';
@@ -25,6 +25,7 @@ export class TicketModal implements OnInit {
 
   @Input() isOpen = false;
   @Input() isUrgent = false;
+  @Input() preselectedCategoryId: number | null = null;
   @Output() close = new EventEmitter<void>();
 
   public categories = signal<Category[]>([]);
@@ -220,6 +221,14 @@ export class TicketModal implements OnInit {
     }
   }
 
+  ngOnChanges(changes: SimpleChanges
+  ): void {
+    if (changes['isOpen'] && this.isOpen && this.ticketForm) {
+      if (this.preselectedCategoryId != null) {
+        this.ticketForm.get('categoryId')?.setValue(this.preselectedCategoryId);
+      }
+    }
+  }
   private resetForm(): void {
     this.currentStep.set(1);
     this.providers.set([]);

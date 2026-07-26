@@ -1,20 +1,19 @@
-import { Component } from '@angular/core';
-import { TicketModal } from '../ticket-modal/ticket-modal';
+import { Component, EventEmitter, Output } from '@angular/core';
+
+export interface OpenTicketRequest {
+  urgent: boolean;
+}
 
 @Component({
   selector: 'app-action-cards',
-  imports: [TicketModal],
+  imports: [],
   templateUrl: './action-cards.html',
   styleUrl: './action-cards.css',
 })
 export class ActionCards {
-  isModalOpen = false;
-  isUrgent = false;
-  openModal(urgent: boolean = false): void {
-    this.isUrgent = urgent;
-    this.isModalOpen = true;
-  }
-  closeModal(): void {
-    this.isModalOpen = false;
+  @Output() openTicket = new EventEmitter<OpenTicketRequest>();
+
+  public requestTicket(urgent: boolean = false): void {
+    this.openTicket.emit({ urgent });
   }
 }

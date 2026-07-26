@@ -91,7 +91,6 @@ CREATE TABLE IF NOT EXISTS address (
     neighborhood VARCHAR(100) NOT NULL,
     city VARCHAR(100) NOT NULL,
     state VARCHAR(2) NOT NULL,
-    zip_code VARCHAR(10),
     complement VARCHAR(100),
     UNIQUE(street, number, neighborhood, city, state)
 );
