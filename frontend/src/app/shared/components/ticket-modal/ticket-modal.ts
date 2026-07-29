@@ -29,8 +29,8 @@ export class TicketModal implements OnInit {
   public currentStep = signal(1);
   public isSubmitting = signal(false);
   public providers = signal<User[]>([]);
-  public estados = signal<Estado[]>([]);  
-  public cidades = signal<Cidade[]>([]); 
+  public estados = signal<Estado[]>([]);
+  public cidades = signal<Cidade[]>([]);
   public cepLoading = signal(false);
   public cepError = signal<string | null>(null);
   // ==================== PUBLIC PROPERTIES ====================
@@ -105,7 +105,7 @@ export class TicketModal implements OnInit {
         neighborhood: new FormControl(null, [Validators.required]),
         city: new FormControl({ value: null, disabled: true }, [Validators.required]), // <-- disabled até escolher estado
         state: new FormControl(null, [Validators.required, Validators.maxLength(2)]),
-        zipCode: new FormControl(null, [Validators.required]), 
+        zipCode: new FormControl(null, [Validators.required]),
         complement: new FormControl(null),
       }),
       priceRange: new FormGroup({
@@ -145,19 +145,30 @@ export class TicketModal implements OnInit {
       error: (err: HttpErrorResponse) => console.error('Erro ao carregar cidades:', err),
     });
   }
+  
+  public formatCep(event: any): void {
+    let value = event.target.value.replace(/\D/g, '');
+    if (value.length > 5) {
+        value = value.substring(0, 5) + '-' + value.substring(5, 8);
+    }
+    this.ticketForm.get('address.zipCode')?.setValue(value, { emitEvent: false });
+}
+
   public onCepBlur(): void {
     const cepControl = this.ticketForm.get('address.zipCode');
     const cep = cepControl?.value;
 
     if (!cep) return;
 
-    const cepLimpo = cep.replace(/\D/g, '');
-    if (cepLimpo.length !== 8) return; // não busca CEP incompleto
-
+    const cepClean = cep.replace(/\D/g, '');
+    if (cepClean.length !== 8) {
+      this.cepError.set('CEP deve ter 8 dígitos');
+      return;
+    }
     this.cepLoading.set(true);
     this.cepError.set(null);
 
-    this.cepService.getCep(cepLimpo).subscribe({
+    this.cepService.getCep(cepClean).subscribe({
       next: (address) => {
         this.cepLoading.set(false);
         this.ticketForm.get('address.street')?.setValue(address.logradouro);
@@ -318,10 +329,10 @@ export class TicketModal implements OnInit {
   private resetForm(): void {
     this.currentStep.set(1);
     this.providers.set([]);
-    this.cidades.set([]); 
+    this.cidades.set([]);
     this.isSubmitting.set(false);
-    this.cepError.set(null);      
-    this.cepLoading.set(false);   
+    this.cepError.set(null);
+    this.cepLoading.set(false);
     this.ticketForm.reset();
     this.ticketForm.get('paymentMethods')?.setValue([]);
     this.ticketForm.get('availableDays')?.setValue([]);

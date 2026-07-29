@@ -79,7 +79,7 @@
             <div class="form-section" formGroupName="address">
                 <div class="form-group">
                     <label>Estado</label>
-                    <input type="text" formControlName="state" placeholder="SP" maxlength="2"
+                    <input type="text" formControlName="state" placeholder="Selecione o estado" maxlength="2"
                         list="lista-estados-ticket" (change)="onEstadoChange()" autocomplete="off" />
                     <datalist id="lista-estados-ticket">
                         @for (estado of estados(); track estado.id) {
@@ -93,7 +93,7 @@
 
                 <div class="form-group">
                     <label>Cidade</label>
-                    <input type="text" formControlName="city" placeholder="São Paulo" list="lista-cidades-ticket"
+                    <input type="text" formControlName="city" placeholder="Selecione a cidade" list="lista-cidades-ticket"
                         autocomplete="off" />
                     <datalist id="lista-cidades-ticket">
                         @for (cidade of cidades(); track cidade.id) {
@@ -106,7 +106,7 @@
                 </div>
                 <div class="form-group">
                     <label>CEP</label>
-                    <input type="text" formControlName="zipCode" placeholder="37540-000" maxlength="9"
+                    <input type="text" formControlName="zipCode" placeholder="Digite seu cep" maxlength="9" (input)="formatCep($event)" 
                         (blur)="onCepBlur()" />
                     @if (cepLoading()) {
                     <span class="field-hint">Buscando endereço...</span>
@@ -121,7 +121,7 @@
 
                 <div class="form-group">
                     <label>Bairro</label>
-                    <input type="text" formControlName="neighborhood" placeholder="Centro" />
+                    <input type="text" formControlName="neighborhood" placeholder="Digite o bairro" />
                     @if (isInvalid('address.neighborhood')) {
                     <span class="field-error">Bairro é obrigatório.</span>
                     }
@@ -130,14 +130,14 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label>Rua</label>
-                        <input type="text" formControlName="street" placeholder="Rua das Flores" />
+                        <input type="text" formControlName="street" placeholder="Digite a rua" />
                         @if (isInvalid('address.street')) {
                         <span class="field-error">Rua é obrigatória.</span>
                         }
                     </div>
                     <div class="form-group">
                         <label>Número</label>
-                        <input type="text" formControlName="number" placeholder="120" />
+                        <input type="text" formControlName="number" placeholder="Digite o numero da residência" />
                         @if (isInvalid('address.number')) {
                         <span class="field-error">Número é obrigatório.</span>
                         }
