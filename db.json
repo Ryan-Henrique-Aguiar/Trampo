@@ -1,18 +1,6 @@
 {
   "users": [
     {
-      "id": "1",
-      "name": "Maria Silva",
-      "password": "123456",
-      "email": "maria@email.com",
-      "phone": "35999990000",
-      "nickname": "Mari",
-      "cpf": "11111111111",
-      "rating": 4.8,
-      "isProvider": false,
-      "createdServicesCount": 3
-    },
-    {
       "id": "2",
       "name": "João Pereira",
       "password": "123456",
@@ -24,11 +12,13 @@
       "isProvider": true,
       "serviceStartDate": "2023-02-10",
       "completedServicesCount": 12,
-      "urgencyId": 1,
+      "isAvailableForUrgency": true,
       "categoryIds": [
         1,
         3
-      ]
+      ],
+      "city": "São Paulo",
+      "state": "SP"
     },
     {
       "id": "3",
@@ -40,9 +30,12 @@
       "isProvider": true,
       "serviceStartDate": "2022-08-01",
       "completedServicesCount": 30,
+      "isAvailableForUrgency": true,
       "categoryIds": [
         2
-      ]
+      ],
+      "city": "Rio de Janeiro",
+      "state": "RJ"
     }
   ],
   "categories": [
@@ -109,6 +102,43 @@
         "08:00",
         "14:00"
       ]
+    },
+    {
+      "id": "2",
+      "code": "TCK-0002",
+      "title": "Conserto de encanamento",
+      "description": "Vazamento na cozinha",
+      "priceRange": {
+        "min": 150,
+        "max": 300
+      },
+      "serviceDate": "2026-08-05T14:00:00",
+      "createdAt": "2026-07-20T15:45:00",
+      "status": "ABERTO",
+      "userId": 1,
+      "categoryId": 2,
+      "proposalsCount": 0,
+      "address": {
+        "street": "Av. Principal",
+        "number": "450",
+        "neighborhood": "Jardim",
+        "city": "Santa Rita do Sapucaí",
+        "state": "MG",
+        "zipCode": "37540000",
+        "complement": "Casa"
+      },
+      "paymentMethods": [
+        "PIX",
+        "CREDITO"
+      ],
+      "availableDays": [
+        "TERÇA",
+        "QUINTA"
+      ],
+      "availableHours": [
+        "09:00",
+        "15:00"
+      ]
     }
   ],
   "urgentTickets": [
@@ -127,6 +157,134 @@
         "complement": "2525"
       },
       "createdAt": "2026-07-26T22:55:00.294Z",
+      "userId": 2
+    },
+    {
+      "id": "hPCO9OGlWgw",
+      "title": "rqrq",
+      "description": "rqqr",
+      "categoryId": 2,
+      "address": {
+        "street": "rqqr",
+        "number": "qr",
+        "neighborhood": "qr",
+        "city": "qrqr",
+        "state": "rq",
+        "complement": "qrqr"
+      },
+      "createdAt": "2026-07-26T23:35:41.732Z",
+      "userId": 2
+    },
+    {
+      "id": "yUF19x1xFnk",
+      "title": "rqrq",
+      "description": "rqrq",
+      "categoryId": 1,
+      "address": {
+        "street": "qrq",
+        "number": "rqrq",
+        "neighborhood": "rqr",
+        "city": "São Paulo",
+        "state": "SP",
+        "complement": "qr"
+      },
+      "createdAt": "2026-07-26T23:52:32.722Z",
+      "userId": 2
+    },
+    {
+      "id": "7_B-NMvn4Bc",
+      "title": "rq",
+      "description": "rqrq",
+      "categoryId": 1,
+      "address": {
+        "street": "qrrq",
+        "number": "qrqr",
+        "neighborhood": "rq",
+        "city": "qrrq",
+        "state": "qr",
+        "complement": "qr"
+      },
+      "createdAt": "2026-07-28T23:01:47.936Z",
+      "userId": 2
+    },
+    {
+      "id": "7xveMQUiJY4",
+      "title": "teste",
+      "description": "teste",
+      "categoryId": 1,
+      "address": {
+        "street": "teste",
+        "number": "122",
+        "neighborhood": "teste",
+        "city": "São paulo",
+        "state": "SP",
+        "complement": "22"
+      },
+      "createdAt": "2026-07-28T23:06:11.058Z",
+      "userId": 2
+    },
+    {
+      "id": "rG0ry71gUd4",
+      "title": "teste",
+      "description": "teste",
+      "categoryId": 1,
+      "address": {
+        "street": "er",
+        "number": "er",
+        "neighborhood": "re",
+        "city": "São paulo",
+        "state": "SP",
+        "complement": "er"
+      },
+      "createdAt": "2026-07-28T23:11:43.545Z",
+      "userId": 2
+    },
+    {
+      "id": "_wNvvfSkRUI",
+      "title": "teste",
+      "description": "teste",
+      "categoryId": 2,
+      "address": {
+        "street": "wer",
+        "number": "er",
+        "neighborhood": "er",
+        "city": "São Paulo",
+        "state": "SP",
+        "complement": "er"
+      },
+      "createdAt": "2026-07-28T23:13:14.986Z",
+      "userId": 2
+    },
+    {
+      "id": "4JM2uYjL8_0",
+      "title": "teste",
+      "description": "teste",
+      "categoryId": 1,
+      "address": {
+        "street": "x",
+        "number": "x",
+        "neighborhood": "x",
+        "city": "São Paulo",
+        "state": "SP",
+        "complement": "x"
+      },
+      "createdAt": "2026-07-28T23:22:11.049Z",
+      "userId": 2
+    },
+    {
+      "id": "MWEnBZFHcGM",
+      "title": "rqrq",
+      "description": "rq",
+      "categoryId": 1,
+      "address": {
+        "street": "33",
+        "number": "3",
+        "neighborhood": "333",
+        "city": "São Paulo",
+        "state": "SP",
+        "complement": "33"
+      },
+      "createdAt": "2026-07-28T23:40:38.812Z",
       "userId": 2
     }
   ],

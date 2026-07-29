@@ -1,19 +1,15 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, EventEmitter, Input, OnInit, Output, signal, computed, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, signal, SimpleChanges } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+
 import { CategoryService } from '../../../services/category/category-service';
 import { TicketService } from '../../../services/ticket/ticket-service';
 import { Category } from '../../../models/category.model';
+import { User } from '../../../models/user.model';
 import { PaymentMethod } from '../../../enums/payment-method';
-
-interface FakeProvider {
-  id: number;
-  name: string;
-  category: string;
-  rating: number;
-  distanceKm: number;
-  whatsapp: string;
-}
+import { UserService } from '../../../services/user/user';
+import { LocationService, Estado, Cidade } from '../../../services/location/location'; // <-- novo
+import { CepService } from '../../../services/cep/cep-service';
 
 @Component({
   selector: 'app-ticket-modal',
@@ -22,17 +18,24 @@ interface FakeProvider {
   styleUrl: './ticket-modal.css',
 })
 export class TicketModal implements OnInit {
-
+  // ==================== INPUTS & OUTPUTS ====================
   @Input() isOpen = false;
   @Input() isUrgent = false;
   @Input() preselectedCategoryId: number | null = null;
   @Output() close = new EventEmitter<void>();
 
+  // ==================== PUBLIC SIGNALS ====================
   public categories = signal<Category[]>([]);
   public currentStep = signal(1);
   public isSubmitting = signal(false);
-  public providers = signal<FakeProvider[]>([]);
+  public providers = signal<User[]>([]);
+  public estados = signal<Estado[]>([]);  
+  public cidades = signal<Cidade[]>([]); 
+  public cepLoading = signal(false);
+  public cepError = signal<string | null>(null);
+  // ==================== PUBLIC PROPERTIES ====================
   public ticketForm!: FormGroup;
+  public totalSteps = 3;
 
   public paymentOptions = [
     { label: 'Pix', value: PaymentMethod.PIX },
@@ -48,31 +51,50 @@ export class TicketModal implements OnInit {
     '13:00', '14:00', '15:00', '16:00', '17:00', '18:00',
   ];
 
+  // ==================== PRIVATE PROPERTIES ====================
   private normalStepFields: Record<number, string[]> = {
     1: ['title', 'description', 'categoryId'],
-    2: ['address.street', 'address.number', 'address.neighborhood', 'address.city', 'address.state', 'address.zipCode'],
+    2: ['address.street', 'address.number', 'address.neighborhood', 'address.city', 'address.state'],
     3: ['priceRange.min', 'priceRange.max', 'paymentMethods', 'availableDays', 'availableHours'],
   };
 
   private urgentStepFields: Record<number, string[]> = {
     1: ['title', 'description', 'categoryId'],
-    2: ['address.street', 'address.number', 'address.neighborhood', 'address.city', 'address.state', 'address.zipCode'],
+    2: ['address.street', 'address.number', 'address.neighborhood', 'address.city', 'address.state'],
   };
 
+  // ==================== COMPUTED PROPERTIES ====================
   private get stepFields(): Record<number, string[]> {
     return this.isUrgent ? this.urgentStepFields : this.normalStepFields;
   }
 
-  public totalSteps = 3;
-
+  // ==================== CONSTRUCTOR ====================
   constructor(
     private categoryService: CategoryService,
-    private ticketService: TicketService
-  ) {}
+    private ticketService: TicketService,
+    private userService: UserService,
+    private locationService: LocationService,
+    private cepService: CepService
 
+  ) { }
+
+  // ==================== LIFECYCLE HOOKS ====================
   ngOnInit(): void {
+    this.initializeForm();
     this.getCategories();
+    this.loadEstados(); // <-- novo
+  }
 
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['isOpen'] && this.isOpen && this.ticketForm) {
+      if (this.preselectedCategoryId != null) {
+        this.ticketForm.get('categoryId')?.setValue(this.preselectedCategoryId);
+      }
+    }
+  }
+
+  // ==================== FORM INITIALIZATION ====================
+  private initializeForm(): void {
     this.ticketForm = new FormGroup({
       title: new FormControl(null, [Validators.required, Validators.maxLength(50)]),
       description: new FormControl(null, [Validators.required, Validators.maxLength(500)]),
@@ -81,9 +103,9 @@ export class TicketModal implements OnInit {
         street: new FormControl(null, [Validators.required]),
         number: new FormControl(null, [Validators.required]),
         neighborhood: new FormControl(null, [Validators.required]),
-        city: new FormControl(null, [Validators.required]),
+        city: new FormControl({ value: null, disabled: true }, [Validators.required]), // <-- disabled até escolher estado
         state: new FormControl(null, [Validators.required, Validators.maxLength(2)]),
-        zipCode: new FormControl(null, [Validators.required]),
+        zipCode: new FormControl(null, [Validators.required]), 
         complement: new FormControl(null),
       }),
       priceRange: new FormGroup({
@@ -96,6 +118,58 @@ export class TicketModal implements OnInit {
     });
   }
 
+  // ==================== LOCATION ====================
+  private loadEstados(): void {
+    this.locationService.getEstados().subscribe({
+      next: (estados) => this.estados.set(estados),
+      error: (err: HttpErrorResponse) => console.error('Erro ao carregar estados:', err),
+    });
+  }
+
+  public onEstadoChange(): void {
+    const sigla = this.ticketForm.get('address.state')?.value;
+    const estado = this.estados().find(e => e.sigla === sigla);
+
+    const cityControl = this.ticketForm.get('address.city');
+    cityControl?.setValue(null);
+    cityControl?.disable();
+    this.cidades.set([]);
+
+    if (!estado) return;
+
+    this.locationService.getCidades(estado.id).subscribe({
+      next: (cidades) => {
+        this.cidades.set(cidades);
+        cityControl?.enable();
+      },
+      error: (err: HttpErrorResponse) => console.error('Erro ao carregar cidades:', err),
+    });
+  }
+  public onCepBlur(): void {
+    const cepControl = this.ticketForm.get('address.zipCode');
+    const cep = cepControl?.value;
+
+    if (!cep) return;
+
+    const cepLimpo = cep.replace(/\D/g, '');
+    if (cepLimpo.length !== 8) return; // não busca CEP incompleto
+
+    this.cepLoading.set(true);
+    this.cepError.set(null);
+
+    this.cepService.getCep(cepLimpo).subscribe({
+      next: (address) => {
+        this.cepLoading.set(false);
+        this.ticketForm.get('address.street')?.setValue(address.logradouro);
+        this.ticketForm.get('address.neighborhood')?.setValue(address.bairro);
+      },
+      error: () => {
+        this.cepLoading.set(false);
+        this.cepError.set('CEP não encontrado. Preencha o endereço manualmente.');
+      },
+    });
+  }
+  // ==================== API CALLS ====================
   private getCategories(): void {
     this.categoryService.getAll().subscribe({
       next: (categories) => this.categories.set(categories),
@@ -109,7 +183,7 @@ export class TicketModal implements OnInit {
       return;
     }
 
-    this.ticketService.create(this.ticketForm.value).subscribe({
+    this.ticketService.create(this.ticketForm.getRawValue()).subscribe({ // <-- getRawValue por causa do city disabled
       next: () => {
         this.closeModal();
         this.resetForm();
@@ -120,6 +194,54 @@ export class TicketModal implements OnInit {
     });
   }
 
+  private createUrgentTicket(): void {
+    if (this.isSubmitting()) return;
+    this.isSubmitting.set(true);
+
+    const value = this.ticketForm.getRawValue(); // <-- getRawValue por causa do city disabled
+    const dto = {
+      title: value.title,
+      description: value.description,
+      categoryId: Number(value.categoryId),
+      address: value.address,
+    };
+
+    this.ticketService.createUrgent(dto).subscribe({
+      next: () => {
+        this.isSubmitting.set(false);
+        const state = value.address.state;
+        const city = value.address.city;
+        this.loadProviders(value.categoryId, state, city);
+        this.currentStep.set(3);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.isSubmitting.set(false);
+        console.error('Erro ao criar ticket urgente:', err);
+      },
+    });
+  }
+
+  // ==================== LOAD PROVIDERS ====================
+  private loadProviders(categoryId: number, state: string, city: string): void {
+    this.userService.getProvidersWithUrgency(categoryId, state, city).subscribe({
+      next: (providers: User[]) => {
+        const filtered = providers.filter(user =>
+          user.categoryIds?.includes(Number(categoryId))
+        );
+        this.providers.set(filtered);
+
+        if (filtered.length === 0) {
+          console.warn('Nenhum prestador encontrado para os critérios informados.');
+        }
+      },
+      error: (err: HttpErrorResponse) => {
+        console.error('Erro ao buscar prestadores:', err);
+        this.providers.set([]);
+      },
+    });
+  }
+
+  // ==================== STEP NAVIGATION ====================
   public nextStep(): void {
     if (!this.isStepValid(this.currentStep())) {
       this.markStepAsTouched(this.currentStep());
@@ -136,51 +258,13 @@ export class TicketModal implements OnInit {
     }
   }
 
-  private createUrgentTicket(): void {
-    if (this.isSubmitting()) return;
-    this.isSubmitting.set(true);
-
-    const value = this.ticketForm.value;
-    const dto = {
-      title: value.title,
-      description: value.description,
-      categoryId: Number(value.categoryId),
-      address: value.address,
-    };
-
-    this.ticketService.createUrgent(dto).subscribe({
-      next: () => {
-        this.isSubmitting.set(false);
-        this.loadFakeProviders(value.categoryId);
-        this.currentStep.set(3);
-      },
-      error: (err: HttpErrorResponse) => {
-        this.isSubmitting.set(false);
-        console.error('Erro ao criar ticket urgente:', err);
-      },
-    });
-  }
-
-  private loadFakeProviders(categoryId: number): void {
-    const categoryName = this.categories().find(c => c.id === categoryId)?.name ?? 'Serviço';
-
-    this.providers.set([
-      { id: 1, name: 'Carlos Silva', category: categoryName, rating: 4.8, distanceKm: 1.2, whatsapp: '5511999990001' },
-      { id: 2, name: 'Ana Pereira', category: categoryName, rating: 4.6, distanceKm: 2.5, whatsapp: '5511999990002' },
-      { id: 3, name: 'João Santos', category: categoryName, rating: 4.9, distanceKm: 3.1, whatsapp: '5511999990003' },
-    ]);
-  }
-
-  public openWhatsapp(provider: FakeProvider): void {
-    const message = `Olá ${provider.name}, vi seu perfil e preciso de um atendimento urgente.`;
-    const url = `https://wa.me/${provider.whatsapp}?text=${encodeURIComponent(message)}`;
-    window.open(url, '_blank');
-  }
-
   public prevStep(): void {
-    if (this.currentStep() > 1) this.currentStep.update(step => step - 1);
+    if (this.currentStep() > 1) {
+      this.currentStep.update(step => step - 1);
+    }
   }
 
+  // ==================== STEP VALIDATION ====================
   private isStepValid(step: number): boolean {
     const fields = this.stepFields[step];
     if (!fields) return true;
@@ -191,6 +275,7 @@ export class TicketModal implements OnInit {
     this.stepFields[step]?.forEach(field => this.ticketForm.get(field)?.markAsTouched());
   }
 
+  // ==================== FORM HELPERS ====================
   public isInvalid(field: string): boolean {
     const control = this.ticketForm.get(field);
     return !!control && control.invalid && control.touched;
@@ -210,6 +295,14 @@ export class TicketModal implements OnInit {
     this.ticketForm.get(field)?.markAsTouched();
   }
 
+  // ==================== PROVIDERS ACTIONS ====================
+  public openWhatsapp(provider: User): void {
+    const message = `Olá ${provider.name}, vi seu perfil e preciso de um atendimento urgente.`;
+    const url = `https://wa.me/${provider.phone}?text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank');
+  }
+
+  // ==================== MODAL CONTROLS ====================
   public closeModal(): void {
     this.resetForm();
     this.close.emit();
@@ -221,21 +314,18 @@ export class TicketModal implements OnInit {
     }
   }
 
-  ngOnChanges(changes: SimpleChanges
-  ): void {
-    if (changes['isOpen'] && this.isOpen && this.ticketForm) {
-      if (this.preselectedCategoryId != null) {
-        this.ticketForm.get('categoryId')?.setValue(this.preselectedCategoryId);
-      }
-    }
-  }
+  // ==================== RESET ====================
   private resetForm(): void {
     this.currentStep.set(1);
     this.providers.set([]);
+    this.cidades.set([]); 
     this.isSubmitting.set(false);
+    this.cepError.set(null);      
+    this.cepLoading.set(false);   
     this.ticketForm.reset();
     this.ticketForm.get('paymentMethods')?.setValue([]);
     this.ticketForm.get('availableDays')?.setValue([]);
     this.ticketForm.get('availableHours')?.setValue([]);
+    this.ticketForm.get('address.city')?.disable();
   }
 }

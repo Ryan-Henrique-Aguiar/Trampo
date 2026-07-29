@@ -14,7 +14,7 @@ export interface User {
 
   serviceStartDate?: string;          
   completedServicesCount?: number;
-  urgencyId?: number;
+  isAvailableForUrgency?: boolean;   // <-- substitui urgencyId
   categoryIds?: number[];
   city?: string;
   state?: string;

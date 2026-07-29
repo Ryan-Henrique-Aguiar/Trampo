@@ -157,6 +157,11 @@
 .form-group select:focus {
     border-color: var(--primary);
 }
+.form-group input:disabled {
+  background: var(--surface-alt, #f5f5f5);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
 
 .form-row {
     display: grid;

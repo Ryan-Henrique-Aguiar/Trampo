@@ -77,28 +77,45 @@
             <!-- Step 2: Endereço -->
             @if (currentStep() === 2) {
             <div class="form-section" formGroupName="address">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>CEP</label>
-                        <input type="text" formControlName="zipCode" placeholder="00000-000" />
-                        @if (isInvalid('address.zipCode')) {
-                        <span class="field-error">CEP é obrigatório.</span>
+                <div class="form-group">
+                    <label>Estado</label>
+                    <input type="text" formControlName="state" placeholder="SP" maxlength="2"
+                        list="lista-estados-ticket" (change)="onEstadoChange()" autocomplete="off" />
+                    <datalist id="lista-estados-ticket">
+                        @for (estado of estados(); track estado.id) {
+                        <option [value]="estado.sigla">{{ estado.nome }}</option>
                         }
-                    </div>
-                    <div class="form-group">
-                        <label>Estado</label>
-                        <input type="text" formControlName="state" placeholder="SP" maxlength="2" />
-                        @if (isInvalid('address.state')) {
-                        <span class="field-error">Estado é obrigatório.</span>
-                        }
-                    </div>
+                    </datalist>
+                    @if (isInvalid('address.state')) {
+                    <span class="field-error">Estado é obrigatório.</span>
+                    }
                 </div>
 
                 <div class="form-group">
                     <label>Cidade</label>
-                    <input type="text" formControlName="city" placeholder="São Paulo" />
+                    <input type="text" formControlName="city" placeholder="São Paulo" list="lista-cidades-ticket"
+                        autocomplete="off" />
+                    <datalist id="lista-cidades-ticket">
+                        @for (cidade of cidades(); track cidade.id) {
+                        <option [value]="cidade.nome"></option>
+                        }
+                    </datalist>
                     @if (isInvalid('address.city')) {
                     <span class="field-error">Cidade é obrigatória.</span>
+                    }
+                </div>
+                <div class="form-group">
+                    <label>CEP</label>
+                    <input type="text" formControlName="zipCode" placeholder="37540-000" maxlength="9"
+                        (blur)="onCepBlur()" />
+                    @if (cepLoading()) {
+                    <span class="field-hint">Buscando endereço...</span>
+                    }
+                    @if (isInvalid('address.zipCode')) {
+                    <span class="field-error">CEP é obrigatório.</span>
+                    }
+                    @if (cepError()) {
+                    <span class="field-error">{{ cepError() }}</span>
                     }
                 </div>
 
@@ -216,8 +233,8 @@
                         <div class="provider-info">
                             <span class="provider-name">{{ provider.name }}</span>
                             <span class="provider-meta">
-                                {{ provider.category }} · {{ provider.rating }}
-                                <i class="fa-solid fa-star"></i> · {{ provider.distanceKm }} km
+                                {{ provider.rating ? provider.rating : 'Novo' }}
+                                <i class="fa-solid fa-star"></i>
                             </span>
                         </div>
                         <button type="button" class="btn-whatsapp" (click)="openWhatsapp(provider)">
@@ -228,7 +245,7 @@
                     }
 
                     @if (!providers().length) {
-                    <p class="providers-empty">Nenhum prestador disponível no momento.</p>
+                    <p class="providers-empty">Nenhum prestador disponível no momento para esta categoria e cidade.</p>
                     }
                 </div>
             </div>
@@ -249,9 +266,10 @@
                     }
 
                     @if (isUrgent) {
-                        @if (currentStep() < 3) {
-                        <button type="button" class="btn-next" [disabled]="isSubmitting()" (click)="nextStep()">
-                            {{ currentStep() === 2 ? (isSubmitting() ? 'Buscando prestadores...' : 'Buscar prestadores') : 'Próximo' }}
+                    @if (currentStep() < 3) { <button type="button" class="btn-next" [disabled]="isSubmitting()"
+                        (click)="nextStep()">
+                        {{ currentStep() === 2 ? (isSubmitting() ? 'Buscando prestadores...' : 'Buscar prestadores') :
+                        'Próximo' }}
                         </button>
                         }
                         @if (currentStep() === 3) {
@@ -259,18 +277,17 @@
                             Concluir
                         </button>
                         }
-                    } @else {
-                        @if (currentStep() < 3) {
-                        <button type="button" class="btn-next" (click)="nextStep()">
+                        } @else {
+                        @if (currentStep() < 3) { <button type="button" class="btn-next" (click)="nextStep()">
                             Próximo
-                        </button>
-                        }
-                        @if (currentStep() === 3) {
-                        <button type="button" class="btn-submit" (click)="saveTicket()">
-                            Solicitar serviço
-                        </button>
-                        }
-                    }
+                            </button>
+                            }
+                            @if (currentStep() === 3) {
+                            <button type="button" class="btn-submit" (click)="saveTicket()">
+                                Solicitar serviço
+                            </button>
+                            }
+                            }
                 </div>
             </div>
 

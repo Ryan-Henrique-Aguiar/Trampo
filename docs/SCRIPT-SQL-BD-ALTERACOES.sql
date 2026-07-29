@@ -12,6 +12,13 @@
 -- Campos exclusivos de cliente e de profissional convivem aqui,
 -- ficando NULL para quem não se aplica.
 -- ==========================================================
+-- ==========================================================
+-- TABELA: USERS
+-- Antes: users (base) + client + professional (herança).
+-- Agora: uma tabela só, com is_provider dizendo o "tipo".
+-- Campos exclusivos de cliente e de profissional convivem aqui,
+-- ficando NULL para quem não se aplica.
+-- ==========================================================
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
@@ -30,7 +37,8 @@ CREATE TABLE IF NOT EXISTS users (
     service_start_date DATE,
     completed_services_count INT DEFAULT 0,
 
-    urgency_id INT UNIQUE,
+    -- Disponibilidade para chamados urgentes (substitui a antiga tabela urgency)
+    is_available_for_urgency BOOLEAN NOT NULL DEFAULT FALSE,
 
     -- Localização (User.city / User.state)
     city VARCHAR(100),
@@ -38,25 +46,13 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 -- ==========================================================
--- TABELA: URGENCY
--- ATENÇÃO: no DDL antigo o FK ficava em professional.urgency_id
--- (professional -> urgency). Sua interface Urgency inverteu isso:
--- ela carrega professionalId. Aqui a FK "oficial" fica na urgency,
--- e users.urgency_id vira só um cache do lado contrário.
--- price_range e minimum_rate foram removidos: preço é negociado
--- direto entre cliente e profissional (via WhatsApp).
+-- TABELA: URGENCY -> REMOVIDA
+-- Substituída pela coluna users.is_available_for_urgency.
+-- Motivo: era usada só como liga/desliga simples, sem
+-- necessidade de histórico ou métricas próprias por enquanto.
+-- Se no futuro precisar rastrear ativação/desativação ou
+-- métricas específicas de urgência, reintroduzir como tabela.
 -- ==========================================================
-CREATE TABLE IF NOT EXISTS urgency (
-    id SERIAL PRIMARY KEY,
-    status VARCHAR(30) NOT NULL,
-    completed_services_count INT DEFAULT 0,
-    professional_id INT NOT NULL UNIQUE,
-    FOREIGN KEY (professional_id) REFERENCES users(id)
-);
-
-ALTER TABLE users
-ADD CONSTRAINT fk_users_urgency
-FOREIGN KEY (urgency_id) REFERENCES urgency(id);
 
 -- ==========================================================
 -- TABELA: CATEGORY
@@ -91,6 +87,7 @@ CREATE TABLE IF NOT EXISTS address (
     neighborhood VARCHAR(100) NOT NULL,
     city VARCHAR(100) NOT NULL,
     state VARCHAR(2) NOT NULL,
+    zip_code VARCHAR(8) NOT NULL,
     complement VARCHAR(100),
     UNIQUE(street, number, neighborhood, city, state)
 );
