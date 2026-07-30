@@ -81,10 +81,11 @@ export class Tickets implements OnInit {
   getStatusLabel(status: TicketStatus): string {
     const labels: Record<TicketStatus, string> = {
       [TicketStatus.OPEN]: 'Aberto',
+      [TicketStatus.IN_NEGOTIATION]: 'Em negociação',
       [TicketStatus.IN_PROGRESS]: 'Em andamento',
       [TicketStatus.COMPLETED]: 'Finalizado',
       [TicketStatus.CANCELLED]: 'Cancelado'
     };
-    return labels[status];
+    return labels[status] || status;
   }
 }
