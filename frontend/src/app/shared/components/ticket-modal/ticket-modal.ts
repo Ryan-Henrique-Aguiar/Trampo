@@ -10,6 +10,24 @@ import { PaymentMethod } from '../../../enums/payment-method';
 import { UserService } from '../../../services/user/user';
 import { LocationService, Estado, Cidade } from '../../../services/location/location';
 import { CepService } from '../../../services/cep/cep-service';
+import { CepBrasilApiService } from '../../../services/cep-brasil-api/cep-brasil-api-service';
+
+interface NormalizedCepAddress {
+  street?: string | null;
+  neighborhood?: string | null;
+  city?: string | null;
+  state?: string | null;
+}
+
+// Remove acentos, baixa a caixa e tira espaços nas pontas, pra comparar nomes de cidade
+// vindos da API (que podem vir "Sao Paulo", "SÃO PAULO", etc.) com a lista oficial do IBGE.
+function normalizeText(value: string | null | undefined): string {
+  return (value ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
 
 @Component({
   selector: 'app-ticket-modal',
@@ -36,7 +54,7 @@ export class TicketModal implements OnInit {
 
   // ==================== PUBLIC PROPERTIES ====================
   public ticketForm!: FormGroup;
-  public totalSteps = 4;
+  public totalSteps = 3;
 
   public paymentOptions = [
     { label: 'Pix', value: PaymentMethod.PIX },
@@ -54,20 +72,17 @@ export class TicketModal implements OnInit {
 
   // ==================== PRIVATE PROPERTIES ====================
   // Step 1: Básico
-  // Step 2: Localização (estado, cidade)
-  // Step 3: Endereço (cep, bairro, rua, número, complemento)
-  // Step 4: Detalhes (normal) / Prestadores (urgente)
+  // Step 2: Endereço (cep autopreenche estado/cidade/rua/bairro; tudo editável)
+  // Step 3: Detalhes (normal) / Prestadores (urgente)
   private normalStepFields: Record<number, string[]> = {
     1: ['title', 'description', 'categoryId'],
-    2: ['address.city', 'address.state'],
-    3: ['address.street', 'address.number', 'address.neighborhood', 'address.zipCode'],
-    4: ['priceRange.min', 'priceRange.max', 'paymentMethods', 'availableDays', 'availableHours'],
+    2: ['address.state', 'address.city', 'address.street', 'address.number', 'address.neighborhood'],
+    3: ['priceRange.min', 'priceRange.max', 'paymentMethods', 'availableDays', 'availableHours'],
   };
 
   private urgentStepFields: Record<number, string[]> = {
     1: ['title', 'description', 'categoryId'],
-    2: ['address.city', 'address.state'],
-    3: ['address.street', 'address.number', 'address.neighborhood', 'address.zipCode'],
+    2: ['address.state', 'address.city', 'address.street', 'address.number', 'address.neighborhood'],
   };
 
   // ==================== COMPUTED PROPERTIES ====================
@@ -81,8 +96,8 @@ export class TicketModal implements OnInit {
     private ticketService: TicketService,
     private userService: UserService,
     private locationService: LocationService,
-    private cepService: CepService
-
+    private cepService: CepService,
+    private cepBrasilApiService: CepBrasilApiService,
   ) { }
 
   // ==================== LIFECYCLE HOOKS ====================
@@ -110,9 +125,9 @@ export class TicketModal implements OnInit {
         street: new FormControl(null, [Validators.required]),
         number: new FormControl(null, [Validators.required]),
         neighborhood: new FormControl(null, [Validators.required]),
-        city: new FormControl({ value: null, disabled: true }, [Validators.required]), // disabled até escolher estado
+        city: new FormControl({ value: null, disabled: true }, [Validators.required]), // liberado pelo CEP ou pela seleção manual do estado
         state: new FormControl(null, [Validators.required, Validators.maxLength(2)]),
-        zipCode: new FormControl(null, [Validators.required]),
+        zipCode: new FormControl(null),
         complement: new FormControl(null),
       }),
       priceRange: new FormGroup({
@@ -133,6 +148,7 @@ export class TicketModal implements OnInit {
     });
   }
 
+  // Usado quando o usuário escolhe o estado manualmente (sem passar pelo CEP)
   public onEstadoChange(): void {
     const sigla = this.ticketForm.get('address.state')?.value;
     const estado = this.estados().find(e => e.sigla === sigla);
@@ -161,6 +177,7 @@ export class TicketModal implements OnInit {
     this.ticketForm.get('address.zipCode')?.setValue(value, { emitEvent: false });
   }
 
+  // ==================== CEP LOOKUP (ViaCEP -> BrasilAPI -> manual) ====================
   public onCepBlur(): void {
     const cepControl = this.ticketForm.get('address.zipCode');
     const cep = cepControl?.value;
@@ -172,18 +189,89 @@ export class TicketModal implements OnInit {
       this.cepError.set('CEP deve ter 8 dígitos');
       return;
     }
+
     this.cepLoading.set(true);
     this.cepError.set(null);
 
     this.cepService.getCep(cepClean).subscribe({
       next: (address) => {
-        this.cepLoading.set(false);
-        this.ticketForm.get('address.street')?.setValue(address.logradouro);
-        this.ticketForm.get('address.neighborhood')?.setValue(address.bairro);
+        if (!address || address.erro) {
+          this.tryBrasilApiFallback(cepClean);
+          return;
+        }
+        this.applyCepAddress({
+          street: address.logradouro,
+          neighborhood: address.bairro,
+          city: address.localidade,
+          state: address.uf,
+        });
+      },
+      error: () => this.tryBrasilApiFallback(cepClean),
+    });
+  }
+
+  private tryBrasilApiFallback(cepClean: string): void {
+    this.cepBrasilApiService.getCep(cepClean).subscribe({
+      next: (address) => {
+        this.applyCepAddress({
+          street: address.street,
+          neighborhood: address.neighborhood,
+          city: address.city,
+          state: address.state,
+        });
       },
       error: () => {
         this.cepLoading.set(false);
-        this.cepError.set('CEP não encontrado. Preencha o endereço manualmente.');
+        this.cepError.set('CEP não encontrado. Preencha o endereço manualmente abaixo.');
+        // Libera edição manual: usuário escolhe o estado, o que já habilita o campo cidade.
+        this.ticketForm.get('address.city')?.disable();
+      },
+    });
+  }
+
+  // Preenche o formulário a partir do resultado (já normalizado) de qualquer uma das duas APIs de CEP
+  private applyCepAddress(data: NormalizedCepAddress): void {
+    this.ticketForm.get('address.street')?.setValue(data.street ?? null);
+    this.ticketForm.get('address.neighborhood')?.setValue(data.neighborhood ?? null);
+
+    const cityControl = this.ticketForm.get('address.city');
+    const sigla = data.state ?? null;
+
+    if (!sigla) {
+      this.cepLoading.set(false);
+      return;
+    }
+
+    const estado = this.estados().find(e => e.sigla === sigla);
+
+    if (!estado) {
+      // Estado retornado pela API não bate com nenhum da lista do IBGE (bem raro).
+      // Como estado/cidade agora são <select>, não dá pra "forçar" um valor fora da lista.
+      cityControl?.disable();
+      this.cepLoading.set(false);
+      this.cepError.set('Não conseguimos identificar o estado automaticamente. Selecione manualmente.');
+      return;
+    }
+
+    this.ticketForm.get('address.state')?.setValue(sigla);
+
+    this.locationService.getCidades(estado.id).subscribe({
+      next: (cidades) => {
+        this.cidades.set(cidades);
+        cityControl?.enable();
+
+        const match = cidades.find(c => normalizeText(c.nome) === normalizeText(data.city));
+        cityControl?.setValue(match ? match.nome : null);
+
+        if (!match) {
+          this.cepError.set('Cidade não encontrada na lista oficial. Selecione manualmente.');
+        }
+
+        this.cepLoading.set(false);
+      },
+      error: () => {
+        cityControl?.disable();
+        this.cepLoading.set(false);
       },
     });
   }
@@ -231,7 +319,7 @@ export class TicketModal implements OnInit {
         const state = value.address.state;
         const city = value.address.city;
         this.loadProviders(value.categoryId, state, city);
-        this.currentStep.set(4);
+        this.currentStep.set(3);
       },
       error: (err: HttpErrorResponse) => {
         this.isSubmitting.set(false);
@@ -267,7 +355,7 @@ export class TicketModal implements OnInit {
       return;
     }
 
-    if (this.isUrgent && this.currentStep() === 3) {
+    if (this.isUrgent && this.currentStep() === 2) {
       this.createUrgentTicket();
       return;
     }
