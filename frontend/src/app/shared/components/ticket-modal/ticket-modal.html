@@ -23,15 +23,23 @@
                 <div class="step-circle" [class.active]="currentStep() === 2" [class.done]="currentStep() > 2">
                     @if (currentStep() > 2) { <i class="fa-solid fa-check"></i> } @else { 2 }
                 </div>
-                <span class="step-label" [class.active]="currentStep() === 2">Endereço</span>
+                <span class="step-label" [class.active]="currentStep() === 2">Localização</span>
             </div>
             <div class="step-line" [class.done]="currentStep() > 2"></div>
 
             <div class="step-wrapper">
-                <div class="step-circle" [class.active]="currentStep() === 3">
-                    3
+                <div class="step-circle" [class.active]="currentStep() === 3" [class.done]="currentStep() > 3">
+                    @if (currentStep() > 3) { <i class="fa-solid fa-check"></i> } @else { 3 }
                 </div>
-                <span class="step-label" [class.active]="currentStep() === 3">
+                <span class="step-label" [class.active]="currentStep() === 3">Endereço</span>
+            </div>
+            <div class="step-line" [class.done]="currentStep() > 3"></div>
+
+            <div class="step-wrapper">
+                <div class="step-circle" [class.active]="currentStep() === 4">
+                    4
+                </div>
+                <span class="step-label" [class.active]="currentStep() === 4">
                     {{ isUrgent ? 'Prestadores' : 'Detalhes' }}
                 </span>
             </div>
@@ -74,40 +82,48 @@
             </div>
             }
 
-            <!-- Step 2: Endereço -->
+            <!-- Step 2: Localização -->
             @if (currentStep() === 2) {
             <div class="form-section" formGroupName="address">
-                <div class="form-group">
-                    <label>Estado</label>
-                    <input type="text" formControlName="state" placeholder="Selecione o estado" maxlength="2"
-                        list="lista-estados-ticket" (change)="onEstadoChange()" autocomplete="off" />
-                    <datalist id="lista-estados-ticket">
-                        @for (estado of estados(); track estado.id) {
-                        <option [value]="estado.sigla">{{ estado.nome }}</option>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Estado</label>
+                        <input type="text" formControlName="state" placeholder="Selecione o estado" maxlength="2"
+                            list="lista-estados-ticket" (change)="onEstadoChange()" autocomplete="off" />
+                        <datalist id="lista-estados-ticket">
+                            @for (estado of estados(); track estado.id) {
+                            <option [value]="estado.sigla">{{ estado.nome }}</option>
+                            }
+                        </datalist>
+                        @if (isInvalid('address.state')) {
+                        <span class="field-error">Estado é obrigatório.</span>
                         }
-                    </datalist>
-                    @if (isInvalid('address.state')) {
-                    <span class="field-error">Estado é obrigatório.</span>
-                    }
-                </div>
+                    </div>
 
-                <div class="form-group">
-                    <label>Cidade</label>
-                    <input type="text" formControlName="city" placeholder="Selecione a cidade" list="lista-cidades-ticket"
-                        autocomplete="off" />
-                    <datalist id="lista-cidades-ticket">
-                        @for (cidade of cidades(); track cidade.id) {
-                        <option [value]="cidade.nome"></option>
+                    <div class="form-group">
+                        <label>Cidade</label>
+                        <input type="text" formControlName="city" placeholder="Selecione a cidade"
+                            list="lista-cidades-ticket" autocomplete="off" />
+                        <datalist id="lista-cidades-ticket">
+                            @for (cidade of cidades(); track cidade.id) {
+                            <option [value]="cidade.nome"></option>
+                            }
+                        </datalist>
+                        @if (isInvalid('address.city')) {
+                        <span class="field-error">Cidade é obrigatória.</span>
                         }
-                    </datalist>
-                    @if (isInvalid('address.city')) {
-                    <span class="field-error">Cidade é obrigatória.</span>
-                    }
+                    </div>
                 </div>
+            </div>
+            }
+
+            <!-- Step 3: Endereço -->
+            @if (currentStep() === 3) {
+            <div class="form-section" formGroupName="address">
                 <div class="form-group">
                     <label>CEP</label>
-                    <input type="text" formControlName="zipCode" placeholder="Digite seu cep" maxlength="9" (input)="formatCep($event)" 
-                        (blur)="onCepBlur()" />
+                    <input type="text" formControlName="zipCode" placeholder="Digite seu cep" maxlength="9"
+                        (input)="formatCep($event)" (blur)="onCepBlur()" />
                     @if (cepLoading()) {
                     <span class="field-hint">Buscando endereço...</span>
                     }
@@ -151,8 +167,8 @@
             </div>
             }
 
-            <!-- Step 3 (normal): Detalhes -->
-            @if (currentStep() === 3 && !isUrgent) {
+            <!-- Step 4 (normal): Detalhes -->
+            @if (currentStep() === 4 && !isUrgent) {
             <div class="form-section">
                 <div class="form-row" formGroupName="priceRange">
                     <div class="form-group">
@@ -219,8 +235,8 @@
             </div>
             }
 
-            <!-- Step 3 (urgente): Prestadores disponíveis -->
-            @if (currentStep() === 3 && isUrgent) {
+            <!-- Step 4 (urgente): Prestadores disponíveis -->
+            @if (currentStep() === 4 && isUrgent) {
             <div class="form-section">
                 <p class="providers-intro">
                     Encontramos prestadores atendendo em modo urgente perto de você.
@@ -252,42 +268,42 @@
             }
 
             <div class="modal-footer">
-                @if (!(isUrgent && currentStep() === 3)) {
+                @if (!(isUrgent && currentStep() === 4)) {
                 <button type="button" class="btn-cancel" (click)="closeModal()">
                     Cancelar
                 </button>
                 }
 
                 <div class="footer-right">
-                    @if (currentStep() > 1 && !(isUrgent && currentStep() === 3)) {
+                    @if (currentStep() > 1 && !(isUrgent && currentStep() === 4)) {
                     <button type="button" class="btn-back" (click)="prevStep()">
                         Voltar
                     </button>
                     }
 
                     @if (isUrgent) {
-                    @if (currentStep() < 3) { <button type="button" class="btn-next" [disabled]="isSubmitting()"
-                        (click)="nextStep()">
-                        {{ currentStep() === 2 ? (isSubmitting() ? 'Buscando prestadores...' : 'Buscar prestadores') :
-                        'Próximo' }}
+                        @if (currentStep() < 4) {
+                        <button type="button" class="btn-next" [disabled]="isSubmitting()" (click)="nextStep()">
+                            {{ currentStep() === 3 ? (isSubmitting() ? 'Buscando prestadores...' : 'Buscar prestadores') : 'Próximo' }}
                         </button>
                         }
-                        @if (currentStep() === 3) {
+                        @if (currentStep() === 4) {
                         <button type="button" class="btn-submit" (click)="closeModal()">
                             Concluir
                         </button>
                         }
-                        } @else {
-                        @if (currentStep() < 3) { <button type="button" class="btn-next" (click)="nextStep()">
+                    } @else {
+                        @if (currentStep() < 4) {
+                        <button type="button" class="btn-next" (click)="nextStep()">
                             Próximo
-                            </button>
-                            }
-                            @if (currentStep() === 3) {
-                            <button type="button" class="btn-submit" (click)="saveTicket()">
-                                Solicitar serviço
-                            </button>
-                            }
-                            }
+                        </button>
+                        }
+                        @if (currentStep() === 4) {
+                        <button type="button" class="btn-submit" (click)="saveTicket()">
+                            Solicitar serviço
+                        </button>
+                        }
+                    }
                 </div>
             </div>
 

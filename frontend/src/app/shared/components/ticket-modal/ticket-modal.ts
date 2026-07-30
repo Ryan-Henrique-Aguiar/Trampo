@@ -8,7 +8,7 @@ import { Category } from '../../../models/category.model';
 import { User } from '../../../models/user.model';
 import { PaymentMethod } from '../../../enums/payment-method';
 import { UserService } from '../../../services/user/user';
-import { LocationService, Estado, Cidade } from '../../../services/location/location'; // <-- novo
+import { LocationService, Estado, Cidade } from '../../../services/location/location';
 import { CepService } from '../../../services/cep/cep-service';
 
 @Component({
@@ -33,9 +33,10 @@ export class TicketModal implements OnInit {
   public cidades = signal<Cidade[]>([]);
   public cepLoading = signal(false);
   public cepError = signal<string | null>(null);
+
   // ==================== PUBLIC PROPERTIES ====================
   public ticketForm!: FormGroup;
-  public totalSteps = 3;
+  public totalSteps = 4;
 
   public paymentOptions = [
     { label: 'Pix', value: PaymentMethod.PIX },
@@ -52,15 +53,21 @@ export class TicketModal implements OnInit {
   ];
 
   // ==================== PRIVATE PROPERTIES ====================
+  // Step 1: Básico
+  // Step 2: Localização (estado, cidade)
+  // Step 3: Endereço (cep, bairro, rua, número, complemento)
+  // Step 4: Detalhes (normal) / Prestadores (urgente)
   private normalStepFields: Record<number, string[]> = {
     1: ['title', 'description', 'categoryId'],
-    2: ['address.street', 'address.number', 'address.neighborhood', 'address.city', 'address.state'],
-    3: ['priceRange.min', 'priceRange.max', 'paymentMethods', 'availableDays', 'availableHours'],
+    2: ['address.city', 'address.state'],
+    3: ['address.street', 'address.number', 'address.neighborhood', 'address.zipCode'],
+    4: ['priceRange.min', 'priceRange.max', 'paymentMethods', 'availableDays', 'availableHours'],
   };
 
   private urgentStepFields: Record<number, string[]> = {
     1: ['title', 'description', 'categoryId'],
-    2: ['address.street', 'address.number', 'address.neighborhood', 'address.city', 'address.state'],
+    2: ['address.city', 'address.state'],
+    3: ['address.street', 'address.number', 'address.neighborhood', 'address.zipCode'],
   };
 
   // ==================== COMPUTED PROPERTIES ====================
@@ -82,7 +89,7 @@ export class TicketModal implements OnInit {
   ngOnInit(): void {
     this.initializeForm();
     this.getCategories();
-    this.loadEstados(); // <-- novo
+    this.loadEstados();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -103,7 +110,7 @@ export class TicketModal implements OnInit {
         street: new FormControl(null, [Validators.required]),
         number: new FormControl(null, [Validators.required]),
         neighborhood: new FormControl(null, [Validators.required]),
-        city: new FormControl({ value: null, disabled: true }, [Validators.required]), // <-- disabled até escolher estado
+        city: new FormControl({ value: null, disabled: true }, [Validators.required]), // disabled até escolher estado
         state: new FormControl(null, [Validators.required, Validators.maxLength(2)]),
         zipCode: new FormControl(null, [Validators.required]),
         complement: new FormControl(null),
@@ -145,14 +152,14 @@ export class TicketModal implements OnInit {
       error: (err: HttpErrorResponse) => console.error('Erro ao carregar cidades:', err),
     });
   }
-  
+
   public formatCep(event: any): void {
     let value = event.target.value.replace(/\D/g, '');
     if (value.length > 5) {
-        value = value.substring(0, 5) + '-' + value.substring(5, 8);
+      value = value.substring(0, 5) + '-' + value.substring(5, 8);
     }
     this.ticketForm.get('address.zipCode')?.setValue(value, { emitEvent: false });
-}
+  }
 
   public onCepBlur(): void {
     const cepControl = this.ticketForm.get('address.zipCode');
@@ -180,6 +187,7 @@ export class TicketModal implements OnInit {
       },
     });
   }
+
   // ==================== API CALLS ====================
   private getCategories(): void {
     this.categoryService.getAll().subscribe({
@@ -194,7 +202,7 @@ export class TicketModal implements OnInit {
       return;
     }
 
-    this.ticketService.create(this.ticketForm.getRawValue()).subscribe({ // <-- getRawValue por causa do city disabled
+    this.ticketService.create(this.ticketForm.getRawValue()).subscribe({ // getRawValue por causa do city disabled
       next: () => {
         this.closeModal();
         this.resetForm();
@@ -209,7 +217,7 @@ export class TicketModal implements OnInit {
     if (this.isSubmitting()) return;
     this.isSubmitting.set(true);
 
-    const value = this.ticketForm.getRawValue(); // <-- getRawValue por causa do city disabled
+    const value = this.ticketForm.getRawValue(); // getRawValue por causa do city disabled
     const dto = {
       title: value.title,
       description: value.description,
@@ -223,7 +231,7 @@ export class TicketModal implements OnInit {
         const state = value.address.state;
         const city = value.address.city;
         this.loadProviders(value.categoryId, state, city);
-        this.currentStep.set(3);
+        this.currentStep.set(4);
       },
       error: (err: HttpErrorResponse) => {
         this.isSubmitting.set(false);
@@ -259,7 +267,7 @@ export class TicketModal implements OnInit {
       return;
     }
 
-    if (this.isUrgent && this.currentStep() === 2) {
+    if (this.isUrgent && this.currentStep() === 3) {
       this.createUrgentTicket();
       return;
     }
