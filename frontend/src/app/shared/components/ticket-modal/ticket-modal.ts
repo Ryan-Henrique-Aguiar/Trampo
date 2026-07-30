@@ -51,6 +51,8 @@ export class TicketModal implements OnInit {
   public cidades = signal<Cidade[]>([]);
   public cepLoading = signal(false);
   public cepError = signal<string | null>(null);
+  // id do prestador que está sendo chamado no momento (pra desabilitar/mostrar loading só nele)
+  public sendingProviderId = signal<number | null>(null);
 
   // ==================== PUBLIC PROPERTIES ====================
   public ticketForm!: FormGroup;
@@ -301,35 +303,51 @@ export class TicketModal implements OnInit {
     });
   }
 
-  private createUrgentTicket(): void {
+  // Busca prestadores disponíveis pra categoria/local informados, SEM criar o ticket ainda.
+  // O ticket urgente só é criado quando o usuário efetivamente chama alguém no WhatsApp.
+  private searchProvidersForUrgentTicket(): void {
     if (this.isSubmitting()) return;
     this.isSubmitting.set(true);
 
-    const value = this.ticketForm.getRawValue(); // getRawValue por causa do city disabled
+    const value = this.ticketForm.getRawValue();
+    const categoryId = Number(value.categoryId);
+    const state = value.address.state;
+    const city = value.address.city;
+
+    this.loadProviders(categoryId, state, city, () => {
+      this.isSubmitting.set(false);
+      this.currentStep.set(3);
+    });
+  }
+
+  // Cria o ticket urgente já vinculado ao prestador escolhido. Só chamado no clique do WhatsApp.
+  private createUrgentTicket(provider: User, onSuccess: () => void): void {
+    if (this.sendingProviderId() !== null) return;
+    this.sendingProviderId.set(provider.id);
+
+    const value = this.ticketForm.getRawValue();
     const dto = {
       title: value.title,
       description: value.description,
       categoryId: Number(value.categoryId),
       address: value.address,
+      providerId: provider.id,
     };
 
     this.ticketService.createUrgent(dto).subscribe({
       next: () => {
-        this.isSubmitting.set(false);
-        const state = value.address.state;
-        const city = value.address.city;
-        this.loadProviders(value.categoryId, state, city);
-        this.currentStep.set(3);
+        this.sendingProviderId.set(null);
+        onSuccess();
       },
       error: (err: HttpErrorResponse) => {
-        this.isSubmitting.set(false);
+        this.sendingProviderId.set(null);
         console.error('Erro ao criar ticket urgente:', err);
       },
     });
   }
 
   // ==================== LOAD PROVIDERS ====================
-  private loadProviders(categoryId: number, state: string, city: string): void {
+  private loadProviders(categoryId: number, state: string, city: string, onComplete?: () => void): void {
     this.userService.getProvidersWithUrgency(categoryId, state, city).subscribe({
       next: (providers: User[]) => {
         const filtered = providers.filter(user =>
@@ -340,10 +358,12 @@ export class TicketModal implements OnInit {
         if (filtered.length === 0) {
           console.warn('Nenhum prestador encontrado para os critérios informados.');
         }
+        onComplete?.();
       },
       error: (err: HttpErrorResponse) => {
         console.error('Erro ao buscar prestadores:', err);
         this.providers.set([]);
+        onComplete?.();
       },
     });
   }
@@ -356,7 +376,7 @@ export class TicketModal implements OnInit {
     }
 
     if (this.isUrgent && this.currentStep() === 2) {
-      this.createUrgentTicket();
+      this.searchProvidersForUrgentTicket();
       return;
     }
 
@@ -403,10 +423,15 @@ export class TicketModal implements OnInit {
   }
 
   // ==================== PROVIDERS ACTIONS ====================
+  // Cria o ticket urgente vinculado a este prestador e, só depois de confirmado, abre o WhatsApp.
   public openWhatsapp(provider: User): void {
-    const message = `Olá ${provider.name}, vi seu perfil e preciso de um atendimento urgente.`;
-    const url = `https://wa.me/${provider.phone}?text=${encodeURIComponent(message)}`;
-    window.open(url, '_blank');
+    this.createUrgentTicket(provider, () => {
+      const message = `Olá ${provider.name}, vi seu perfil e preciso de um atendimento urgente.`;
+      const url = `https://wa.me/${provider.phone}?text=${encodeURIComponent(message)}`;
+      window.open(url, '_blank');
+      this.closeModal();
+      this.resetForm();
+    });
   }
 
   // ==================== MODAL CONTROLS ====================
@@ -427,6 +452,7 @@ export class TicketModal implements OnInit {
     this.providers.set([]);
     this.cidades.set([]);
     this.isSubmitting.set(false);
+    this.sendingProviderId.set(null);
     this.cepError.set(null);
     this.cepLoading.set(false);
     this.ticketForm.reset();

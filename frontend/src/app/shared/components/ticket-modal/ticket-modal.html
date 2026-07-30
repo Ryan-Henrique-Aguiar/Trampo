@@ -235,9 +235,10 @@
                                 <i class="fa-solid fa-star"></i>
                             </span>
                         </div>
-                        <button type="button" class="btn-whatsapp" (click)="openWhatsapp(provider)">
+                        <button type="button" class="btn-whatsapp" [disabled]="sendingProviderId() !== null"
+                            (click)="openWhatsapp(provider)">
                             <i class="fa-brands fa-whatsapp"></i>
-                            Chamar no WhatsApp
+                            {{ sendingProviderId() === provider.id ? 'Criando chamado...' : 'Chamar no WhatsApp' }}
                         </button>
                     </div>
                     }
@@ -264,9 +265,10 @@
                     }
 
                     @if (isUrgent) {
-                        @if (currentStep() < 3) {
-                        <button type="button" class="btn-next" [disabled]="isSubmitting()" (click)="nextStep()">
-                            {{ currentStep() === 2 ? (isSubmitting() ? 'Buscando prestadores...' : 'Buscar prestadores') : 'Próximo' }}
+                    @if (currentStep() < 3) { <button type="button" class="btn-next" [disabled]="isSubmitting()"
+                        (click)="nextStep()">
+                        {{ currentStep() === 2 ? (isSubmitting() ? 'Buscando prestadores...' : 'Buscar prestadores') :
+                        'Próximo' }}
                         </button>
                         }
                         @if (currentStep() === 3) {
@@ -274,18 +276,17 @@
                             Concluir
                         </button>
                         }
-                    } @else {
-                        @if (currentStep() < 3) {
-                        <button type="button" class="btn-next" (click)="nextStep()">
+                        } @else {
+                        @if (currentStep() < 3) { <button type="button" class="btn-next" (click)="nextStep()">
                             Próximo
-                        </button>
-                        }
-                        @if (currentStep() === 3) {
-                        <button type="button" class="btn-submit" (click)="saveTicket()">
-                            Solicitar serviço
-                        </button>
-                        }
-                    }
+                            </button>
+                            }
+                            @if (currentStep() === 3) {
+                            <button type="button" class="btn-submit" (click)="saveTicket()">
+                                Solicitar serviço
+                            </button>
+                            }
+                            }
                 </div>
             </div>
 

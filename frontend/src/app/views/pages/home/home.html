@@ -1,4 +1,3 @@
-<!-- home.html -->
 <section class="home">
 
   <!-- Loading -->
@@ -32,38 +31,39 @@
           <p>toggle</p>
         </div>
       </div>
-       <!-- Stats Cards -->
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-icon bg-green">
-        <i class="fa-solid fa-check-circle"></i>
-      </div>
-      <div class="stat-info">
-        <span class="stat-value">{{ currentUser?.completedServicesCount || 20 }}</span>
-        <span class="stat-label">Serviços Realizados</span>
-      </div>
-    </div>
+      
+      <!-- Stats Cards -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon bg-green">
+            <i class="fa-solid fa-check-circle"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-value">{{ currentUser?.completedServicesCount || 20 }}</span>
+            <span class="stat-label">Serviços Realizados</span>
+          </div>
+        </div>
 
-    <div class="stat-card">
-      <div class="stat-icon bg-orange">
-        <i class="fa-solid fa-star"></i>
-      </div>
-      <div class="stat-info">
-        <span class="stat-value">{{ currentUser?.rating || 5.0 }}</span>
-        <span class="stat-label">Avaliação</span>
-      </div>
-    </div>
+        <div class="stat-card">
+          <div class="stat-icon bg-orange">
+            <i class="fa-solid fa-star"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-value">{{ currentUser?.rating || 5.0 }}</span>
+            <span class="stat-label">Avaliação</span>
+          </div>
+        </div>
 
-    <div class="stat-card">
-      <div class="stat-icon bg-blue">
-        <i class="fa-solid fa-bell"></i>
+        <div class="stat-card">
+          <div class="stat-icon bg-blue">
+            <i class="fa-solid fa-bell"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-value">{{ availableTickets().length }}</span>
+            <span class="stat-label">Serviços Disponíveis</span>
+          </div>
+        </div>
       </div>
-      <div class="stat-info">
-        <span class="stat-value">{{ availableTickets().length }}</span>
-        <span class="stat-label">Serviços Disponíveis</span>
-      </div>
-    </div>
-  </div>
 
       <div class="section-header">
         <h2>Serviços disponíveis para você</h2>
@@ -73,7 +73,10 @@
       @if (firstThreeAvailableTickets().length > 0) {
         <div class="tickets">
           @for (ticket of firstThreeAvailableTickets(); track ticket.id) {
-            <app-ticket-card [ticket]="ticket" />
+            <!-- ADICIONADO O EVENTO AQUI -->
+            <app-ticket-card 
+              [ticket]="ticket" 
+              (viewDetails)="openTicketDetail($event)" />
           }
         </div>
 
@@ -109,17 +112,6 @@
         }
       </div>
 
-      <div class="urgent-banner">
-        <div class="urgent-banner-icon">
-          <i class="fa-solid fa-bolt"></i>
-        </div>
-        <div class="urgent-banner-text">
-          <span class="urgent-banner-title">7 prestadores disponíveis agora</span>
-          <span class="urgent-banner-sub">Modo urgente ativo na sua região</span>
-        </div>
-        <i class="fa-solid fa-chevron-right urgent-banner-arrow"></i>
-      </div>
-
       <div class="section-header">
         <h2>Meus serviços publicados</h2>
       </div>
@@ -127,7 +119,10 @@
       @if (firstThreeMyTickets().length > 0) {
         <div class="tickets">
           @for (ticket of firstThreeMyTickets(); track ticket.id) {
-            <app-ticket-card [ticket]="ticket" />
+            <!-- ADICIONADO O EVENTO AQUI TAMBÉM -->
+            <app-ticket-card 
+              [ticket]="ticket" 
+              (viewDetails)="openTicketDetail($event)" />
           }
         </div>
 
@@ -154,4 +149,9 @@
     }
   }
 
+  <!-- MODAL DE DETALHES -->
+  <app-ticket-detail
+    [isOpen]="isDetailModalOpen()"
+    [ticket]="selectedTicket()"
+    (close)="closeTicketDetail()" />
 </section>

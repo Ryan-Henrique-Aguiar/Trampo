@@ -13,10 +13,11 @@ import { ActionCards, OpenTicketRequest } from "../../../shared/components/actio
 import { TicketModal } from "../../../shared/components/ticket-modal/ticket-modal";
 import { AuthService } from '../../../services/auth/auth';
 import { ViewModeService } from '../../../services/view-mode/view-mode-service';
+import { TicketDetail } from "../../../shared/components/ticket-detail/ticket-detail";
 
 @Component({
   selector: 'app-home',
-  imports: [RouterLink, TicketCard, ActionCards, TicketModal],
+  imports: [RouterLink, TicketCard, ActionCards, TicketModal, TicketDetail],
   templateUrl: './home.html',
   styleUrl: './home.css',
 })
@@ -34,6 +35,8 @@ export class Home implements OnInit {
   isModalOpen = signal(false);
   isModalUrgent = signal(false);
   preselectedCategoryId = signal<number | null>(null);
+  isDetailModalOpen = signal(false);
+  selectedTicket = signal<Ticket | null>(null);
 
   private categoryService = inject(CategoryService);
   private ticketService = inject(TicketService);
@@ -116,6 +119,19 @@ export class Home implements OnInit {
         this.categories.set([]);
       }
     });
+  }
+  // ===== MÉTODOS PARA O MODAL DE DETALHES =====
+  
+  // Abre o modal de detalhes do ticket
+  openTicketDetail(ticket: Ticket): void {
+    this.selectedTicket.set(ticket);
+    this.isDetailModalOpen.set(true);
+  }
+
+  // Fecha o modal de detalhes
+  closeTicketDetail(): void {
+    this.isDetailModalOpen.set(false);
+    this.selectedTicket.set(null);
   }
 
   // Chamado pelo (openTicket) do ActionCards
