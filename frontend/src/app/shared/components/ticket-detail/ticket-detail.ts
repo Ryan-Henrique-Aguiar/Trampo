@@ -1,7 +1,9 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Ticket } from '../../../models/ticket.model';
 import { TicketStatus } from '../../../enums/ticket-status';
+import { AuthService } from '../../../services/auth/auth';
+import { ViewModeService } from '../../../services/view-mode/view-mode-service';
 
 @Component({
   selector: 'app-ticket-detail',
@@ -14,20 +16,39 @@ export class TicketDetail {
   @Input() isOpen = false;
   @Input() ticket: Ticket | null = null;
   @Output() close = new EventEmitter<void>();
+  @Output() sendProposal = new EventEmitter<Ticket>();
 
-  // Fecha o modal
+  private authService = inject(AuthService);
+  private viewModeService = inject(ViewModeService);
+
+  get isProviderMode() {
+    return this.viewModeService.isProviderMode;
+  }
+
+  get canSendProposal(): boolean {
+    return this.isProviderMode && this.ticket?.status === TicketStatus.OPEN;
+  }
+
+  get isOwnTicket(): boolean {
+    return !this.isProviderMode && this.ticket?.userId === this.authService.userId;
+  }
+
   closeModal(): void {
     this.close.emit();
   }
 
-  // Fecha ao clicar no overlay
   onOverlayClick(event: MouseEvent): void {
     if ((event.target as HTMLElement).classList.contains('modal-overlay')) {
       this.closeModal();
     }
   }
 
-  // Formata data
+  onSendProposal(): void {
+    if (this.ticket) {
+      this.sendProposal.emit(this.ticket);
+    }
+  }
+
   formatDate(date: string): string {
     if (!date) return '';
     return new Date(date).toLocaleDateString('pt-BR', {
@@ -39,7 +60,6 @@ export class TicketDetail {
     });
   }
 
-  // Retorna o label do status
   getStatusLabel(status: TicketStatus): string {
     const labels: Record<TicketStatus, string> = {
       [TicketStatus.OPEN]: 'Aberto',
@@ -51,7 +71,6 @@ export class TicketDetail {
     return labels[status] || status || 'Desconhecido';
   }
 
-  // Retorna a classe CSS do status
   getStatusClass(status: TicketStatus): string {
     const classes: Record<TicketStatus, string> = {
       [TicketStatus.OPEN]: 'status-open',
@@ -63,24 +82,16 @@ export class TicketDetail {
     return classes[status] || 'status-default';
   }
 
-  // Formata lista para exibição
   formatList(list: string[] | undefined): string {
     if (!list || list.length === 0) return 'Não informado';
     return list.join(' • ');
   }
 
-  // Formata valor monetário
   formatCurrency(value: number | undefined): string {
     if (value === undefined || value === null) return 'Não informado';
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL'
     }).format(value);
-  }
-
-  // Código formatado
-  getFormattedCode(): string {
-    if (!this.ticket?.code) return '#---';
-    return `#${this.ticket.code}`;
   }
 }

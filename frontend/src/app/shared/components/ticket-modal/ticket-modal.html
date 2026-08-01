@@ -39,7 +39,7 @@
 
         <form [formGroup]="ticketForm">
 
-            <!-- Step 1: Informações básicas -->
+            <!-- Passo 1: Informações básicas -->
             @if (currentStep() === 1) {
             <div class="form-section">
                 <div class="form-group">
@@ -74,12 +74,12 @@
             </div>
             }
 
-            <!-- Step 2: Endereço (CEP autopreenche estado/cidade/rua/bairro) -->
+            <!-- Passo 2: Endereço (CEP autopreenche estado/cidade/rua/bairro) -->
             @if (currentStep() === 2) {
             <div class="form-section" formGroupName="address">
                 <div class="form-group">
                     <label>CEP <span class="optional">(opcional, agiliza o preenchimento)</span></label>
-                    <input type="text" formControlName="zipCode" placeholder="Digite seu cep" maxlength="9"
+                    <input type="text" formControlName="zipCode" placeholder="Digite seu CEP" maxlength="9"
                         (input)="formatCep($event)" (blur)="onCepBlur()" />
                     @if (cepLoading()) {
                     <span class="field-hint">Buscando endereço...</span>
@@ -92,10 +92,10 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label>Estado</label>
-                        <select formControlName="state" (change)="onEstadoChange()">
+                        <select formControlName="state" (change)="onStateChange()">
                             <option [ngValue]="null" disabled>Selecione o estado</option>
-                            @for (estado of estados(); track estado.id) {
-                            <option [value]="estado.sigla">{{ estado.nome }}</option>
+                            @for (state of states(); track state.id) {
+                            <option [value]="state.sigla">{{ state.nome }}</option>
                             }
                         </select>
                         @if (isInvalid('address.state')) {
@@ -107,8 +107,8 @@
                         <label>Cidade</label>
                         <select formControlName="city">
                             <option [ngValue]="null" disabled>Selecione a cidade</option>
-                            @for (cidade of cidades(); track cidade.id) {
-                            <option [value]="cidade.nome">{{ cidade.nome }}</option>
+                            @for (city of cities(); track city.id) {
+                            <option [value]="city.nome">{{ city.nome }}</option>
                             }
                         </select>
                         @if (isInvalid('address.city')) {
@@ -135,7 +135,7 @@
                     </div>
                     <div class="form-group">
                         <label>Número</label>
-                        <input type="text" formControlName="number" placeholder="Digite o numero da residência" />
+                        <input type="text" formControlName="number" placeholder="Digite o número da residência" />
                         @if (isInvalid('address.number')) {
                         <span class="field-error">Número é obrigatório.</span>
                         }
@@ -149,7 +149,7 @@
             </div>
             }
 
-            <!-- Step 3 (normal): Detalhes -->
+            <!-- Passo 3 (normal): Detalhes -->
             @if (currentStep() === 3 && !isUrgent) {
             <div class="form-section">
                 <div class="form-row" formGroupName="priceRange">
@@ -217,7 +217,7 @@
             </div>
             }
 
-            <!-- Step 3 (urgente): Prestadores disponíveis -->
+            <!-- Passo 3 (urgente): Prestadores disponíveis -->
             @if (currentStep() === 3 && isUrgent) {
             <div class="form-section">
                 <p class="providers-intro">
@@ -265,28 +265,28 @@
                     }
 
                     @if (isUrgent) {
-                    @if (currentStep() < 3) { <button type="button" class="btn-next" [disabled]="isSubmitting()"
-                        (click)="nextStep()">
-                        {{ currentStep() === 2 ? (isSubmitting() ? 'Buscando prestadores...' : 'Buscar prestadores') :
-                        'Próximo' }}
-                        </button>
+                        @if (currentStep() < 3) {
+                            <button type="button" class="btn-next" [disabled]="isSubmitting()" (click)="nextStep()">
+                                {{ currentStep() === 2 ? (isSubmitting() ? 'Buscando prestadores...' : 'Buscar prestadores') : 'Próximo' }}
+                            </button>
                         }
                         @if (currentStep() === 3) {
-                        <button type="button" class="btn-submit" (click)="closeModal()">
-                            Concluir
-                        </button>
-                        }
-                        } @else {
-                        @if (currentStep() < 3) { <button type="button" class="btn-next" (click)="nextStep()">
-                            Próximo
+                            <button type="button" class="btn-submit" (click)="closeModal()">
+                                Concluir
                             </button>
-                            }
-                            @if (currentStep() === 3) {
+                        }
+                    } @else {
+                        @if (currentStep() < 3) {
+                            <button type="button" class="btn-next" (click)="nextStep()">
+                                Próximo
+                            </button>
+                        }
+                        @if (currentStep() === 3) {
                             <button type="button" class="btn-submit" (click)="saveTicket()">
                                 Solicitar serviço
                             </button>
-                            }
-                            }
+                        }
+                    }
                 </div>
             </div>
 

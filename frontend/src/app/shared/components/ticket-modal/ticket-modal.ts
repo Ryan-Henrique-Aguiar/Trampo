@@ -19,8 +19,9 @@ interface NormalizedCepAddress {
   state?: string | null;
 }
 
-// Remove acentos, baixa a caixa e tira espaços nas pontas, pra comparar nomes de cidade
-// vindos da API (que podem vir "Sao Paulo", "SÃO PAULO", etc.) com a lista oficial do IBGE.
+// Os nomes das cidades vindos das APIs de CEP podem vir com acentuação/caixa diferentes
+// da lista do IBGE ("Sao Paulo" vs "São Paulo"), então normalizamos ambos os lados
+// antes de comparar
 function normalizeText(value: string | null | undefined): string {
   return (value ?? '')
     .normalize('NFD')
@@ -36,25 +37,21 @@ function normalizeText(value: string | null | undefined): string {
   styleUrl: './ticket-modal.css',
 })
 export class TicketModal implements OnInit {
-  // ==================== INPUTS & OUTPUTS ====================
   @Input() isOpen = false;
   @Input() isUrgent = false;
   @Input() preselectedCategoryId: number | null = null;
   @Output() close = new EventEmitter<void>();
 
-  // ==================== PUBLIC SIGNALS ====================
   public categories = signal<Category[]>([]);
   public currentStep = signal(1);
   public isSubmitting = signal(false);
   public providers = signal<User[]>([]);
-  public estados = signal<Estado[]>([]);
-  public cidades = signal<Cidade[]>([]);
+  public states = signal<Estado[]>([]);
+  public cities = signal<Cidade[]>([]);
   public cepLoading = signal(false);
   public cepError = signal<string | null>(null);
-  // id do prestador que está sendo chamado no momento (pra desabilitar/mostrar loading só nele)
   public sendingProviderId = signal<number | null>(null);
 
-  // ==================== PUBLIC PROPERTIES ====================
   public ticketForm!: FormGroup;
   public totalSteps = 3;
 
@@ -72,10 +69,7 @@ export class TicketModal implements OnInit {
     '13:00', '14:00', '15:00', '16:00', '17:00', '18:00',
   ];
 
-  // ==================== PRIVATE PROPERTIES ====================
-  // Step 1: Básico
-  // Step 2: Endereço (cep autopreenche estado/cidade/rua/bairro; tudo editável)
-  // Step 3: Detalhes (normal) / Prestadores (urgente)
+  // passo 1: título/descrição/categoria, passo 2: endereço, passo 3: existe apenas para o fluxo normal
   private normalStepFields: Record<number, string[]> = {
     1: ['title', 'description', 'categoryId'],
     2: ['address.state', 'address.city', 'address.street', 'address.number', 'address.neighborhood'],
@@ -87,12 +81,10 @@ export class TicketModal implements OnInit {
     2: ['address.state', 'address.city', 'address.street', 'address.number', 'address.neighborhood'],
   };
 
-  // ==================== COMPUTED PROPERTIES ====================
   private get stepFields(): Record<number, string[]> {
     return this.isUrgent ? this.urgentStepFields : this.normalStepFields;
   }
 
-  // ==================== CONSTRUCTOR ====================
   constructor(
     private categoryService: CategoryService,
     private ticketService: TicketService,
@@ -102,11 +94,10 @@ export class TicketModal implements OnInit {
     private cepBrasilApiService: CepBrasilApiService,
   ) { }
 
-  // ==================== LIFECYCLE HOOKS ====================
   ngOnInit(): void {
     this.initializeForm();
     this.getCategories();
-    this.loadEstados();
+    this.loadStates();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -117,7 +108,6 @@ export class TicketModal implements OnInit {
     }
   }
 
-  // ==================== FORM INITIALIZATION ====================
   private initializeForm(): void {
     this.ticketForm = new FormGroup({
       title: new FormControl(null, [Validators.required, Validators.maxLength(50)]),
@@ -127,7 +117,7 @@ export class TicketModal implements OnInit {
         street: new FormControl(null, [Validators.required]),
         number: new FormControl(null, [Validators.required]),
         neighborhood: new FormControl(null, [Validators.required]),
-        city: new FormControl({ value: null, disabled: true }, [Validators.required]), // liberado pelo CEP ou pela seleção manual do estado
+        city: new FormControl({ value: null, disabled: true }, [Validators.required]), // habilitado quando um estado é selecionado (via CEP ou manualmente)
         state: new FormControl(null, [Validators.required, Validators.maxLength(2)]),
         zipCode: new FormControl(null),
         complement: new FormControl(null),
@@ -142,29 +132,27 @@ export class TicketModal implements OnInit {
     });
   }
 
-  // ==================== LOCATION ====================
-  private loadEstados(): void {
+  private loadStates(): void {
     this.locationService.getEstados().subscribe({
-      next: (estados) => this.estados.set(estados),
+      next: (states) => this.states.set(states),
       error: (err: HttpErrorResponse) => console.error('Erro ao carregar estados:', err),
     });
   }
 
-  // Usado quando o usuário escolhe o estado manualmente (sem passar pelo CEP)
-  public onEstadoChange(): void {
-    const sigla = this.ticketForm.get('address.state')?.value;
-    const estado = this.estados().find(e => e.sigla === sigla);
+  public onStateChange(): void {
+    const stateCode = this.ticketForm.get('address.state')?.value;
+    const state = this.states().find(s => s.sigla === stateCode);
 
     const cityControl = this.ticketForm.get('address.city');
     cityControl?.setValue(null);
     cityControl?.disable();
-    this.cidades.set([]);
+    this.cities.set([]);
 
-    if (!estado) return;
+    if (!state) return;
 
-    this.locationService.getCidades(estado.id).subscribe({
-      next: (cidades) => {
-        this.cidades.set(cidades);
+    this.locationService.getCidades(state.id).subscribe({
+      next: (cities) => {
+        this.cities.set(cities);
         cityControl?.enable();
       },
       error: (err: HttpErrorResponse) => console.error('Erro ao carregar cidades:', err),
@@ -179,7 +167,6 @@ export class TicketModal implements OnInit {
     this.ticketForm.get('address.zipCode')?.setValue(value, { emitEvent: false });
   }
 
-  // ==================== CEP LOOKUP (ViaCEP -> BrasilAPI -> manual) ====================
   public onCepBlur(): void {
     const cepControl = this.ticketForm.get('address.zipCode');
     const cep = cepControl?.value;
@@ -212,6 +199,8 @@ export class TicketModal implements OnInit {
     });
   }
 
+  // ViaCEP é a consulta primária; se falhar ou retornar vazio, fazemos fallback para BrasilAPI
+  // antes de desistir e deixar o usuário preencher o endereço manualmente
   private tryBrasilApiFallback(cepClean: string): void {
     this.cepBrasilApiService.getCep(cepClean).subscribe({
       next: (address) => {
@@ -225,44 +214,41 @@ export class TicketModal implements OnInit {
       error: () => {
         this.cepLoading.set(false);
         this.cepError.set('CEP não encontrado. Preencha o endereço manualmente abaixo.');
-        // Libera edição manual: usuário escolhe o estado, o que já habilita o campo cidade.
         this.ticketForm.get('address.city')?.disable();
       },
     });
   }
 
-  // Preenche o formulário a partir do resultado (já normalizado) de qualquer uma das duas APIs de CEP
   private applyCepAddress(data: NormalizedCepAddress): void {
     this.ticketForm.get('address.street')?.setValue(data.street ?? null);
     this.ticketForm.get('address.neighborhood')?.setValue(data.neighborhood ?? null);
 
     const cityControl = this.ticketForm.get('address.city');
-    const sigla = data.state ?? null;
+    const stateCode = data.state ?? null;
 
-    if (!sigla) {
+    if (!stateCode) {
       this.cepLoading.set(false);
       return;
     }
 
-    const estado = this.estados().find(e => e.sigla === sigla);
+    const state = this.states().find(s => s.sigla === stateCode);
 
-    if (!estado) {
-      // Estado retornado pela API não bate com nenhum da lista do IBGE (bem raro).
-      // Como estado/cidade agora são <select>, não dá pra "forçar" um valor fora da lista.
+    if (!state) {
+      // estado/cidade são selects agora, então não podemos forçar um valor que não está na lista do IBGE
       cityControl?.disable();
       this.cepLoading.set(false);
       this.cepError.set('Não conseguimos identificar o estado automaticamente. Selecione manualmente.');
       return;
     }
 
-    this.ticketForm.get('address.state')?.setValue(sigla);
+    this.ticketForm.get('address.state')?.setValue(stateCode);
 
-    this.locationService.getCidades(estado.id).subscribe({
-      next: (cidades) => {
-        this.cidades.set(cidades);
+    this.locationService.getCidades(state.id).subscribe({
+      next: (cities) => {
+        this.cities.set(cities);
         cityControl?.enable();
 
-        const match = cidades.find(c => normalizeText(c.nome) === normalizeText(data.city));
+        const match = cities.find(c => normalizeText(c.nome) === normalizeText(data.city));
         cityControl?.setValue(match ? match.nome : null);
 
         if (!match) {
@@ -278,7 +264,6 @@ export class TicketModal implements OnInit {
     });
   }
 
-  // ==================== API CALLS ====================
   private getCategories(): void {
     this.categoryService.getAll().subscribe({
       next: (categories) => this.categories.set(categories),
@@ -292,7 +277,7 @@ export class TicketModal implements OnInit {
       return;
     }
 
-    this.ticketService.create(this.ticketForm.getRawValue()).subscribe({ // getRawValue por causa do city disabled
+    this.ticketService.create(this.ticketForm.getRawValue()).subscribe({
       next: () => {
         this.closeModal();
         this.resetForm();
@@ -303,8 +288,8 @@ export class TicketModal implements OnInit {
     });
   }
 
-  // Busca prestadores disponíveis pra categoria/local informados, SEM criar o ticket ainda.
-  // O ticket urgente só é criado quando o usuário efetivamente chama alguém no WhatsApp.
+  // apenas busca prestadores para a categoria/localização, ainda não cria nada —
+  // o ticket urgente só é criado quando o usuário realmente escolher alguém no WhatsApp
   private searchProvidersForUrgentTicket(): void {
     if (this.isSubmitting()) return;
     this.isSubmitting.set(true);
@@ -320,7 +305,6 @@ export class TicketModal implements OnInit {
     });
   }
 
-  // Cria o ticket urgente já vinculado ao prestador escolhido. Só chamado no clique do WhatsApp.
   private createUrgentTicket(provider: User, onSuccess: () => void): void {
     if (this.sendingProviderId() !== null) return;
     this.sendingProviderId.set(provider.id);
@@ -346,7 +330,6 @@ export class TicketModal implements OnInit {
     });
   }
 
-  // ==================== LOAD PROVIDERS ====================
   private loadProviders(categoryId: number, state: string, city: string, onComplete?: () => void): void {
     this.userService.getProvidersWithUrgency(categoryId, state, city).subscribe({
       next: (providers: User[]) => {
@@ -368,7 +351,6 @@ export class TicketModal implements OnInit {
     });
   }
 
-  // ==================== STEP NAVIGATION ====================
   public nextStep(): void {
     if (!this.isStepValid(this.currentStep())) {
       this.markStepAsTouched(this.currentStep());
@@ -391,7 +373,6 @@ export class TicketModal implements OnInit {
     }
   }
 
-  // ==================== STEP VALIDATION ====================
   private isStepValid(step: number): boolean {
     const fields = this.stepFields[step];
     if (!fields) return true;
@@ -402,7 +383,6 @@ export class TicketModal implements OnInit {
     this.stepFields[step]?.forEach(field => this.ticketForm.get(field)?.markAsTouched());
   }
 
-  // ==================== FORM HELPERS ====================
   public isInvalid(field: string): boolean {
     const control = this.ticketForm.get(field);
     return !!control && control.invalid && control.touched;
@@ -422,8 +402,6 @@ export class TicketModal implements OnInit {
     this.ticketForm.get(field)?.markAsTouched();
   }
 
-  // ==================== PROVIDERS ACTIONS ====================
-  // Cria o ticket urgente vinculado a este prestador e, só depois de confirmado, abre o WhatsApp.
   public openWhatsapp(provider: User): void {
     this.createUrgentTicket(provider, () => {
       const message = `Olá ${provider.name}, vi seu perfil e preciso de um atendimento urgente.`;
@@ -434,7 +412,6 @@ export class TicketModal implements OnInit {
     });
   }
 
-  // ==================== MODAL CONTROLS ====================
   public closeModal(): void {
     this.resetForm();
     this.close.emit();
@@ -446,11 +423,10 @@ export class TicketModal implements OnInit {
     }
   }
 
-  // ==================== RESET ====================
   private resetForm(): void {
     this.currentStep.set(1);
     this.providers.set([]);
-    this.cidades.set([]);
+    this.cities.set([]);
     this.isSubmitting.set(false);
     this.sendingProviderId.set(null);
     this.cepError.set(null);

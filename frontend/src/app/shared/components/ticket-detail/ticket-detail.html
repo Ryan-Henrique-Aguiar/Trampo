@@ -6,7 +6,7 @@
         <div class="modal-header">
             <div class="header-left">
                 <div style="display: flex; align-items: center; justify-content: space-between; ">
-                    <span class="ticket-code">{{ getFormattedCode() }}</span>
+                    <span class="ticket-code">{{ ticket.code }}</span>
                     <span class="status-badge" [class]="getStatusClass(ticket.status)">
                         {{ getStatusLabel(ticket.status) }}
                     </span>
@@ -21,7 +21,6 @@
         <!-- BODY -->
         <div class="modal-body">
 
-
             <!-- Descrição -->
             @if (ticket.description) {
             <div class="detail-group">
@@ -34,11 +33,13 @@
             <div class="detail-grid">
                 @if (ticket.serviceDate) {
                 <div class="detail-group">
-                    <label>Data do Serviço</label>
+                    <label>Data de criação do serviço</label>
                     <span class="detail-value">{{ formatDate(ticket.serviceDate) }}</span>
                 </div>
                 }
-                @if (ticket.proposalsCount !== undefined && ticket.proposalsCount !== null) {
+
+                <!-- contador de propostas só faz sentido pro dono do ticket acompanhar -->
+                @if (!isProviderMode && ticket.proposalsCount !== undefined && ticket.proposalsCount !== null) {
                 <div class="detail-group">
                     <label>Propostas</label>
                     <span class="detail-value">{{ ticket.proposalsCount }}</span>
@@ -57,7 +58,9 @@
                     @if (ticket.address.complement) {
                     <span class="complement">{{ ticket.address.complement }}</span>
                     }
-                    @if (ticket.address.zipCode) {
+                    <!-- CEP completo só é exibido pro prestador, que precisa se localizar; -->
+                    <!-- pro cliente dono do ticket isso é redundante já que ele digitou -->
+                    @if (isProviderMode && ticket.address.zipCode) {
                     <span class="zip-code">CEP: {{ ticket.address.zipCode }}</span>
                     }
                 </div>
@@ -69,21 +72,21 @@
             <div class="detail-section">
                 <h4>Detalhes do Serviço</h4>
 
-                <!-- Preços -->
                 @if (ticket.priceRange) {
                 <div class="detail-grid">
                     <div class="detail-group">
-                        <label>Orçamento Mínimo</label>
+                        <label>{{ isProviderMode ? 'Faixa de Valor Aceita' : 'Orçamento Mínimo' }}</label>
                         <span class="detail-value">{{ formatCurrency(ticket.priceRange.min) }}</span>
                     </div>
                     <div class="detail-group">
-                        <label>Orçamento Máximo</label>
+                        <label>{{ isProviderMode ? '' : 'Orçamento Máximo' }}</label>
+                        @if (!isProviderMode) {
                         <span class="detail-value">{{ formatCurrency(ticket.priceRange.max) }}</span>
+                        }
                     </div>
                 </div>
                 }
 
-                <!-- Formas de Pagamento -->
                 @if (ticket.paymentMethods && ticket.paymentMethods.length > 0) {
                 <div class="detail-group">
                     <label>Formas de Pagamento</label>
@@ -95,7 +98,6 @@
                 </div>
                 }
 
-                <!-- Dias e Horários -->
                 <div class="schedule-grid">
                     @if (ticket.availableDays && ticket.availableDays.length > 0) {
                     <div class="detail-group">
@@ -121,10 +123,6 @@
                 </div>
             </div>
             }
-
-            <!-- Informações Adicionais -->
-           
-
         </div>
 
         <!-- FOOTER -->
@@ -132,6 +130,13 @@
             <button type="button" class="btn-close" (click)="closeModal()">
                 Fechar
             </button>
+
+            @if (canSendProposal) {
+            <button type="button" class="btn-primary" (click)="onSendProposal()">
+                <i class="fa-solid fa-paper-plane"></i>
+                Enviar Proposta
+            </button>
+            }
         </div>
 
     </div>

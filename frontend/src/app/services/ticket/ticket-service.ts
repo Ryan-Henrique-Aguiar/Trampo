@@ -11,7 +11,6 @@ import { AuthService } from '../auth/auth';
 
 @Injectable({ providedIn: 'root' })
 export class TicketService {
-  private idFake = 1;
 
   private http = inject(HttpClient);
   private baseUrl = `${environment.apiUrl}/tickets`;
@@ -19,8 +18,9 @@ export class TicketService {
   private authService = inject(AuthService
 
   );
-  nextId(): number {
-    return this.idFake++;
+  private generateTicketCode(): string {
+    const random = Math.random().toString(36).substring(2, 8).toUpperCase();
+    return `TRP-${random}`;
   }
 
   getTickets(filters?: {
@@ -54,7 +54,7 @@ export class TicketService {
 
   create(dto: CreateTicketRequest): Observable<Ticket> {
     const payload = {
-      id: this.nextId(),
+      code: this.generateTicketCode(),
       title: dto.title,
       description: dto.description,
       categoryId: Number(dto.categoryId),
@@ -82,8 +82,8 @@ export class TicketService {
 
   createUrgent(dto: CreateUrgentTicketRequest): Observable<UrgentTicket> {
     const payload = {
-      id: this.nextId(),
       title: dto.title,
+      code: this.generateTicketCode(),
       description: dto.description,
       categoryId: Number(dto.categoryId),
       address: dto.address,
