@@ -22,22 +22,24 @@
       </span>
 
       @if (ticket.priceMax) {
-        <span>
-          <i class="fa-solid fa-sack-dollar"></i>
-          Até: {{ formatCurrency(ticket.priceMax) }}
-        </span>
+      <span>
+        <i class="fa-solid fa-sack-dollar"></i>
+        Até: {{ formatCurrency(ticket.priceMax) }}
+      </span>
       }
 
-      @if (ticket.proposalsCount) {
-        <span>
-          <i class="fa-solid fa-comment-dots"></i>
-          {{ ticket.proposalsCount }} propostas
-        </span>
+      @if (!isProviderMode && ticket.proposalsCount) {
+      <span>
+        <i class="fa-solid fa-comment-dots"></i>
+        {{ ticket.proposalsCount }} propostas
+      </span>
       }
     </div>
     <div class="group-btn-detail">
       <button class="btn-detail-proposal" (click)="onViewDetails()">Detalhes</button>
-      <button class="btn-detail-proposal" >Propostas</button>
+      @if(!isProviderMode){
+              <button class="btn-detail-proposal">Propostas</button>
+      }
     </div>
   </div>
 </div>

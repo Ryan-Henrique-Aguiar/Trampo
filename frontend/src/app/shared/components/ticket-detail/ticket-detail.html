@@ -145,7 +145,7 @@
                         <label>Dias Disponíveis</label>
                         <div class="chips-container">
                             @for (day of ticket.availableDays; track day) {
-                            <span class="chip chip-small">{{ day }}</span>
+                            <span class="chip chip-small">{{ getDayLabel(day) }}</span>
                             }
                         </div>
                     </div>
@@ -162,6 +162,44 @@
                     </div>
                     }
                 </div>
+            </div>
+            }
+
+            @if (isOwnTicket) {
+            <div class="detail-section">
+                <h4>Propostas Recebidas</h4>
+
+                @if (isLoadingProposals()) {
+                <p class="proposals-empty">Carregando propostas...</p>
+                } @else if (proposals().length > 0) {
+                <div class="proposal-list">
+                    @for (proposal of proposals(); track proposal.id) {
+                    <div class="proposal-card">
+                        <div class="proposal-info">
+                            <span class="proposal-price">{{ formatCurrency(proposal.priceRange) }}</span>
+                            <span class="proposal-status" [class]="'proposal-status--' + proposal.status.toLowerCase()">
+                                {{ getProposalStatusLabel(proposal.status) }}
+                            </span>
+                        </div>
+
+                        @if (proposal.status === 'PENDING') {
+                        <div class="proposal-actions">
+                            <button type="button" class="btn-reject" [disabled]="processingProposalId() !== null"
+                                (click)="onRejectProposal(proposal)">
+                                Recusar
+                            </button>
+                            <button type="button" class="btn-accept" [disabled]="processingProposalId() !== null"
+                                (click)="onAcceptProposal(proposal)">
+                                {{ processingProposalId() === proposal.id ? 'Aceitando...' : 'Aceitar' }}
+                            </button>
+                        </div>
+                        }
+                    </div>
+                    }
+                </div>
+                } @else {
+                <p class="proposals-empty">Nenhuma proposta recebida ainda.</p>
+                }
             </div>
             }
 
@@ -261,11 +299,11 @@
                 <div class="form-group">
                     <label>Dias disponíveis</label>
                     <div class="chip-group">
-                        @for (day of dayOptions; track day) {
+                        @for (day of dayOptions; track day.value) {
                         <button type="button" class="chip"
-                            [class.chip--selected]="isEditOptionSelected('availableDays', day)"
-                            (click)="toggleEditOption('availableDays', day)">
-                            {{ day }}
+                            [class.chip--selected]="isEditOptionSelected('availableDays', day.value)"
+                            (click)="toggleEditOption('availableDays', day.value)">
+                            {{ day.label }}
                         </button>
                         }
                     </div>
@@ -293,24 +331,53 @@
             </form>
             }
 
+            <!-- Proposta já enviada pelo prestador -->
+            @if (isProviderMode && myProposal) {
+            <div class="status-confirm">
+                <p class="status-confirm-message">
+                    Você já enviou uma proposta de <strong>{{ formatCurrency(myProposal.priceRange) }}</strong>
+                    para este serviço. Status: <strong>{{ getProposalStatusLabel(myProposal.status) }}</strong>
+                </p>
+            </div>
+            }
+
+            <!-- Formulário de nova proposta -->
+            @if (isProposalFormOpen()) {
+            <div class="status-confirm">
+                <div class="form-group">
+                    <label>Seu valor para este serviço (R$)</label>
+                    <input type="number" [formControl]="proposalPriceControl" min="1" placeholder="Ex: 450" />
+                    @if (proposalPriceControl.invalid && proposalPriceControl.touched) {
+                    <span class="field-error">Informe um valor válido.</span>
+                    }
+                </div>
+                <div class="status-confirm-actions">
+                    <button type="button" class="btn-confirm-back" [disabled]="isSubmittingProposal()"
+                        (click)="cancelProposalForm()">
+                        Cancelar
+                    </button>
+                    <button type="button" class="btn-confirm-proceed" [disabled]="isSubmittingProposal()"
+                        (click)="submitProposal()">
+                        {{ isSubmittingProposal() ? 'Enviando...' : 'Confirmar Proposta' }}
+                    </button>
+                </div>
+            </div>
+            }
+
         </div>
 
         <!-- FOOTER -->
         <div class="modal-footer">
             @if (isEditing()) {
-            <button type="button" class="btn-close" [disabled]="isSaving()" (click)="cancelEditing()">
-                Cancelar
-            </button>
+            <button type="button" class="btn-close" [disabled]="isSaving()" (click)="cancelEditing()">Cancelar</button>
             <button type="button" class="btn-primary" [disabled]="isSaving()" (click)="saveEdit()">
                 {{ isSaving() ? 'Salvando...' : 'Salvar Alterações' }}
             </button>
             } @else {
-            <button type="button" class="btn-close" (click)="closeModal()">
-                Fechar
-            </button>
+            <button type="button" class="btn-close" (click)="closeModal()">Fechar</button>
 
-            @if (canSendProposal) {
-            <button type="button" class="btn-primary" (click)="onSendProposal()">
+            @if (canSendProposal && !isProposalFormOpen()) {
+            <button type="button" class="btn-primary" (click)="openProposalForm()">
                 <i class="fa-solid fa-paper-plane"></i>
                 Enviar Proposta
             </button>

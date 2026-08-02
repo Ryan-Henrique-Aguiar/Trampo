@@ -451,6 +451,7 @@
     padding-top: 16px;
     margin-top: 16px;
     border-top: 1px solid var(--border-color, #e0e0e0);
+    gap: 8px;
 }
 
 .btn-close {
@@ -565,6 +566,70 @@
     background: #1565c0;
     border-color: #1565c0;
     color: white;
+}
+
+.proposal-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.proposal-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    background: var(--surface-alt, #f8f8f8);
+    border-radius: var(--radius-sm, 6px);
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.proposal-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.proposal-price {
+    font-weight: var(--font-weight-semibold, 600);
+    font-size: var(--font-size-sm, 14px);
+}
+
+.proposal-status {
+    font-size: var(--font-size-xs, 11px);
+    padding: 3px 10px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.proposal-status--pending { background: #fff3e0; color: #e65100; }
+.proposal-status--accepted { background: #e8f5e9; color: #2e7d32; }
+.proposal-status--rejected { background: #fce4ec; color: #c62828; }
+
+.proposal-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-accept, .btn-reject {
+    padding: 6px 12px;
+    border-radius: var(--radius-sm, 6px);
+    font-size: var(--font-size-xs, 12px);
+    cursor: pointer;
+    border: 1px solid;
+}
+
+.btn-accept { color: #2e7d32; border-color: #2e7d32; background: none; }
+.btn-accept:hover { background: #e8f5e9; }
+.btn-reject { color: #c62828; border-color: #c62828; background: none; }
+.btn-reject:hover { background: #fce4ec; }
+
+.proposals-empty {
+    font-size: var(--font-size-sm, 14px);
+    color: var(--text-secondary, #666);
+    margin: 0;
 }
 
 /* ===== RESPONSIVE ===== */

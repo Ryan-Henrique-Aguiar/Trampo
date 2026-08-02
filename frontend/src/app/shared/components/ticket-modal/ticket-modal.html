@@ -178,10 +178,10 @@
                 <div class="form-group">
                     <label>Dias disponíveis</label>
                     <div class="chip-group">
-                        @for (day of dayOptions; track day) {
-                        <button type="button" class="chip" [class.chip--selected]="isSelected('availableDays', day)"
-                            (click)="toggleSelection('availableDays', day)">
-                            {{ day }}
+                        @for (day of dayOptions; track day.value) {
+                        <button type="button" class="chip" [class.chip--selected]="isSelected('availableDays', day.value)"
+                            (click)="toggleSelection('availableDays', day.value)">
+                            {{ day.label }}
                         </button>
                         }
                     </div>

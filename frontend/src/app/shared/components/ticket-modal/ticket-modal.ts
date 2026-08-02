@@ -12,6 +12,7 @@ import { LocationService, Estado, Cidade } from '../../../services/location/loca
 import { CepService } from '../../../services/cep/cep-service';
 import { CepBrasilApiService } from '../../../services/cep-brasil-api/cep-brasil-api-service';
 import { Ticket } from '../../../models/ticket.model';
+import { WeekDay } from '../../../enums/week-day';
 
 interface NormalizedCepAddress {
   street?: string | null;
@@ -63,8 +64,16 @@ export class TicketModal implements OnInit {
     { label: 'Dinheiro', value: PaymentMethod.CASH },
   ];
 
-  public dayOptions = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
-
+  public dayOptions = [
+    { label: 'Segunda', value: WeekDay.MONDAY },
+    { label: 'Terça', value: WeekDay.TUESDAY },
+    { label: 'Quarta', value: WeekDay.WEDNESDAY },
+    { label: 'Quinta', value: WeekDay.THURSDAY },
+    { label: 'Sexta', value: WeekDay.FRIDAY },
+    { label: 'Sábado', value: WeekDay.SATURDAY },
+    { label: 'Domingo', value: WeekDay.SUNDAY },
+  ];
+  
   public hourOptions = [
     '07:00', '08:00', '09:00', '10:00', '11:00', '12:00',
     '13:00', '14:00', '15:00', '16:00', '17:00', '18:00',

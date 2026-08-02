@@ -1,7 +1,8 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TicketStatus } from '../../../enums/ticket-status';
 import { Ticket } from '../../../models/ticket.model';
+import { ViewModeService } from '../../../services/view-mode/view-mode-service';
 
 @Component({
   selector: 'app-ticket-card',
@@ -11,9 +12,16 @@ import { Ticket } from '../../../models/ticket.model';
   styleUrl: './ticket-card.css',
 })
 export class TicketCard {
+
+  private viewModeService = inject(ViewModeService);
+
   @Input() ticket!: Ticket;
   @Output() viewDetails = new EventEmitter<Ticket>();
 
+
+  get isProviderMode() {
+    return this.viewModeService.isProviderMode;
+  }
   // Retorna o label do status
   getStatusLabel(status: TicketStatus): string {
     const labels: Record<TicketStatus, string> = {

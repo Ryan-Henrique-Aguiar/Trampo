@@ -10,4 +10,5 @@ export interface UpdateTicketRequest {
   paymentMethods?: string[];
   availableDays?: string[];
   availableHours?: string[];
+  proposalsCount?: number;
 }
