@@ -126,25 +126,24 @@
 }
 
 .status-badge {
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    padding: 4px 14px;
+    justify-content: center; /* Centraliza o texto horizontalmente */
+    text-align: center;
+    padding: 6px 14px;
     border-radius: 999px;
     font-size: var(--font-size-xs, 12px);
     font-weight: var(--font-weight-semibold, 600);
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    width: 100%;
+    min-height: 36px;
 }
 
 /* Status Cores */
 .status-open {
     background: #e3f2fd;
     color: #1565c0;
-}
-
-.status-negotiation {
-    background: #fff3e0;
-    color: #e65100;
 }
 
 .status-progress {
@@ -166,7 +165,162 @@
     background: #f5f5f5;
     color: #757575;
 }
+.status-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+}
 
+.status-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.status-badge--button {
+    cursor: pointer;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    width: auto;
+}
+
+.status-badge--disabled {
+    cursor: default;
+}
+
+.status-badge-icon {
+    font-size: 10px;
+}
+
+.status-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    background: var(--surface, #fff);
+    border: 1px solid var(--border-color, #e0e0e0);
+    border-radius: var(--radius-sm, 6px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    min-width: 160px;
+    z-index: 10;
+    overflow: hidden;
+}
+
+.status-menu-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 10px 14px;
+    border: none;
+    background: none;
+    font-size: var(--font-size-sm, 14px);
+    color: var(--text-primary, #1a1a1a);
+    cursor: pointer;
+}
+
+.status-menu-item:hover {
+    background: var(--surface-alt, #f8f8f8);
+}
+
+.status-confirm {
+    padding: 16px;
+    background: var(--surface-alt, #f8f8f8);
+    border-radius: var(--radius-sm, 6px);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.status-confirm-message {
+    margin: 0;
+    font-size: var(--font-size-sm, 14px);
+    color: var(--text-primary, #1a1a1a);
+}
+
+.status-confirm-warning {
+    margin: 0;
+    font-size: var(--font-size-xs, 12px);
+    color: #c62828;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.status-confirm-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.btn-confirm-back {
+    padding: 8px 16px;
+    border: 1px solid var(--border-color, #e0e0e0);
+    border-radius: var(--radius-sm, 6px);
+    background: none;
+    cursor: pointer;
+    font-size: var(--font-size-sm, 14px);
+}
+
+.btn-confirm-proceed {
+    padding: 8px 16px;
+    border: none;
+    border-radius: var(--radius-sm, 6px);
+    background: #1565c0;
+    color: white;
+    cursor: pointer;
+    font-size: var(--font-size-sm, 14px);
+}
+
+.btn-confirm-proceed:disabled,
+.btn-confirm-back:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-edit {
+    padding: 6px 14px;
+    border: 1px solid var(--border-color, #e0e0e0);
+    border-radius: var(--radius-sm, 6px);
+    background: none;
+    color: var(--text-secondary, #666);
+    font-size: var(--font-size-xs, 12px);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-edit:hover {
+    background: var(--surface-hover, #f0f0f0);
+    color: var(--text-primary, #1a1a1a);
+}
+
+.edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.btn-primary {
+    padding: 10px 20px;
+    border: none;
+    border-radius: var(--radius-sm, 6px);
+    background: #1565c0;
+    color: white;
+    font-size: var(--font-size-sm, 14px);
+    font-weight: var(--font-weight-medium, 500);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
 .ticket-date {
     font-size: var(--font-size-xs, 12px);
     color: var(--text-secondary, #666);
@@ -314,6 +468,103 @@
 .btn-close:hover {
     background: var(--surface-hover, #f0f0f0);
     color: var(--text-primary, #1a1a1a);
+}
+
+
+/* ===== EDIT FORM ===== */
+.edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.form-section {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group label {
+    font-size: var(--font-size-xs, 12px);
+    font-weight: var(--font-weight-medium, 500);
+    color: var(--text-secondary, #666);
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    padding: 10px 12px;
+    border: 1px solid var(--border-color, #e0e0e0);
+    border-radius: var(--radius-sm, 6px);
+    font-size: var(--font-size-sm, 14px);
+    color: var(--text-primary, #1a1a1a);
+    font-family: inherit;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #1565c0;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 70px;
+}
+
+.field-error {
+    font-size: var(--font-size-xs, 11px);
+    color: #c62828;
+}
+
+.optional {
+    font-weight: normal;
+    color: var(--text-secondary, #999);
+    font-size: 11px;
+}
+
+/* ===== CHIPS (SELECIONÁVEIS) ===== */
+.chip-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.chip-group .chip {
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--border-color, #e0e0e0);
+    background: none;
+    color: var(--text-primary, #1a1a1a);
+    font-size: var(--font-size-sm, 14px);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.chip-group .chip:hover {
+    background: var(--surface-hover, #f0f0f0);
+}
+
+.chip-group .chip.chip--selected {
+    background: #1565c0;
+    border-color: #1565c0;
+    color: white;
 }
 
 /* ===== RESPONSIVE ===== */

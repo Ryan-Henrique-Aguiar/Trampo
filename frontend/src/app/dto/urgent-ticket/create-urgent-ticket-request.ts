@@ -5,4 +5,6 @@ export interface CreateUrgentTicketRequest {
   description: string;
   categoryId: number;
   address: Omit<Address, 'id'>;
+  providerId: number;
 }
+

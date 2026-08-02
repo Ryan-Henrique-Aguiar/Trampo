@@ -1,19 +1,14 @@
 import { TicketStatus } from '../enums/ticket-status';
 import { Address } from './address.model';
 
-export interface PriceRange {
-  min: number;
-  max: number;
-}
-
 export interface Ticket {
     id: number;
     code: string;
     title: string;
     description: string;
     createdAt: string;
-    priceRange?: PriceRange;
-    serviceDate: string;
+    priceMax?: number;
+    serviceDate?: string;
     status: TicketStatus;
     userId: number;
     categoryId: number;
@@ -26,8 +21,14 @@ export interface Ticket {
 
 export interface UrgentTicket {
     id: number;
+    code: string;
+    title: string;
     description: string;
     createdAt: string;
     userId: number;
+    status: TicketStatus
     categoryId: number;
+    providerId: number;
+    address: Address;
+    serviceDate?: string;
 }

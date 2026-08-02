@@ -104,19 +104,19 @@ CREATE TABLE IF NOT EXISTS ticket (
     code VARCHAR(20) UNIQUE NOT NULL,
     title VARCHAR(100) NOT NULL,
     description TEXT NOT NULL,
-    price_min NUMERIC(10,2),
     price_max NUMERIC(10,2),
-    service_date TIMESTAMP NOT NULL,
-    status VARCHAR(30) NOT NULL DEFAULT 'ABERTO',
+    service_date TIMESTAMP,                         
+    status VARCHAR(30) NOT NULL DEFAULT 'OPEN'
     proposals_count INT DEFAULT 0,
 
-    user_id INT NOT NULL,     -- antigo client_id
+    user_id INT NOT NULL,
     category_id INT NOT NULL,
     address_id INT NOT NULL,
 
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (category_id) REFERENCES category(id),
-    FOREIGN KEY (address_id) REFERENCES address(id)
+    FOREIGN KEY (address_id) REFERENCES address(id),
+    CHECK (status IN ('OPEN', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'))
 );
 
 -- Multivalorados de ticket (Ticket.paymentMethods / availableDays / availableHours)
@@ -148,32 +148,36 @@ CREATE TABLE IF NOT EXISTS ticket_available_hour (
 CREATE TABLE IF NOT EXISTS proposal (
     id SERIAL PRIMARY KEY,
     price_range NUMERIC(10,2) NOT NULL,
-    status VARCHAR(30) NOT NULL DEFAULT 'PENDENTE',
+    status VARCHAR(30) NOT NULL DEFAULT 'PENDING'
+        CHECK (status IN ('PENDING', 'ACCEPTED', 'REJECTED')),
     professional_id INT NOT NULL,
-    ticket_id INT NOT NULL,  -- Proposal.ticketId na interface TS
+    ticket_id INT NOT NULL,
     FOREIGN KEY (professional_id) REFERENCES users(id),
     FOREIGN KEY (ticket_id) REFERENCES ticket(id)
 );
 
 -- ==========================================================
 -- TABELA: URGENT_TICKET (renomeada de "urgent_service")
--- ATENÇÃO: a interface UrgentTicket hoje NÃO tem "title" nem
--- "address", mas o payload real que seu front envia pro
--- POST /urgentTickets manda os dois. Mantive as colunas aqui
--- porque o backend precisa delas -- sugiro atualizar a
--- interface UrgentTicket no TS pra refletir isso.
 -- ==========================================================
 CREATE TABLE IF NOT EXISTS urgent_ticket (
     id SERIAL PRIMARY KEY,
-    title VARCHAR(100),
+    code VARCHAR(20) UNIQUE NOT NULL,
+    title VARCHAR(100) NOT NULL,
     description TEXT NOT NULL,
+    status VARCHAR(30) NOT NULL DEFAULT 'IN_PROGRESS'
+    service_date TIMESTAMP,                          -- nullable, só preenchido ao concluir
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    user_id INT NOT NULL,      -- antigo client_id
+
+    user_id INT NOT NULL,
+    provider_id INT NOT NULL,
     category_id INT NOT NULL,
-    address_id INT,
+    address_id INT NOT NULL,
+
     FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (provider_id) REFERENCES users(id),
     FOREIGN KEY (category_id) REFERENCES category(id),
-    FOREIGN KEY (address_id) REFERENCES address(id)
+    FOREIGN KEY (address_id) REFERENCES address(id),
+    CHECK (status IN ('IN_PROGRESS', 'COMPLETED', 'CANCELLED')),
 );
 
 -- ==========================================================

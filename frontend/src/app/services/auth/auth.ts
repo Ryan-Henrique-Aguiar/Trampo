@@ -51,7 +51,7 @@ export class AuthService {
       email: 'joao@email.com',
       cpf: '22222222222',
       password: '123456',
-      isProvider: true,
+      isProvider: false,
       categoryIds: [1],
     };
 

@@ -35,6 +35,7 @@ export class Home implements OnInit {
   isModalOpen = signal(false);
   isModalUrgent = signal(false);
   preselectedCategoryId = signal<number | null>(null);
+
   isDetailModalOpen = signal(false);
   selectedTicket = signal<Ticket | null>(null);
 
@@ -59,6 +60,14 @@ export class Home implements OnInit {
     return this.viewModeService.isProviderMode;
   }
 
+  firstThreeMyTickets = computed(() =>
+    this.tickets()
+      .filter(ticket => ticket.status === TicketStatus.OPEN)
+      .slice(0, 3)
+  );
+  firstThreeCategories = computed(() => this.categories().slice(0, 3));
+  firstThreeAvailableTickets = computed(() => this.availableTickets().slice(0, 3));
+
   ngOnInit(): void {
     if (this.authService.isProvider) {
       this.viewModeService.setMode('provider');
@@ -66,6 +75,8 @@ export class Home implements OnInit {
     this.loadCategories();
     this.loadTickets();
   }
+
+  // ===== CARREGAMENTO =====
 
   private loadTickets(): void {
     const userId = this.authService.userId;
@@ -120,28 +131,35 @@ export class Home implements OnInit {
       }
     });
   }
-  // ===== MÉTODOS PARA O MODAL DE DETALHES =====
-  
-  // Abre o modal de detalhes do ticket
+
+  // ===== MODAL DE DETALHES =====
+
   openTicketDetail(ticket: Ticket): void {
     this.selectedTicket.set(ticket);
     this.isDetailModalOpen.set(true);
   }
 
-  // Fecha o modal de detalhes
   closeTicketDetail(): void {
     this.isDetailModalOpen.set(false);
     this.selectedTicket.set(null);
   }
 
-  // Chamado pelo (openTicket) do ActionCards
+  onTicketUpdated(updatedTicket: Ticket): void {
+    this.tickets.update(current =>
+      current.map(t => t.id === updatedTicket.id ? updatedTicket : t)
+    );
+    this.selectedTicket.set(updatedTicket);
+  }
+
+
+  // ===== MODAL DE CRIAÇÃO =====
+
   public onActionCardsOpenTicket(request: OpenTicketRequest): void {
     this.isModalUrgent.set(request.urgent);
     this.preselectedCategoryId.set(null);
     this.isModalOpen.set(true);
   }
 
-  // Chamado pelo (click) de cada card de categoria
   public onCategoryClick(category: Category): void {
     this.isModalUrgent.set(false);
     this.preselectedCategoryId.set(category.id);
@@ -152,14 +170,15 @@ export class Home implements OnInit {
     this.isModalOpen.set(false);
   }
 
-  firstThreeMyTickets = computed(() => this.tickets().slice(0, 3));
-  firstThreeCategories = computed(() => this.categories().slice(0, 3));
-  firstThreeAvailableTickets = computed(() => this.availableTickets().slice(0, 3));
+  onTicketCreated(ticket: Ticket): void {
+    this.tickets.update(current => [ticket, ...current]);
+  }
+
+  // ===== LABELS =====
 
   getStatusLabel(status: TicketStatus): string {
     const labels: Record<TicketStatus, string> = {
       [TicketStatus.OPEN]: 'Aberto',
-      [TicketStatus.IN_NEGOTIATION]: 'Em negociação',
       [TicketStatus.IN_PROGRESS]: 'Em andamento',
       [TicketStatus.COMPLETED]: 'Finalizado',
       [TicketStatus.CANCELLED]: 'Cancelado'

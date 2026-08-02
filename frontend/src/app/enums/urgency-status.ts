@@ -1,4 +1,4 @@
 export enum UrgencyStatus {
-  ACTIVATED = 'ATIVADO',
-  DISABLED = 'DESATIVADO'
+  ACTIVATED = 'Ativado',
+  DISABLED = 'Desativado'
 }

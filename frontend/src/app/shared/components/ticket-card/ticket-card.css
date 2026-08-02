@@ -68,7 +68,7 @@
     margin-right: 4px;
 }
 
-.btn-detail {
+.btn-detail-proposal {
     width: 100px;
     font-size: var(--font-size-xs);
     font-weight: var(--font-weight-semibold);
@@ -78,13 +78,26 @@
     border-radius: 12px;
     background: none;
 }
+
 .ticket-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
 }
+.group-btn-detail {
+    display: flex;
+    gap: 8px;
+}
+
 @media (max-width: 600px) {
-    .btn-detail {
-        max-width: 70px;
+    .btn-detail-proposal {
+        max-width: 90px;
+    }
+}
+
+@media (max-width: 490px) {
+    .group-btn-detail {
+        display: flex;
+        flex-direction: column;
     }
 }

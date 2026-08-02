@@ -11,6 +11,7 @@ import { UserService } from '../../../services/user/user';
 import { LocationService, Estado, Cidade } from '../../../services/location/location';
 import { CepService } from '../../../services/cep/cep-service';
 import { CepBrasilApiService } from '../../../services/cep-brasil-api/cep-brasil-api-service';
+import { Ticket } from '../../../models/ticket.model';
 
 interface NormalizedCepAddress {
   street?: string | null;
@@ -41,7 +42,7 @@ export class TicketModal implements OnInit {
   @Input() isUrgent = false;
   @Input() preselectedCategoryId: number | null = null;
   @Output() close = new EventEmitter<void>();
-
+  @Output() ticketCreated = new EventEmitter<Ticket>();
   public categories = signal<Category[]>([]);
   public currentStep = signal(1);
   public isSubmitting = signal(false);
@@ -73,7 +74,7 @@ export class TicketModal implements OnInit {
   private normalStepFields: Record<number, string[]> = {
     1: ['title', 'description', 'categoryId'],
     2: ['address.state', 'address.city', 'address.street', 'address.number', 'address.neighborhood'],
-    3: ['priceRange.min', 'priceRange.max', 'paymentMethods', 'availableDays', 'availableHours'],
+    3: ['priceMax', 'paymentMethods', 'availableDays', 'availableHours'],
   };
 
   private urgentStepFields: Record<number, string[]> = {
@@ -122,10 +123,7 @@ export class TicketModal implements OnInit {
         zipCode: new FormControl(null),
         complement: new FormControl(null),
       }),
-      priceRange: new FormGroup({
-        min: new FormControl(null, [Validators.required]),
-        max: new FormControl(null, [Validators.required]),
-      }),
+      priceMax: new FormControl(null, [Validators.required]),
       paymentMethods: new FormControl([], [Validators.required]),
       availableDays: new FormControl([], [Validators.required]),
       availableHours: new FormControl([], [Validators.required]),
@@ -277,13 +275,51 @@ export class TicketModal implements OnInit {
       return;
     }
 
-    this.ticketService.create(this.ticketForm.getRawValue()).subscribe({
-      next: () => {
+    const value = this.ticketForm.getRawValue();
+    const dto = {
+      title: value.title,
+      description: value.description,
+      categoryId: Number(value.categoryId),
+      address: value.address,
+      priceMax: value.priceMax,
+      paymentMethods: value.paymentMethods,
+      availableDays: value.availableDays,
+      availableHours: value.availableHours,
+    };
+
+    this.ticketService.create(dto).subscribe({
+      next: (createdTicket) => {
+        this.ticketCreated.emit(createdTicket)
         this.closeModal();
         this.resetForm();
       },
       error: (err: HttpErrorResponse) => {
         console.error('Erro ao criar ticket:', err);
+      },
+    });
+  }
+
+  private saveUrgentTicket(provider: User, onSuccess: () => void): void {
+    if (this.ticketForm.invalid) {
+      this.ticketForm.markAllAsTouched();
+      return;
+    }
+
+    const value = this.ticketForm.getRawValue();
+    const dto = {
+      title: value.title,
+      description: value.description,
+      categoryId: Number(value.categoryId),
+      address: value.address,
+      providerId: provider.id,
+    };
+
+    this.ticketService.createUrgent(dto).subscribe({
+      next: () => {
+        onSuccess();
+      },
+      error: (err: HttpErrorResponse) => {
+        console.error('Erro ao criar ticket urgente:', err);
       },
     });
   }
@@ -305,30 +341,6 @@ export class TicketModal implements OnInit {
     });
   }
 
-  private createUrgentTicket(provider: User, onSuccess: () => void): void {
-    if (this.sendingProviderId() !== null) return;
-    this.sendingProviderId.set(provider.id);
-
-    const value = this.ticketForm.getRawValue();
-    const dto = {
-      title: value.title,
-      description: value.description,
-      categoryId: Number(value.categoryId),
-      address: value.address,
-      providerId: provider.id,
-    };
-
-    this.ticketService.createUrgent(dto).subscribe({
-      next: () => {
-        this.sendingProviderId.set(null);
-        onSuccess();
-      },
-      error: (err: HttpErrorResponse) => {
-        this.sendingProviderId.set(null);
-        console.error('Erro ao criar ticket urgente:', err);
-      },
-    });
-  }
 
   private loadProviders(categoryId: number, state: string, city: string, onComplete?: () => void): void {
     this.userService.getProvidersWithUrgency(categoryId, state, city).subscribe({
@@ -403,7 +415,7 @@ export class TicketModal implements OnInit {
   }
 
   public openWhatsapp(provider: User): void {
-    this.createUrgentTicket(provider, () => {
+    this.saveUrgentTicket(provider, () => {
       const message = `Olá ${provider.name}, vi seu perfil e preciso de um atendimento urgente.`;
       const url = `https://wa.me/${provider.phone}?text=${encodeURIComponent(message)}`;
       window.open(url, '_blank');

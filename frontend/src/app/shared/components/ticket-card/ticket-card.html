@@ -21,10 +21,10 @@
         {{ formatDate(ticket.createdAt) }}
       </span>
 
-      @if (ticket.priceRange) {
+      @if (ticket.priceMax) {
         <span>
           <i class="fa-solid fa-sack-dollar"></i>
-          {{ formatCurrency(ticket.priceRange.min) }} - {{ formatCurrency(ticket.priceRange.max) }}
+          Até: {{ formatCurrency(ticket.priceMax) }}
         </span>
       }
 
@@ -35,7 +35,9 @@
         </span>
       }
     </div>
-
-    <button class="btn-detail" (click)="onViewDetails()">Detalhes</button>
+    <div class="group-btn-detail">
+      <button class="btn-detail-proposal" (click)="onViewDetails()">Detalhes</button>
+      <button class="btn-detail-proposal" >Propostas</button>
+    </div>
   </div>
 </div>
