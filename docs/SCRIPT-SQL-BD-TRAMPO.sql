@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS users (
    ========================================================== */
 CREATE TABLE IF NOT EXISTS client (
     user_id INT PRIMARY KEY,
-    created_services_count INT DEFAULT 0,
+    created_tickets_count INT DEFAULT 0,
 
     FOREIGN KEY (user_id)
         REFERENCES users(id)
@@ -53,17 +53,18 @@ CREATE TABLE IF NOT EXISTS professional (
 CREATE TABLE IF NOT EXISTS urgency (
     id SERIAL PRIMARY KEY,
     status VARCHAR(30) NOT NULL,
-    price_range NUMERIC(10,2) NOT NULL,
+    price_min NUMERIC(10,2) NOT NULL,
+    price_max NUMERIC(10,2) NOT NULL,
     minimum_rate NUMERIC(10,2) NOT NULL,
     completed_services_count INT DEFAULT 0
 );
 
 
 /* ==========================================================
-   TABELA: PROFESSION
-   Catálogo de profissões existentes no sistema.
+   TABELA: CATEGORY
+   Catálogo de categorias existentes no sistema.
    ========================================================== */
-CREATE TABLE IF NOT EXISTS profession (
+CREATE TABLE IF NOT EXISTS category (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL UNIQUE,
     description TEXT NOT NULL
@@ -71,53 +72,61 @@ CREATE TABLE IF NOT EXISTS profession (
 
 
 /* ==========================================================
-   TABELA: PROFESSIONAL_PROFESSION
-   Relacionamento N:N entre Professional e Profession.
-   Um profissional pode possuir várias profissões e
-   uma profissão pode pertencer a vários profissionais.
+   TABELA: PROFESSIONAL_CATEGORY
+   Relacionamento N:N entre Professional e Category.
    ========================================================== */
-CREATE TABLE IF NOT EXISTS professional_profession (
+CREATE TABLE IF NOT EXISTS professional_category (
     professional_id INT NOT NULL,
-    profession_id INT NOT NULL,
+    category_id INT NOT NULL,
 
-    PRIMARY KEY (professional_id, profession_id),
+    PRIMARY KEY (professional_id, category_id),
 
     FOREIGN KEY (professional_id)
         REFERENCES professional(user_id),
 
-    FOREIGN KEY (profession_id)
-        REFERENCES profession(id)
+    FOREIGN KEY (category_id)
+        REFERENCES category(id)
 );
 
 
 /* ==========================================================
    TABELA: ADDRESS
-   Endereço associado a serviços e serviços urgentes.
+   Endereço associado aos tickets.
    ========================================================== */
 CREATE TABLE IF NOT EXISTS address (
     id SERIAL PRIMARY KEY,
     street VARCHAR(150) NOT NULL,
     number VARCHAR(20) NOT NULL,
     neighborhood VARCHAR(100) NOT NULL,
+    city VARCHAR(100) NOT NULL,
+    state CHAR(2) NOT NULL,
+    zip_code VARCHAR(10) NOT NULL,
+    complement VARCHAR(150),
 
-    UNIQUE(street, number, neighborhood)
+    UNIQUE(street, number, neighborhood, city, state)
 );
 
 
 /* ==========================================================
-   TABELA: SERVICE
-   Serviço criado por um cliente.
+   TABELA: TICKET
+   Ticket criado por um cliente.
    ========================================================== */
-CREATE TABLE IF NOT EXISTS service (
+CREATE TABLE IF NOT EXISTS ticket (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
+    title VARCHAR(100) NOT NULL,
     description TEXT NOT NULL,
-    price_range NUMERIC(10,2),
-    service_date TIMESTAMP NOT NULL,
+
+    price_min NUMERIC(10,2),
+    price_max NUMERIC(10,2),
+
+    created_at TIMESTAMP NOT NULL,
+    service_date TIMESTAMP,
+
     status VARCHAR(30) NOT NULL,
 
     client_id INT NOT NULL,
     address_id INT NOT NULL,
+    category_id INT NOT NULL,
 
     FOREIGN KEY (client_id)
         REFERENCES client(user_id),
@@ -125,50 +134,55 @@ CREATE TABLE IF NOT EXISTS service (
     FOREIGN KEY (address_id)
         REFERENCES address(id),
 
-    UNIQUE(name, description, service_date)
+    FOREIGN KEY (category_id)
+        REFERENCES category(id),
+
+    UNIQUE(title, description, created_at)
 );
 
 
 /* ==========================================================
    TABELA: PROPOSAL
-   Proposta enviada por um profissional para um serviço.
+   Proposta enviada por um profissional para um ticket.
    ========================================================== */
 CREATE TABLE IF NOT EXISTS proposal (
     id SERIAL PRIMARY KEY,
-    price_range NUMERIC(10,2) NOT NULL,
+
+    price_min NUMERIC(10,2) NOT NULL,
+    price_max NUMERIC(10,2) NOT NULL,
+
     status VARCHAR(30) NOT NULL,
 
     professional_id INT NOT NULL,
-    service_id INT NOT NULL,
+    ticket_id INT NOT NULL,
 
     FOREIGN KEY (professional_id)
         REFERENCES professional(user_id),
 
-    FOREIGN KEY (service_id)
-        REFERENCES service(id)
+    FOREIGN KEY (ticket_id)
+        REFERENCES ticket(id)
 );
 
 
 /* ==========================================================
    TABELA: NOTIFICATION
-   Notificações geradas para um serviço.
+   Notificações geradas para um ticket.
    ========================================================== */
 CREATE TABLE IF NOT EXISTS notification (
     id SERIAL PRIMARY KEY,
     message TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL,
 
-    service_id INT NOT NULL,
+    ticket_id INT NOT NULL,
 
-    FOREIGN KEY (service_id)
-        REFERENCES service(id)
+    FOREIGN KEY (ticket_id)
+        REFERENCES ticket(id)
 );
 
 
 /* ==========================================================
    TABELA: REVIEW
    Relacionamento N:N entre Cliente e Profissional.
-   Armazena avaliações realizadas pelos clientes.
    ========================================================== */
 CREATE TABLE IF NOT EXISTS review (
     id SERIAL PRIMARY KEY,
@@ -189,10 +203,10 @@ CREATE TABLE IF NOT EXISTS review (
 
 
 /* ==========================================================
-   TABELA: URGENT_SERVICE
-   Serviços urgentes criados por clientes.
+   TABELA: URGENT_TICKET
+   Tickets urgentes criados por clientes.
    ========================================================== */
-CREATE TABLE IF NOT EXISTS urgent_service (
+CREATE TABLE IF NOT EXISTS urgent_ticket (
     id SERIAL PRIMARY KEY,
     description TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL,
@@ -209,17 +223,19 @@ CREATE TABLE IF NOT EXISTS urgent_service (
 
 
 /* ==========================================================
-   TABELA: URGENT_SERVICE_PROFESSIONAL_TYPE
-   Armazena os tipos de profissionais necessários
-   para um serviço urgente.
+   TABELA: URGENT_TICKET_CATEGORY
+   Categorias necessárias para um ticket urgente.
    ========================================================== */
-CREATE TABLE IF NOT EXISTS urgent_service_professional_type (
+CREATE TABLE IF NOT EXISTS urgent_ticket_category (
     id SERIAL PRIMARY KEY,
-    urgent_service_id INT NOT NULL,
-    professional_type VARCHAR(100) NOT NULL,
+    urgent_ticket_id INT NOT NULL,
+    category_id INT NOT NULL,
 
-    FOREIGN KEY (urgent_service_id)
-        REFERENCES urgent_service(id)
+    FOREIGN KEY (urgent_ticket_id)
+        REFERENCES urgent_ticket(id),
+
+    FOREIGN KEY (category_id)
+        REFERENCES category(id)
 );
 
 
@@ -239,57 +255,63 @@ REFERENCES urgency(id);
 
 /* ==========================================================
    TABELAS DE ATRIBUTOS MULTIVALORADOS
-   Representam listas presentes no DER.
    ========================================================== */
 
 
 /* ==========================================================
-   Tipos de profissionais .
+   Categorias adicionais necessárias para um ticket.
    ========================================================== */
-CREATE TABLE IF NOT EXISTS professional_type (
+CREATE TABLE IF NOT EXISTS ticket_category (
     id SERIAL PRIMARY KEY,
-    service_id INT NOT NULL,
-    professional_type VARCHAR(100) NOT NULL,
 
-    FOREIGN KEY (service_id)
-        REFERENCES service(id)
+    ticket_id INT NOT NULL,
+    category_id INT NOT NULL,
+
+    FOREIGN KEY (ticket_id)
+        REFERENCES ticket(id),
+
+    FOREIGN KEY (category_id)
+        REFERENCES category(id)
 );
 
 
 /* ==========================================================
-   Formas de pagamento .
+   Formas de pagamento.
    ========================================================== */
 CREATE TABLE IF NOT EXISTS payment_method (
     id SERIAL PRIMARY KEY,
-    service_id INT NOT NULL,
+
+    ticket_id INT NOT NULL,
     payment_method VARCHAR(50) NOT NULL,
 
-    FOREIGN KEY (service_id)
-        REFERENCES service(id)
+    FOREIGN KEY (ticket_id)
+        REFERENCES ticket(id)
 );
 
 
 /* ==========================================================
-   Dias disponíveis .
+   Dias disponíveis.
    ========================================================== */
 CREATE TABLE IF NOT EXISTS available_day (
     id SERIAL PRIMARY KEY,
-    service_id INT NOT NULL,
+
+    ticket_id INT NOT NULL,
     available_day VARCHAR(20) NOT NULL,
 
-    FOREIGN KEY (service_id)
-        REFERENCES service(id)
+    FOREIGN KEY (ticket_id)
+        REFERENCES ticket(id)
 );
 
 
 /* ==========================================================
-   Horários disponíveis .
+   Horários disponíveis.
    ========================================================== */
 CREATE TABLE IF NOT EXISTS available_hour (
     id SERIAL PRIMARY KEY,
-    service_id INT NOT NULL,
+
+    ticket_id INT NOT NULL,
     available_hour TIME NOT NULL,
 
-    FOREIGN KEY (service_id)
-        REFERENCES service(id)
+    FOREIGN KEY (ticket_id)
+        REFERENCES ticket(id)
 );
