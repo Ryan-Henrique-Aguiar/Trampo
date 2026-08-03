@@ -1,9 +1,11 @@
-package br.com.trampo.backend.domain.user;
+package br.com.trampo.backend.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+
+import java.time.LocalDate;
 
 @Data
 @SuperBuilder
@@ -18,4 +20,17 @@ public class Users {
     private String nickname;
     private String cpf;
     private Double rating;
+
+    private boolean provider;
+    private boolean availableForUrgency;
+
+    private Integer createdServicesCount;
+
+    private LocalDate serviceStartDate;
+
+    private Integer completedServicesCount;
+
+    private String city;
+    private String state;
+
 }

@@ -18,10 +18,11 @@ public class CategoryPostgresDaoImpl implements CategoryDao {
 
     @Override
     public Category save(Category category) {
-        String sql = "INSERT INTO category (name, description) VALUES (?, ?) RETURNING id";
+        String sql = "INSERT INTO category (name, icon_url) VALUES (?, ?) RETURNING id";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, category.getName());
-            stmt.setString(2, category.getDescription());
+            stmt.setString(2, category.getIconUrl());
+            //stmt.setString(2, category.getDescription());
 
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {

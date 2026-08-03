@@ -32,7 +32,7 @@ public class AddressPostgresDaoImpl implements AddressDao {
             stmt.setString(3, address.getNeighborhood());
             stmt.setString(4, address.getCity());
             stmt.setString(5, address.getState());
-            stmt.setString(6, address.getZip_code());
+            stmt.setString(6, address.getZipCode());
             stmt.setString(7, address.getComplement());
 
             try (ResultSet rs = stmt.executeQuery()) {

@@ -1,13 +1,12 @@
 package br.com.trampo.backend.configuration;
 
-import br.com.trampo.backend.domain.Address;
 import br.com.trampo.backend.implementation.dao.AddressPostgresDaoImpl;
 import br.com.trampo.backend.implementation.dao.CategoryPostgresDaoImpl;
-import br.com.trampo.backend.implementation.dao.ClientPostgresDaoImpl;
+import br.com.trampo.backend.implementation.dao.UsersPostgresDaoImpl;
 import br.com.trampo.backend.implementation.dao.TicketPostgresDaoImpl;
 import br.com.trampo.backend.port.dao.AddressDao;
 import br.com.trampo.backend.port.dao.CategoryDao;
-import br.com.trampo.backend.port.dao.ClientDao;
+import br.com.trampo.backend.port.dao.UsersDao;
 import br.com.trampo.backend.port.dao.TicketDao;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -16,7 +15,6 @@ import org.springframework.context.annotation.Configuration;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.Objects;
 
 @Configuration
 public class AppConfiguration {
@@ -43,8 +41,8 @@ public class AppConfiguration {
     }
 
     @Bean
-    public ClientDao clientDao(Connection connection) {
-        return new ClientPostgresDaoImpl(connection);
+    public UsersDao usersDao(Connection connection) {
+        return new UsersPostgresDaoImpl(connection);
     }
 
     @Bean

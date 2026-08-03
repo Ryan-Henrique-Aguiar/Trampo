@@ -12,6 +12,8 @@
 -- Campos exclusivos de cliente e de profissional convivem aqui,
 -- ficando NULL para quem não se aplica.
 -- ==========================================================
+
+
 -- ==========================================================
 -- TABELA: USERS
 -- Antes: users (base) + client + professional (herança).
@@ -88,8 +90,8 @@ CREATE TABLE IF NOT EXISTS address (
     city VARCHAR(100) NOT NULL,
     state VARCHAR(2) NOT NULL,
     zip_code VARCHAR(8) NOT NULL,
-    complement VARCHAR(100),
-    UNIQUE(street, number, neighborhood, city, state)
+    complement VARCHAR(100)
+
 );
 
 -- ==========================================================
@@ -106,8 +108,10 @@ CREATE TABLE IF NOT EXISTS ticket (
     description TEXT NOT NULL,
     price_max NUMERIC(10,2),
     service_date TIMESTAMP,                         
-    status VARCHAR(30) NOT NULL DEFAULT 'OPEN'
+    status VARCHAR(30) NOT NULL DEFAULT 'OPEN',
     proposals_count INT DEFAULT 0,
+
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     user_id INT NOT NULL,
     category_id INT NOT NULL,
@@ -164,7 +168,7 @@ CREATE TABLE IF NOT EXISTS urgent_ticket (
     code VARCHAR(20) UNIQUE NOT NULL,
     title VARCHAR(100) NOT NULL,
     description TEXT NOT NULL,
-    status VARCHAR(30) NOT NULL DEFAULT 'IN_PROGRESS'
+    status VARCHAR(30) NOT NULL DEFAULT 'IN_PROGRESS',
     service_date TIMESTAMP,                          -- nullable, só preenchido ao concluir
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -177,7 +181,7 @@ CREATE TABLE IF NOT EXISTS urgent_ticket (
     FOREIGN KEY (provider_id) REFERENCES users(id),
     FOREIGN KEY (category_id) REFERENCES category(id),
     FOREIGN KEY (address_id) REFERENCES address(id),
-    CHECK (status IN ('IN_PROGRESS', 'COMPLETED', 'CANCELLED')),
+    CHECK (status IN ('IN_PROGRESS', 'COMPLETED', 'CANCELLED'))
 );
 
 -- ==========================================================

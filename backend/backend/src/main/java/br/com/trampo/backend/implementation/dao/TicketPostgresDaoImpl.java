@@ -3,7 +3,8 @@ package br.com.trampo.backend.implementation.dao;
 import br.com.trampo.backend.domain.Address;
 import br.com.trampo.backend.domain.Category;
 import br.com.trampo.backend.domain.Ticket;
-import br.com.trampo.backend.domain.user.Client;
+import br.com.trampo.backend.domain.Users;
+import br.com.trampo.backend.domain.enums.StatusTicket;
 import br.com.trampo.backend.port.dao.AddressDao;
 import br.com.trampo.backend.port.dao.TicketDao;
 
@@ -22,7 +23,7 @@ public class TicketPostgresDaoImpl implements TicketDao {
         this.addressDao = addressDao;
 
     }
-    
+
 
     @Override
     public Ticket save(Ticket ticket) throws SQLException {
@@ -38,21 +39,19 @@ public class TicketPostgresDaoImpl implements TicketDao {
             }
 
             // 2. Insere o Ticket com a FK address_id vinculada
-            String sql = "INSERT INTO ticket (title, description, price_min, price_max, " +
-                    "created_at, service_date, status, client_id, address_id, category_id) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id";
+            String sql = "INSERT INTO ticket (code ,title, description, price_max, " +
+                    "service_date, user_id, address_id, category_id) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id";
 
             try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-                stmt.setString(1, ticket.getTitle());
-                stmt.setString(2, ticket.getDescription());
-                stmt.setObject(3, ticket.getPriceMin(), Types.NUMERIC);
+                stmt.setString(1, ticket.getCode());
+                stmt.setString(2, ticket.getTitle());
+                stmt.setString(3, ticket.getDescription());
                 stmt.setObject(4, ticket.getPriceMax(), Types.NUMERIC);
-                stmt.setTimestamp(5, Timestamp.valueOf(ticket.getCreatedAt()));
-                stmt.setTimestamp(6, ticket.getServiceDate() != null ? Timestamp.valueOf(ticket.getServiceDate()) : null);
-                stmt.setString(7, ticket.getStatus());
-                stmt.setInt(8, ticket.getClient().getId());
-                stmt.setInt(9, ticket.getAddress().getId());
-                stmt.setInt(10, ticket.getCategory().getId());
+                stmt.setTimestamp(5, ticket.getServiceDate() != null ? Timestamp.valueOf(ticket.getServiceDate()) : null);
+                stmt.setInt(6, ticket.getClient().getId());
+                stmt.setInt(7, ticket.getAddress().getId());
+                stmt.setInt(8, ticket.getCategory().getId());
 
                 try (ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {
@@ -116,7 +115,6 @@ public class TicketPostgresDaoImpl implements TicketDao {
         ticket.setId(rs.getInt("id"));
         ticket.setTitle(rs.getString("title"));
         ticket.setDescription(rs.getString("description"));
-        ticket.setPriceMin(rs.getBigDecimal("price_min"));
         ticket.setPriceMax(rs.getBigDecimal("price_max"));
         ticket.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
 
@@ -125,10 +123,10 @@ public class TicketPostgresDaoImpl implements TicketDao {
             ticket.setServiceDate(serviceDate.toLocalDateTime());
         }
 
-        ticket.setStatus(rs.getString("status"));
+        ticket.setStatus(StatusTicket.valueOf(rs.getString("status")));
 
 
-        Client client = new Client();
+        Users client = new Users();
         client.setId(rs.getInt("client_id"));
         ticket.setClient(client);
 
@@ -144,7 +142,7 @@ public class TicketPostgresDaoImpl implements TicketDao {
         address.setNeighborhood(rs.getString("neighborhood"));
         address.setCity(rs.getString("city"));
         address.setState(rs.getString("state"));
-        address.setZip_code(rs.getString("zip_code"));
+        address.setZipCode(rs.getString("zip_code"));
         address.setComplement(rs.getString("complement"));
 
         ticket.setAddress(address);
