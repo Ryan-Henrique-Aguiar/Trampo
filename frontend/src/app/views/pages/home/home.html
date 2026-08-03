@@ -31,7 +31,7 @@
           <p>toggle</p>
         </div>
       </div>
-      
+
       <!-- Stats Cards -->
       <div class="stats-grid">
         <div class="stat-card">
@@ -73,10 +73,10 @@
       @if (firstThreeAvailableTickets().length > 0) {
         <div class="tickets">
           @for (ticket of firstThreeAvailableTickets(); track ticket.id) {
-            <!-- ADICIONADO O EVENTO AQUI -->
             <app-ticket-card 
               [ticket]="ticket" 
-              (viewDetails)="openTicketDetail($event)" />
+              (viewDetails)="openTicketDetail($event)"
+              (viewProposals)="openProposalsModal($event)" />
           }
         </div>
 
@@ -119,10 +119,10 @@
       @if (firstThreeMyTickets().length > 0) {
         <div class="tickets">
           @for (ticket of firstThreeMyTickets(); track ticket.id) {
-            <!-- ADICIONADO O EVENTO AQUI TAMBÉM -->
             <app-ticket-card 
               [ticket]="ticket" 
-              (viewDetails)="openTicketDetail($event)" />
+              (viewDetails)="openTicketDetail($event)"
+              (viewProposals)="openProposalsModal($event)" />
           }
         </div>
 
@@ -157,4 +157,12 @@
     [ticket]="selectedTicket()"
     (close)="closeTicketDetail()"
     (ticketUpdated)="onTicketUpdated($event)" />
+
+  <!-- MODAL DE PROPOSTAS -->
+  <app-proposals-modal
+    [isOpen]="isProposalsModalOpen()"
+    [ticket]="selectedTicketForProposals()"
+    (close)="closeProposalsModal()"
+    (ticketUpdated)="onProposalsTicketUpdated($event)" />
+
 </section>

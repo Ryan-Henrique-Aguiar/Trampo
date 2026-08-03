@@ -14,12 +14,21 @@
 - Cada proposta é feita por um prestador diferente.
 - O sistema conta as propostas automaticamente.
 
-### 1.3. Mudança de Status
-- **Automática:** Ao atingir 5 propostas → muda para **"Em Negociação"**.
-- **Manual (cliente):**
-  - Pode mudar para **"Em Negociação"** antes de 5 propostas.
-  - Depois de "Em Negociação" → pode ir para **"Em Andamento"**, **"Concluído"** ou **"Cancelado"**.
-- **Não volta** para "Aberto" depois de "Em Negociação", exceto se tiver menos de 5 propostas.
+Estados atuais
+
+  OPEN = 'OPEN',
+  IN_PROGRESS = 'IN_PROGRESS',
+  COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED',
+
+Transições possíveis e quem dispara cada uma
+De	Para	Quem dispara	Gatilho
+OPEN	IN_PROGRESS	Sistema (via ProposalService.accept)	Cliente aceita uma proposta
+OPEN	CANCELLED	Cliente	Cliente desiste antes de fechar com alguém
+IN_PROGRESS	COMPLETED	Cliente	Cliente marca serviço como concluído (seta serviceDate)
+IN_PROGRESS	CANCELLED	Cliente	Cliente cancela mesmo já tendo prestador definido
+COMPLETED	—	ninguém	estado final, sem saída
+CANCELLED	—	ninguém	estado final, sem saída
 
 ### 1.4. Responsabilidades
 - **Cliente:** Cria, altera status, contata prestadores via WhatsApp.
@@ -90,3 +99,5 @@
 - **Disponibilidade** é controlada pelo prestador via `isAvailableForUrgency`.
 - **Limites são flexíveis** (podem ser ajustados conforme necessidade).
 - **Abordagem gradual:** incentivos → restrições leves → restrições fortes (apenas em casos extremos).
+
+

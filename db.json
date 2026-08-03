@@ -1,41 +1,46 @@
 {
   "users": [
     {
-      "id": "2",
-      "name": "João Pereira",
-      "password": "123456",
+      "id": "1",
+      "name": "jaderson",
       "email": "joao@email.com",
-      "phone": "35999991111",
-      "nickname": "Joãozinho",
+      "password": "123456",
       "cpf": "22222222222",
-      "rating": 4.5,
+      "isProvider": false,
+      "city": "Santa Rita do Sapucaí",
+      "state": "MG"
+    },
+    {
+      "id": "2",
+      "name": "Luciano tiburcio",
+      "email": "luciano@email.com",
+      "password": "123456",
+      "cpf": "33333333333",
+      "phone": "35999998888",
       "isProvider": true,
-      "serviceStartDate": "2023-02-10",
-      "completedServicesCount": 12,
       "isAvailableForUrgency": true,
       "categoryIds": [
-        1,
-        3
+        1
       ],
-      "city": "São Paulo",
-      "state": "SP"
+      "city": "Santa Rita do Sapucaí",
+      "state": "MG"
     },
     {
       "id": "3",
-      "name": "Ana Costa",
+      "name": "Jailson, id 3 ",
+      "email": "Jailson@email.com",
       "password": "123456",
-      "email": "ana@email.com",
       "cpf": "33333333333",
-      "rating": 5,
+      "phone": "35997337238",
       "isProvider": true,
-      "serviceStartDate": "2022-08-01",
-      "completedServicesCount": 30,
       "isAvailableForUrgency": true,
       "categoryIds": [
-        2
+        1,
+        2,
+        3
       ],
-      "city": "Rio de Janeiro",
-      "state": "RJ"
+      "city": "Santa Rita do Sapucaí",
+      "state": "MG"
     }
   ],
   "categories": [
@@ -55,237 +60,170 @@
       "iconUrl": "assets/icons/pintura.svg"
     }
   ],
-  "urgencies": [
-    {
-      "id": "1",
-      "status": "ACTIVE",
-      "priceRange": 150,
-      "minimumRate": 4,
-      "completedServicesCount": 5,
-      "professionalId": 2
-    }
-  ],
   "tickets": [
     {
-      "id": "1",
-      "code": "TCK-0001",
-      "title": "Troca de tomadas",
-      "description": "Preciso trocar 5 tomadas da sala e cozinha",
-      "priceRange": {
-        "min": 100,
-        "max": 200
-      },
-      "serviceDate": "2026-08-01T09:00:00",
-      "createdAt": "2026-07-15T10:30:00",
-      "status": "ABERTO",
-      "userId": 1,
+      "code": "TRP-C13813",
+      "title": "arrumar tomada",
+      "description": "preciso arrumar uma tomada 220v",
       "categoryId": 1,
-      "proposalsCount": 1,
       "address": {
-        "street": "Rua das Flores",
-        "number": "120",
-        "neighborhood": "Centro",
+        "street": "Rua das Tulipas",
+        "number": "15",
+        "neighborhood": "Conjunto Habitacional Marco Antônio Baracat",
         "city": "Santa Rita do Sapucaí",
         "state": "MG",
-        "zipCode": "37540000",
-        "complement": "Apto 302"
+        "zipCode": "37539-214",
+        "complement": ""
       },
+      "priceMax": 500,
       "paymentMethods": [
         "PIX",
-        "DINHEIRO"
+        "CREDIT",
+        "DEBIT",
+        "CASH"
       ],
       "availableDays": [
-        "SEGUNDA",
-        "QUARTA"
+        "MONDAY",
+        "SATURDAY",
+        "TUESDAY",
+        "SUNDAY"
       ],
       "availableHours": [
         "08:00",
-        "14:00"
-      ]
-    },
-    {
-      "id": "2",
-      "code": "TCK-0002",
-      "title": "Conserto de encanamento",
-      "description": "Vazamento na cozinha",
-      "priceRange": {
-        "min": 150,
-        "max": 300
-      },
-      "serviceDate": "2026-08-05T14:00:00",
-      "createdAt": "2026-07-20T15:45:00",
-      "status": "ABERTO",
-      "userId": 1,
-      "categoryId": 2,
-      "proposalsCount": 0,
-      "address": {
-        "street": "Av. Principal",
-        "number": "450",
-        "neighborhood": "Jardim",
-        "city": "Santa Rita do Sapucaí",
-        "state": "MG",
-        "zipCode": "37540000",
-        "complement": "Casa"
-      },
-      "paymentMethods": [
-        "PIX",
-        "CREDITO"
-      ],
-      "availableDays": [
-        "TERÇA",
-        "QUINTA"
-      ],
-      "availableHours": [
+        "14:00",
         "09:00",
         "15:00"
-      ]
-    }
-  ],
-  "urgentTickets": [
-    {
-      "id": "eXgZ2eLjLyg",
-      "title": "teste",
-      "description": "teste",
-      "categoryId": 1,
-      "address": {
-        "street": "252",
-        "number": "255",
-        "neighborhood": "2552",
-        "city": "5225",
-        "state": "25",
-        "zipCode": "51252",
-        "complement": "2525"
-      },
-      "createdAt": "2026-07-26T22:55:00.294Z",
-      "userId": 2
+      ],
+      "createdAt": "2026-08-02T23:28:50.581Z",
+      "status": "IN_PROGRESS",
+      "userId": "1",
+      "proposalsCount": 2,
+      "id": "k5HNm0IqyTY"
     },
     {
-      "id": "hPCO9OGlWgw",
+      "code": "TRP-JOB48M",
+      "title": "eletrica",
+      "description": "eletrica",
+      "categoryId": 1,
+      "address": {
+        "street": "Rua das Tulipas",
+        "number": "15",
+        "neighborhood": "Conjunto Habitacional Marco Antônio Baracat",
+        "city": "Santa Rita do Sapucaí",
+        "state": "MG",
+        "zipCode": "37539-214",
+        "complement": ""
+      },
+      "priceMax": 699,
+      "paymentMethods": [
+        "PIX",
+        "CREDIT"
+      ],
+      "availableDays": [
+        "MONDAY",
+        "SATURDAY",
+        "TUESDAY",
+        "SUNDAY"
+      ],
+      "availableHours": [
+        "08:00",
+        "14:00",
+        "13:00",
+        "07:00"
+      ],
+      "createdAt": "2026-08-02T23:35:59.291Z",
+      "status": "OPEN",
+      "userId": "1",
+      "proposalsCount": 0,
+      "id": "A59dPGrzV0s"
+    },
+    {
+      "code": "TRP-LP6RC8",
       "title": "rqrq",
       "description": "rqqr",
-      "categoryId": 2,
-      "address": {
-        "street": "rqqr",
-        "number": "qr",
-        "neighborhood": "qr",
-        "city": "qrqr",
-        "state": "rq",
-        "complement": "qrqr"
-      },
-      "createdAt": "2026-07-26T23:35:41.732Z",
-      "userId": 2
-    },
-    {
-      "id": "yUF19x1xFnk",
-      "title": "rqrq",
-      "description": "rqrq",
       "categoryId": 1,
       "address": {
-        "street": "qrq",
-        "number": "rqrq",
-        "neighborhood": "rqr",
-        "city": "São Paulo",
-        "state": "SP",
-        "complement": "qr"
+        "street": "Rua das Tulipas",
+        "number": "15",
+        "neighborhood": "Conjunto Habitacional Marco Antônio Baracat",
+        "city": "Santa Rita do Sapucaí",
+        "state": "MG",
+        "zipCode": "37539-214",
+        "complement": ""
       },
-      "createdAt": "2026-07-26T23:52:32.722Z",
-      "userId": 2
+      "priceMax": 600,
+      "paymentMethods": [
+        "PIX",
+        "CREDIT"
+      ],
+      "availableDays": [
+        "MONDAY",
+        "TUESDAY",
+        "SUNDAY",
+        "SATURDAY"
+      ],
+      "availableHours": [
+        "13:00",
+        "14:00",
+        "08:00",
+        "07:00",
+        "09:00",
+        "15:00"
+      ],
+      "createdAt": "2026-08-02T23:49:15.253Z",
+      "status": "OPEN",
+      "userId": "2",
+      "proposalsCount": 1,
+      "id": "-R10MiGkBS4"
     },
     {
-      "id": "7_B-NMvn4Bc",
+      "code": "TRP-P94YEM",
       "title": "rq",
       "description": "rqrq",
       "categoryId": 1,
       "address": {
-        "street": "qrrq",
-        "number": "qrqr",
-        "neighborhood": "rq",
-        "city": "qrrq",
-        "state": "qr",
-        "complement": "qr"
+        "street": "rqrq",
+        "number": "rq",
+        "neighborhood": "rqrq",
+        "city": "Alvarães",
+        "state": "AM",
+        "zipCode": null,
+        "complement": "rqqr"
       },
-      "createdAt": "2026-07-28T23:01:47.936Z",
-      "userId": 2
+      "priceMax": 666,
+      "paymentMethods": [
+        "PIX"
+      ],
+      "availableDays": [
+        "MONDAY",
+        "SATURDAY"
+      ],
+      "availableHours": [
+        "07:00",
+        "13:00"
+      ],
+      "createdAt": "2026-08-03T00:58:35.391Z",
+      "status": "OPEN",
+      "userId": "1",
+      "proposalsCount": 0,
+      "id": "UO6ro0Pt9-s"
+    }
+  ],
+  "urgentTickets": [],
+  "proposals": [
+    {
+      "priceRange": 400,
+      "ticketId": "k5HNm0IqyTY",
+      "professionalId": "2",
+      "status": "ACCEPTED",
+      "id": "yqwEGsaubP8"
     },
     {
-      "id": "7xveMQUiJY4",
-      "title": "teste",
-      "description": "teste",
-      "categoryId": 1,
-      "address": {
-        "street": "teste",
-        "number": "122",
-        "neighborhood": "teste",
-        "city": "São paulo",
-        "state": "SP",
-        "complement": "22"
-      },
-      "createdAt": "2026-07-28T23:06:11.058Z",
-      "userId": 2
-    },
-    {
-      "id": "rG0ry71gUd4",
-      "title": "teste",
-      "description": "teste",
-      "categoryId": 1,
-      "address": {
-        "street": "er",
-        "number": "er",
-        "neighborhood": "re",
-        "city": "São paulo",
-        "state": "SP",
-        "complement": "er"
-      },
-      "createdAt": "2026-07-28T23:11:43.545Z",
-      "userId": 2
-    },
-    {
-      "id": "_wNvvfSkRUI",
-      "title": "teste",
-      "description": "teste",
-      "categoryId": 2,
-      "address": {
-        "street": "wer",
-        "number": "er",
-        "neighborhood": "er",
-        "city": "São Paulo",
-        "state": "SP",
-        "complement": "er"
-      },
-      "createdAt": "2026-07-28T23:13:14.986Z",
-      "userId": 2
-    },
-    {
-      "id": "4JM2uYjL8_0",
-      "title": "teste",
-      "description": "teste",
-      "categoryId": 1,
-      "address": {
-        "street": "x",
-        "number": "x",
-        "neighborhood": "x",
-        "city": "São Paulo",
-        "state": "SP",
-        "complement": "x"
-      },
-      "createdAt": "2026-07-28T23:22:11.049Z",
-      "userId": 2
-    },
-    {
-      "id": "MWEnBZFHcGM",
-      "title": "rqrq",
-      "description": "rq",
-      "categoryId": 1,
-      "address": {
-        "street": "33",
-        "number": "3",
-        "neighborhood": "333",
-        "city": "São Paulo",
-        "state": "SP",
-        "complement": "33"
-      },
-      "createdAt": "2026-07-28T23:40:38.812Z",
-      "userId": 2
+      "priceRange": 600,
+      "ticketId": "-R10MiGkBS4",
+      "professionalId": "2",
+      "status": "PENDING",
+      "id": "qlJHGOc1h00"
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"

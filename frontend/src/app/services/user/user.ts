@@ -11,6 +11,10 @@ export class UserService {
 
   constructor(private http: HttpClient) {}
 
+  getById(id: number): Observable<User> {
+    return this.http.get<User>(`${this.baseUrl}/${id}`);
+  }
+
   getProvidersWithUrgency(categoryId: number, state: string, city: string): Observable<User[]> {
     let params = new HttpParams()
       .set('isProvider', 'true')

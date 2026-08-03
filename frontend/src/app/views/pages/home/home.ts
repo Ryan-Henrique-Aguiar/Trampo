@@ -14,10 +14,11 @@ import { TicketModal } from "../../../shared/components/ticket-modal/ticket-moda
 import { AuthService } from '../../../services/auth/auth';
 import { ViewModeService } from '../../../services/view-mode/view-mode-service';
 import { TicketDetail } from "../../../shared/components/ticket-detail/ticket-detail";
+import { ProposalsModal } from "../../../shared/components/proposal-modal/proposal-modal"; // ajuste o caminho
 
 @Component({
   selector: 'app-home',
-  imports: [RouterLink, TicketCard, ActionCards, TicketModal, TicketDetail],
+  imports: [RouterLink, TicketCard, ActionCards, TicketModal, TicketDetail, ProposalsModal],
   templateUrl: './home.html',
   styleUrl: './home.css',
 })
@@ -30,14 +31,16 @@ export class Home implements OnInit {
   loading = signal<boolean>(false);
   error = signal<string | null>(null);
 
-  // Estado do modal de criação de ticket, compartilhado entre
-  // os action cards e os cards de categoria.
   isModalOpen = signal(false);
   isModalUrgent = signal(false);
   preselectedCategoryId = signal<number | null>(null);
 
   isDetailModalOpen = signal(false);
   selectedTicket = signal<Ticket | null>(null);
+
+  // novo: modal de propostas
+  isProposalsModalOpen = signal(false);
+  selectedTicketForProposals = signal<Ticket | null>(null);
 
   private categoryService = inject(CategoryService);
   private ticketService = inject(TicketService);
@@ -75,8 +78,6 @@ export class Home implements OnInit {
     this.loadCategories();
     this.loadTickets();
   }
-
-  // ===== CARREGAMENTO =====
 
   private loadTickets(): void {
     const userId = this.authService.userId;
@@ -151,6 +152,24 @@ export class Home implements OnInit {
     this.selectedTicket.set(updatedTicket);
   }
 
+  // ===== MODAL DE PROPOSTAS (novo) =====
+
+  openProposalsModal(ticket: Ticket): void {
+    this.selectedTicketForProposals.set(ticket);
+    this.isProposalsModalOpen.set(true);
+  }
+
+  closeProposalsModal(): void {
+    this.isProposalsModalOpen.set(false);
+    this.selectedTicketForProposals.set(null);
+  }
+
+  onProposalsTicketUpdated(updatedTicket: Ticket): void {
+    this.tickets.update(current =>
+      current.map(t => t.id === updatedTicket.id ? updatedTicket : t)
+    );
+    this.selectedTicketForProposals.set(updatedTicket);
+  }
 
   // ===== MODAL DE CRIAÇÃO =====
 
@@ -173,8 +192,6 @@ export class Home implements OnInit {
   onTicketCreated(ticket: Ticket): void {
     this.tickets.update(current => [ticket, ...current]);
   }
-
-  // ===== LABELS =====
 
   getStatusLabel(status: TicketStatus): string {
     const labels: Record<TicketStatus, string> = {

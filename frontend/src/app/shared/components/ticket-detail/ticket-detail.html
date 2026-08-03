@@ -165,44 +165,6 @@
             </div>
             }
 
-            @if (isOwnTicket) {
-            <div class="detail-section">
-                <h4>Propostas Recebidas</h4>
-
-                @if (isLoadingProposals()) {
-                <p class="proposals-empty">Carregando propostas...</p>
-                } @else if (proposals().length > 0) {
-                <div class="proposal-list">
-                    @for (proposal of proposals(); track proposal.id) {
-                    <div class="proposal-card">
-                        <div class="proposal-info">
-                            <span class="proposal-price">{{ formatCurrency(proposal.priceRange) }}</span>
-                            <span class="proposal-status" [class]="'proposal-status--' + proposal.status.toLowerCase()">
-                                {{ getProposalStatusLabel(proposal.status) }}
-                            </span>
-                        </div>
-
-                        @if (proposal.status === 'PENDING') {
-                        <div class="proposal-actions">
-                            <button type="button" class="btn-reject" [disabled]="processingProposalId() !== null"
-                                (click)="onRejectProposal(proposal)">
-                                Recusar
-                            </button>
-                            <button type="button" class="btn-accept" [disabled]="processingProposalId() !== null"
-                                (click)="onAcceptProposal(proposal)">
-                                {{ processingProposalId() === proposal.id ? 'Aceitando...' : 'Aceitar' }}
-                            </button>
-                        </div>
-                        }
-                    </div>
-                    }
-                </div>
-                } @else {
-                <p class="proposals-empty">Nenhuma proposta recebida ainda.</p>
-                }
-            </div>
-            }
-
             }
 
             <!-- ===== MODO EDIÇÃO ===== -->

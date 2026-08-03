@@ -308,30 +308,34 @@ export class TicketModal implements OnInit {
     });
   }
 
-  private saveUrgentTicket(provider: User, onSuccess: () => void): void {
-    if (this.ticketForm.invalid) {
-      this.ticketForm.markAllAsTouched();
-      return;
-    }
+private saveUrgentTicket(provider: User, onSuccess: () => void): void {
+  const relevantFields = Object.values(this.urgentStepFields).flat();
+  const isValid = relevantFields.every(field => this.ticketForm.get(field)?.valid);
 
-    const value = this.ticketForm.getRawValue();
-    const dto = {
-      title: value.title,
-      description: value.description,
-      categoryId: Number(value.categoryId),
-      address: value.address,
-      providerId: provider.id,
-    };
-
-    this.ticketService.createUrgent(dto).subscribe({
-      next: () => {
-        onSuccess();
-      },
-      error: (err: HttpErrorResponse) => {
-        console.error('Erro ao criar ticket urgente:', err);
-      },
-    });
+  if (!isValid) {
+    relevantFields.forEach(field => this.ticketForm.get(field)?.markAsTouched());
+    console.warn('Formulário urgente inválido, campos:', relevantFields.filter(f => !this.ticketForm.get(f)?.valid));
+    return;
   }
+
+  const value = this.ticketForm.getRawValue();
+  const dto = {
+    title: value.title,
+    description: value.description,
+    categoryId: Number(value.categoryId),
+    address: value.address,
+    providerId: provider.id,
+  };
+
+  this.ticketService.createUrgent(dto).subscribe({
+    next: () => {
+      onSuccess();
+    },
+    error: (err: HttpErrorResponse) => {
+      console.error('Erro ao criar ticket urgente:', err);
+    },
+  });
+}
 
   // apenas busca prestadores para a categoria/localização, ainda não cria nada —
   // o ticket urgente só é criado quando o usuário realmente escolher alguém no WhatsApp

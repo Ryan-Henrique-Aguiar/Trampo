@@ -274,6 +274,7 @@ export class TicketDetail implements OnChanges {
         this.isSubmittingProposal.set(false);
         this.isProposalFormOpen.set(false);
         this.proposalPriceControl.reset();
+        this.closeModal();
       },
       error: (err: HttpErrorResponse) => {
         this.isSubmittingProposal.set(false);

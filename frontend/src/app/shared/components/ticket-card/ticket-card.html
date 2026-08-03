@@ -38,7 +38,7 @@
     <div class="group-btn-detail">
       <button class="btn-detail-proposal" (click)="onViewDetails()">Detalhes</button>
       @if(!isProviderMode){
-              <button class="btn-detail-proposal">Propostas</button>
+        <button class="btn-detail-proposal" (click)="onViewProposals()">Propostas | {{ ticket.proposalsCount }}</button>
       }
     </div>
   </div>

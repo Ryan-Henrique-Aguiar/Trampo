@@ -17,7 +17,7 @@ export class TicketCard {
 
   @Input() ticket!: Ticket;
   @Output() viewDetails = new EventEmitter<Ticket>();
-
+  @Output() viewProposals = new EventEmitter<Ticket>();
 
   get isProviderMode() {
     return this.viewModeService.isProviderMode;
@@ -54,5 +54,8 @@ export class TicketCard {
   // Emite o evento quando o botão de detalhes é clicado
   onViewDetails(): void {
     this.viewDetails.emit(this.ticket);
+  }
+  onViewProposals(): void { // novo
+    this.viewProposals.emit(this.ticket);
   }
 }
