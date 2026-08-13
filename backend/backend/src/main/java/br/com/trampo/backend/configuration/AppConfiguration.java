@@ -2,11 +2,11 @@ package br.com.trampo.backend.configuration;
 
 import br.com.trampo.backend.implementation.dao.AddressPostgresDaoImpl;
 import br.com.trampo.backend.implementation.dao.CategoryPostgresDaoImpl;
-import br.com.trampo.backend.implementation.dao.UsersPostgresDaoImpl;
+import br.com.trampo.backend.implementation.dao.users.UsersPostgresDaoImpl;
 import br.com.trampo.backend.implementation.dao.TicketPostgresDaoImpl;
 import br.com.trampo.backend.port.dao.AddressDao;
 import br.com.trampo.backend.port.dao.CategoryDao;
-import br.com.trampo.backend.port.dao.UsersDao;
+import br.com.trampo.backend.port.dao.users.UsersDao;
 import br.com.trampo.backend.port.dao.TicketDao;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

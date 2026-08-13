@@ -8,7 +8,7 @@ import br.com.trampo.backend.domain.enums.StatusTicket;
 import br.com.trampo.backend.port.dao.AddressDao;
 import br.com.trampo.backend.port.dao.CategoryDao;
 import br.com.trampo.backend.port.dao.TicketDao;
-import br.com.trampo.backend.port.dao.UsersDao;
+import br.com.trampo.backend.port.dao.users.UsersDao;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -1,12 +1,14 @@
-package br.com.trampo.backend.implementation.dao;
+package br.com.trampo.backend.implementation.dao.users;
 
 import br.com.trampo.backend.domain.Users;
-import br.com.trampo.backend.port.dao.UsersDao;
+import br.com.trampo.backend.port.dao.users.UsersDao;
+import org.springframework.stereotype.Repository;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
 
 public class UsersPostgresDaoImpl implements UsersDao {
 
@@ -14,6 +16,47 @@ public class UsersPostgresDaoImpl implements UsersDao {
 
     public UsersPostgresDaoImpl(Connection connection) {
         this.connection = connection;
+    }
+
+    private Users mapUser(ResultSet rs) throws SQLException {
+
+        Users user = new Users();
+
+        user.setId(rs.getInt("id"));
+        user.setName(rs.getString("name"));
+        user.setPassword(rs.getString("password"));
+        user.setEmail(rs.getString("email"));
+        user.setPhone(rs.getString("phone"));
+        user.setNickname(rs.getString("nickname"));
+        user.setCpf(rs.getString("cpf"));
+
+        if (rs.getObject("rating") != null) {
+            user.setRating(rs.getDouble("rating"));
+        }
+
+        user.setProvider(rs.getBoolean("is_provider"));
+        user.setCreatedServicesCount(
+                rs.getInt("created_services_count")
+        );
+
+        Date serviceDate = rs.getDate("service_start_date");
+
+        if (serviceDate != null) {
+            user.setServiceStartDate(serviceDate.toLocalDate());
+        }
+
+        user.setCompletedServicesCount(
+                rs.getInt("completed_services_count")
+        );
+
+        user.setAvailableForUrgency(
+                rs.getBoolean("is_available_for_urgency")
+        );
+
+        user.setCity(rs.getString("city"));
+        user.setState(rs.getString("state"));
+
+        return user;
     }
 
     @Override
@@ -137,6 +180,32 @@ public class UsersPostgresDaoImpl implements UsersDao {
         }
 
         return Optional.empty();
+    }
+
+    @Override
+    public Optional<Users> findByEmail(String email) {
+
+        String sql = "SELECT * FROM users WHERE email = ?";
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+
+            stmt.setString(1, email);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+
+                if (rs.next()) {
+                    return Optional.of(mapUser(rs));
+                }
+
+                return Optional.empty();
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException(
+                    "Erro ao buscar usuário por email.",
+                    e
+            );
+        }
     }
 
     @Override
