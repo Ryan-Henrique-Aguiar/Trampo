@@ -37,6 +37,17 @@ public class Users implements UserDetails {
     private String city;
     private String state;
 
+
+    // Construtor para o metodo Register
+    public Users(String email, String password, String name, String cpf, String phone, String city) {
+        this.email = email;
+        this.password = password;
+        this.name = name;
+        this.cpf = cpf;
+        this.phone = phone;
+        this.city = city;
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of();

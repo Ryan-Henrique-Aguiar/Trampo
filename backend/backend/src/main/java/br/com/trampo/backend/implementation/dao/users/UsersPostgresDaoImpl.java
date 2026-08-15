@@ -100,15 +100,19 @@ public class UsersPostgresDaoImpl implements UsersDao {
 
             stmt.setBoolean(8, users.isProvider());
 
-            stmt.setInt(9, users.getCreatedServicesCount());
+            stmt.setInt(9, users.getCreatedServicesCount() != null
+                    ? users.getCreatedServicesCount()
+                    : 0);
 
             if (users.getServiceStartDate() != null) {
                 stmt.setDate(10, Date.valueOf(users.getServiceStartDate()));
             } else {
                 stmt.setNull(10, Types.DATE);
             }
-
-            stmt.setInt(11, users.getCompletedServicesCount());
+            stmt.setInt(11, users.getCompletedServicesCount() != null
+                    ? users.getCompletedServicesCount()
+                    : 0);
+            
 
             stmt.setBoolean(12, users.isAvailableForUrgency());
 
