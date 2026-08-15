@@ -21,17 +21,10 @@ public class AuthenticationService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        Users user = userRepository.findByEmail(email)
+        // Como a classe 'Users' já implementa 'UserDetails', basta retornar a entidade diretamente
+        return userRepository.findByEmail(email)
                 .orElseThrow(() ->
-                        new UsernameNotFoundException(
-                                "Usuário não encontrado"
-                        )
+                        new UsernameNotFoundException("Usuário não encontrado")
                 );
-
-        return User
-                .withUsername(user.getEmail())
-                .password(user.getPassword())
-                .build();
-
     }
 }

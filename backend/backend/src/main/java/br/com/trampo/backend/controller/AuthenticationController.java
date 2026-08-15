@@ -2,9 +2,11 @@ package br.com.trampo.backend.controller;
 
 import br.com.trampo.backend.domain.Users;
 import br.com.trampo.backend.dto.AuthenticationDto;
+import br.com.trampo.backend.dto.LoginResponseDto;
 import br.com.trampo.backend.dto.RegisterDto;
 import br.com.trampo.backend.dto.UserDto;
 import br.com.trampo.backend.implementation.service.AuthenticationService;
+import br.com.trampo.backend.infra.security.TokenService;
 import br.com.trampo.backend.port.dao.users.UsersDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -26,15 +28,13 @@ public class AuthenticationController {
     private final AuthenticationManager authenticationManager;
     private final UsersDao usersDao;
     private final PasswordEncoder passwordEncoder;
+    private final TokenService tokenService;
 
-    public AuthenticationController(
-            AuthenticationManager authenticationManager,
-            UsersDao usersDao,
-            PasswordEncoder passwordEncoder
-    ) {
+    public AuthenticationController(AuthenticationManager authenticationManager, UsersDao usersDao, PasswordEncoder passwordEncoder, TokenService tokenService) {
         this.authenticationManager = authenticationManager;
         this.usersDao = usersDao;
         this.passwordEncoder = passwordEncoder;
+        this.tokenService = tokenService;
     }
 
 
@@ -43,8 +43,9 @@ public class AuthenticationController {
         // Variável que obtem o valor de uma instância de uma classe do spring security
         var usernamePassword = new UsernamePasswordAuthenticationToken(data.email(), data.password());
         var auth = this.authenticationManager.authenticate(usernamePassword);
+        var token = tokenService.generateToken((Users) auth.getPrincipal());
 
-        return ResponseEntity.ok(auth.getPrincipal());
+        return ResponseEntity.ok(new LoginResponseDto(token));
     }
 
     @PostMapping("/register")
