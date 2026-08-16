@@ -7,6 +7,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 public class CategoryPostgresDaoImpl implements CategoryDao {
@@ -36,6 +38,31 @@ public class CategoryPostgresDaoImpl implements CategoryDao {
     }
 
     @Override
+    public List<Category> findAll(){
+        List<Category> categories = new ArrayList<>();
+        String sql = """
+            SELECT id, name, icon_url
+            FROM category
+            ORDER BY name
+        """;
+        try(
+            PreparedStatement stmt = connection.prepareStatement(sql);
+            ResultSet rs = stmt.executeQuery();
+        ){
+            while(rs.next()){
+                Category category = new Category();
+                category.setId(rs.getInt("id"));
+                category.setName(rs.getString("name"));
+                category.setIconUrl(rs.getString("icon_url"));
+                categories.add(category);
+            }
+            return categories;
+        }catch (SQLException e){
+            throw new RuntimeException("Erro ao buscar categorias.", e);
+        }
+    }
+
+    @Override
     public Optional<Category> findById(Integer id) {
         String sql = "SELECT * FROM category WHERE id = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -45,6 +72,7 @@ public class CategoryPostgresDaoImpl implements CategoryDao {
                     Category category = new Category();
                     category.setId(rs.getInt("id"));
                     category.setName(rs.getString("name"));
+                    category.setIconUrl(rs.getString("icon_url"));
                     return Optional.of(category);
                 }
             }

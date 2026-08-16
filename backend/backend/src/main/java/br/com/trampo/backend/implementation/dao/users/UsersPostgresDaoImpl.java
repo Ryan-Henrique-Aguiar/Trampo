@@ -29,7 +29,6 @@ public class UsersPostgresDaoImpl implements UsersDao {
         user.setPhone(rs.getString("phone"));
         user.setNickname(rs.getString("nickname"));
         user.setCpf(rs.getString("cpf"));
-
         if (rs.getObject("rating") != null) {
             user.setRating(rs.getDouble("rating"));
         }
@@ -114,7 +113,7 @@ public class UsersPostgresDaoImpl implements UsersDao {
                     : 0);
             
 
-            stmt.setBoolean(12, users.isAvailableForUrgency());
+            stmt.setBoolean(12, users.isProvider() && users.isAvailableForUrgency());
 
             stmt.setString(13, users.getCity());
             stmt.setString(14, users.getState());

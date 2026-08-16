@@ -3,9 +3,12 @@ package br.com.trampo.backend.implementation.service.users;
 import br.com.trampo.backend.domain.Users;
 
 
+import br.com.trampo.backend.dto.RegisterDto;
 import br.com.trampo.backend.dto.UserDto;
+import br.com.trampo.backend.port.dao.UsersCategoryDao;
 import br.com.trampo.backend.port.dao.users.UsersDao;
 import br.com.trampo.backend.port.service.users.UserService;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -16,7 +19,7 @@ public class UserServiceImpl implements UserService {
 
     private final UsersDao usersDao;
 
-    public UserServiceImpl(UsersDao usersDao) {
+    public UserServiceImpl(UsersDao usersDao, PasswordEncoder passwordEncoder, UsersCategoryDao usersCategoryDao) {
         this.usersDao = usersDao;
     }
 
@@ -30,7 +33,8 @@ public class UserServiceImpl implements UserService {
             UserDto userDto = new UserDto(
                     user.getName(),
                     user.getRating() != null ? user.getRating() : 0.0,
-                    user.getCompletedServicesCount()
+                    user.getCompletedServicesCount(),
+                    user.isProvider()
             );
 
             list.add(userDto);

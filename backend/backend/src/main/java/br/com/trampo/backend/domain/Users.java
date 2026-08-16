@@ -8,6 +8,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -25,8 +26,8 @@ public class Users implements UserDetails {
     private String cpf;
     private Double rating;
 
-    private boolean provider;
-    private boolean availableForUrgency;
+    private boolean provider = false;
+    private boolean availableForUrgency = false;
 
     private Integer createdServicesCount;
 
@@ -37,15 +38,18 @@ public class Users implements UserDetails {
     private String city;
     private String state;
 
+    private List<Category> categories = new ArrayList<>();
 
     // Construtor para o metodo Register
-    public Users(String email, String password, String name, String cpf, String phone, String city) {
+    public Users(String email, String password, String name, String cpf, String phone, String city, String state, boolean isProvider) {
         this.email = email;
         this.password = password;
         this.name = name;
         this.cpf = cpf;
         this.phone = phone;
         this.city = city;
+        this.state = state;
+        this.provider = provider;
     }
 
     @Override
