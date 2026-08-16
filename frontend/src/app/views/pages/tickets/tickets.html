@@ -1,7 +1,7 @@
 <section class="tickets-page">
 
   <!-- Loading -->
-  @if (loading()) {
+  @if (loading) {
     <div class="loading-state">
       <i class="fa-solid fa-spinner fa-spin"></i>
       <span>Carregando...</span>
@@ -9,26 +9,25 @@
   }
 
   <!-- Error -->
-  @if (error()) {
+  @if (error) {
     <div class="error-state">
       <i class="fa-solid fa-exclamation-circle"></i>
-      <p>{{ error() }}</p>
+      <p>{{ error }}</p>
     </div>
   }
 
   <!-- Conteúdo principal -->
-  @if (!loading() && !error()) {
-
+  @if (!loading && !error) {
     <!-- ========== MODO PRESTADOR ========== -->
     @if (isProviderMode) {
       <div class="section-header">
         <h2>Serviços disponíveis para você</h2>
-        <span class="tickets-count">{{ availableTickets().length }} serviços</span>
+        <span class="tickets-count">{{ availableTickets.length }} serviços</span>
       </div>
 
-      @if (availableTickets().length > 0) {
+      @if (availableTickets.length > 0) {
         <div class="tickets">
-          @for (ticket of availableTickets(); track ticket.code) {
+          @for (ticket of availableTickets; track ticket.code) {
             <app-ticket-card [ticket]="ticket" />
           }
         </div>
@@ -47,12 +46,12 @@
 
       <div class="section-header">
         <h2>Meus serviços publicados</h2>
-        <span class="tickets-count">{{ tickets().length }} serviços</span>
+        <span class="tickets-count">{{ tickets.length }} serviços</span>
       </div>
 
-      @if (tickets().length > 0) {
+      @if (tickets.length > 0) {
         <div class="tickets">
-          @for (ticket of tickets(); track ticket.code) {
+          @for (ticket of tickets; track ticket.code) {
             <app-ticket-card [ticket]="ticket" />
           }
         </div>

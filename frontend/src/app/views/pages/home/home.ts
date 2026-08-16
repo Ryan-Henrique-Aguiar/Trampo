@@ -1,4 +1,4 @@
-import { Component, computed, OnInit, signal, inject } from '@angular/core';
+import { Component, computed, OnInit, signal, inject, ChangeDetectorRef } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { CategoryService } from '../../../services/category/category-service';
@@ -15,6 +15,7 @@ import { AuthService } from '../../../services/auth/auth';
 import { ViewModeService } from '../../../services/view-mode/view-mode-service';
 import { TicketDetail } from "../../../shared/components/ticket-detail/ticket-detail";
 import { ProposalsModal } from "../../../shared/components/proposal-modal/proposal-modal"; // ajuste o caminho
+import { tick } from '@angular/core/testing';
 
 @Component({
   selector: 'app-home',
@@ -24,35 +25,37 @@ import { ProposalsModal } from "../../../shared/components/proposal-modal/propos
 })
 export class Home implements OnInit {
 
-  categories = signal<Category[]>([]);
-  tickets = signal<Ticket[]>([]);
-  availableTickets = signal<Ticket[]>([]);
+  categories: Category[] = [];
+  tickets: Ticket[] = [];
+  availableTickets: Ticket[] = [];
 
-  loading = signal<boolean>(false);
-  error = signal<string | null>(null);
+  loading = false;
+  error: string | null = null;
 
-  isModalOpen = signal(false);
-  isModalUrgent = signal(false);
-  preselectedCategoryId = signal<number | null>(null);
+  isModalOpen = false
+  isModalUrgent = false
+  preselectedCategoryId: number | null = null;
 
-  isDetailModalOpen = signal(false);
-  selectedTicket = signal<Ticket | null>(null);
+  isDetailModalOpen = false
+  selectedTicket: Ticket | null = null;
 
-  // novo: modal de propostas
-  isProposalsModalOpen = signal(false);
-  selectedTicketForProposals = signal<Ticket | null>(null);
+  //modal de propostas
+  isProposalsModalOpen = false;
+  selectedTicketForProposals: Ticket | null = null;
 
-  private categoryService = inject(CategoryService);
-  private ticketService = inject(TicketService);
-  private authService = inject(AuthService);
-  private viewModeService = inject(ViewModeService);
 
-  get isProvider() {
-    return this.authService.isProvider;
+  constructor(
+    private categoryService: CategoryService,
+    private ticketService: TicketService,
+    private authService: AuthService,
+    private viewModeService: ViewModeService,
+    private cdr: ChangeDetectorRef
+  ){
+
   }
 
-  get isClient() {
-    return this.authService.isClient;
+  get isProvider() {
+    return this.authService.isProvider();
   }
 
   get currentUser() {
@@ -63,134 +66,136 @@ export class Home implements OnInit {
     return this.viewModeService.isProviderMode;
   }
 
-  firstThreeMyTickets = computed(() =>
-    this.tickets()
-      .filter(ticket => ticket.status === TicketStatus.OPEN)
-      .slice(0, 3)
-  );
-  firstThreeCategories = computed(() => this.categories().slice(0, 3));
-  firstThreeAvailableTickets = computed(() => this.availableTickets().slice(0, 3));
+  get firstThreeMyTickets(): Ticket[]{
+    return this.tickets
+    .filter(ticket => ticket.status === TicketStatus.OPEN)
+    .slice(0, 3)
+  }
+  get firstThreeCategories(): Category[] {
+    return this.categories.slice(0, 3);
+  }
+
+  get firstThreeAvailableTickets(): Ticket[] {
+    return this.availableTickets.slice(0, 3);
+  }
 
   ngOnInit(): void {
-    if (this.authService.isProvider) {
+    if (this.authService.isProvider()) {
       this.viewModeService.setMode('provider');
     }
-    this.loadCategories();
-    this.loadTickets();
+    this.loadHomeData();
   }
 
-  private loadTickets(): void {
-    const userId = this.authService.userId;
+  private async loadHomeData(): Promise<void> {
+    this.loading = true;
+    this.error = null;
+
+    try {
+      await Promise.all([
+        this.loadCategories(),
+        this.loadTickets()
+      ]);
+    } catch (err) {
+      console.error('Erro ao carregar home:', err);
+      this.error = 'Erro ao carregar os dados.';
+    } finally {
+      this.loading = false;
+      this.cdr.detectChanges();
+    }
+  }
+  private async loadTickets(): Promise<void> {
+    const userId = this.authService.currentUser?.id;
+
     if (userId === undefined) {
-      this.error.set('Usuário não autenticado.');
-      return;
+      throw new Error('Usuário não autenticado.');
     }
 
-    this.loading.set(true);
-    this.error.set(null);
+    // Enquanto tickets estiverem no JSON Server
+    this.tickets =
+      await this.ticketService.getByUserId(userId);
 
-    this.ticketService.getTickets().subscribe({
-      next: (myTickets) => {
-        this.tickets.set(myTickets);
+    if (this.authService.isProvider()) {
+      const categoryIds =
+        this.authService.currentUser?.categoryIds ?? [];
 
-        if (this.authService.isProvider) {
-          this.ticketService.getTickets({
-            status: TicketStatus.OPEN,
-            categoryId: this.authService.userCategories
-          }).subscribe({
-            next: (availableTickets) => {
-              this.availableTickets.set(availableTickets);
-              this.loading.set(false);
-            },
-            error: (err) => {
-              console.error('Erro ao carregar tickets disponíveis:', err);
-              this.availableTickets.set([]);
-              this.loading.set(false);
-            }
-          });
-        } else {
-          this.loading.set(false);
-        }
-      },
-      error: (err) => {
-        console.error('Erro ao carregar seus tickets:', err);
-        this.error.set('Erro ao carregar tickets.');
-        this.tickets.set([]);
-        this.loading.set(false);
-      }
-    });
+      this.availableTickets =
+        await this.ticketService.getTickets({
+          status: TicketStatus.OPEN,
+          categoryId: categoryIds
+        });
+    }
   }
-
-  private loadCategories(): void {
-    this.categoryService.getAll().subscribe({
-      next: (categories) => {
-        this.categories.set(categories);
-      },
-      error: (err) => {
-        console.error('Erro ao carregar categorias:', err);
-        this.categories.set([]);
-      }
-    });
+  private async loadCategories(): Promise<void> {
+    this.categories = await this.categoryService.getAll();
   }
 
   // ===== MODAL DE DETALHES =====
 
   openTicketDetail(ticket: Ticket): void {
-    this.selectedTicket.set(ticket);
-    this.isDetailModalOpen.set(true);
+    this.selectedTicket = ticket;
+    this.isDetailModalOpen = true;
   }
 
   closeTicketDetail(): void {
-    this.isDetailModalOpen.set(false);
-    this.selectedTicket.set(null);
+    this.isDetailModalOpen = false
+    this.selectedTicket = null;
   }
 
   onTicketUpdated(updatedTicket: Ticket): void {
-    this.tickets.update(current =>
-      current.map(t => t.id === updatedTicket.id ? updatedTicket : t)
-    );
-    this.selectedTicket.set(updatedTicket);
+    this.tickets =this.tickets.map(ticket=>
+      ticket.id === updatedTicket.id
+      ? updatedTicket
+      : ticket
+    )
+    this.selectedTicket = updatedTicket;
+    this.cdr.detectChanges();
   }
 
   // ===== MODAL DE PROPOSTAS (novo) =====
 
   openProposalsModal(ticket: Ticket): void {
-    this.selectedTicketForProposals.set(ticket);
-    this.isProposalsModalOpen.set(true);
+    this.selectedTicketForProposals = ticket;
+    this.isProposalsModalOpen = true;
   }
 
   closeProposalsModal(): void {
-    this.isProposalsModalOpen.set(false);
-    this.selectedTicketForProposals.set(null);
+    this.isProposalsModalOpen = false;
+    this.selectedTicketForProposals = null;
   }
 
   onProposalsTicketUpdated(updatedTicket: Ticket): void {
-    this.tickets.update(current =>
-      current.map(t => t.id === updatedTicket.id ? updatedTicket : t)
+    this.tickets = this.tickets.map(ticket =>
+      ticket.id === updatedTicket.id
+        ? updatedTicket
+        : ticket
     );
-    this.selectedTicketForProposals.set(updatedTicket);
+
+    this.selectedTicketForProposals = updatedTicket;
+    this.cdr.detectChanges();
   }
 
   // ===== MODAL DE CRIAÇÃO =====
 
-  public onActionCardsOpenTicket(request: OpenTicketRequest): void {
-    this.isModalUrgent.set(request.urgent);
-    this.preselectedCategoryId.set(null);
-    this.isModalOpen.set(true);
+  onActionCardsOpenTicket(request: OpenTicketRequest): void {
+    this.isModalUrgent = request.urgent;
+    this.preselectedCategoryId = null;
+    this.isModalOpen = true;
   }
 
-  public onCategoryClick(category: Category): void {
-    this.isModalUrgent.set(false);
-    this.preselectedCategoryId.set(category.id);
-    this.isModalOpen.set(true);
+  onCategoryClick(category: Category): void {
+    this.isModalUrgent = false;
+    this.preselectedCategoryId = category.id;
+    this.isModalOpen = true;
   }
 
-  public closeTicketModal(): void {
-    this.isModalOpen.set(false);
+  closeTicketModal(): void {
+    this.isModalOpen = false;
   }
+
 
   onTicketCreated(ticket: Ticket): void {
-    this.tickets.update(current => [ticket, ...current]);
+    this.tickets = [ticket, ...this.tickets];
+    this.cdr.detectChanges();
   }
 
   getStatusLabel(status: TicketStatus): string {

@@ -1,12 +1,12 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { Ticket } from '../../../models/ticket.model';
 import { TicketService } from '../../../services/ticket/ticket-service';
 import { TicketStatus } from '../../../enums/ticket-status';
 import { TicketCard } from "../../../shared/components/ticket-card/ticket-card";
 import { ActionCards } from "../../../shared/components/action-cards/action-cards";
 import { AuthService } from '../../../services/auth/auth';
 import { ViewModeService } from '../../../services/view-mode/view-mode-service';
+import { Ticket } from '../../../models/ticket.model';
 
 @Component({
   selector: 'app-tickets',
@@ -15,67 +15,60 @@ import { ViewModeService } from '../../../services/view-mode/view-mode-service';
   styleUrl: './tickets.css',
 })
 export class Tickets implements OnInit {
-  tickets = signal<Ticket[]>([]);
-  availableTickets = signal<Ticket[]>([]);
-  loading = signal<boolean>(false);
-  error = signal<string | null>(null);
+  tickets: Ticket[] = [];
+  availableTickets: Ticket[] = [];
+  loading = false;
+  error: string | null = null;
 
-  private ticketService = inject(TicketService);
-  private authService = inject(AuthService);
-  private viewModeService = inject(ViewModeService);
+  constructor(
+    private ticketService: TicketService,
+    private authService: AuthService,
+    private viewModeService: ViewModeService,
+    private cdr: ChangeDetectorRef
+  ){}
 
   get isProviderMode() {
     return this.viewModeService.isProviderMode;
   }
 
   ngOnInit(): void {
-    if (this.authService.isProvider) {
+    if (this.authService.isProvider()) {
       this.viewModeService.setMode('provider');
     }
     this.loadTickets();
   }
 
-  private loadTickets(): void {
-    const userId = this.authService.userId;
+  private async loadTickets(): Promise<void> {
+    const userId = this.authService.currentUser?.id;
     if (userId === undefined) {
-      this.error.set('Usuário não autenticado.');
+      this.error = "Usuario não autenticado";
+      this.cdr.detectChanges();
       return;
     }
 
-    this.loading.set(true);
-    this.error.set(null);
+    this.loading = true;
+    this.error = null;
 
-    // Meus tickets como cliente (backend cuida via token)
-    this.ticketService.getTickets().subscribe({
-      next: (myTickets) => {
-        this.tickets.set(myTickets);
+    try{
+      this.tickets = await this.ticketService.getTickets();
 
-        if (this.authService.isProvider) {
-          this.ticketService.getTickets({
-            status: TicketStatus.OPEN,
-            categoryId: this.authService.userCategories
-          }).subscribe({
-            next: (available) => {
-              this.availableTickets.set(available);
-              this.loading.set(false);
-            },
-            error: (err) => {
-              console.error('Erro ao carregar tickets disponíveis:', err);
-              this.availableTickets.set([]);
-              this.loading.set(false);
-            }
-          });
-        } else {
-          this.loading.set(false);
-        }
-      },
-      error: (err) => {
-        console.error('Erro ao carregar seus tickets:', err);
-        this.error.set('Erro ao carregar tickets.');
-        this.tickets.set([]);
-        this.loading.set(false);
+      if(this.authService.isProvider()){
+        const categoryIds = this.authService.currentUser?.categoryIds ??[];
+        this.availableTickets = await this.ticketService.getTickets({
+          status: TicketStatus.OPEN,
+          categoryId: categoryIds
+        })
       }
-    });
+    }catch(err){
+      console.error("Erro ao carregar tickets:", err);
+      this.error = "Erro ao carregar tickets.";
+      this.tickets = [];
+      this.availableTickets = [];
+    }finally{
+      this.loading = false;
+      this.cdr.detectChanges();
+    }
+    
   }
 
   getStatusLabel(status: TicketStatus): string {

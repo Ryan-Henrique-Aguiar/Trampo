@@ -1,38 +1,52 @@
-import { Component, EventEmitter, Input, OnChanges, Output, inject, signal } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  Output
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpErrorResponse } from '@angular/common/http';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators
+} from '@angular/forms';
+
 import { Ticket } from '../../../models/ticket.model';
 import { Proposal } from '../../../models/proposal.model';
+
 import { TicketStatus } from '../../../enums/ticket-status';
 import { ProposalStatus } from '../../../enums/proposal-status';
 import { PaymentMethod } from '../../../enums/payment-method';
+import { WeekDay } from '../../../enums/week-day';
+
 import { AuthService } from '../../../services/auth/auth';
 import { ViewModeService } from '../../../services/view-mode/view-mode-service';
 import { TicketService } from '../../../services/ticket/ticket-service';
 import { ProposalService } from '../../../services/proposal/proposal-service';
-import { WeekDay } from '../../../enums/week-day';
 
 @Component({
   selector: 'app-ticket-detail',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './ticket-detail.html',
-  styleUrl: './ticket-detail.css',
+  styleUrl: './ticket-detail.css'
 })
 export class TicketDetail implements OnChanges {
+
   @Input() isOpen = false;
   @Input() ticket: Ticket | null = null;
+
   @Output() close = new EventEmitter<void>();
   @Output() statusChanged = new EventEmitter<Ticket>();
   @Output() ticketUpdated = new EventEmitter<Ticket>();
 
-  private authService = inject(AuthService);
-  private viewModeService = inject(ViewModeService);
-  private ticketService = inject(TicketService);
-  private proposalService = inject(ProposalService);
-
-  private static readonly TERMINAL_STATUSES = [TicketStatus.COMPLETED, TicketStatus.CANCELLED];
+  private static readonly TERMINAL_STATUSES = [
+    TicketStatus.COMPLETED,
+    TicketStatus.CANCELLED
+  ];
 
   public paymentOptions = [
     { label: 'Pix', value: PaymentMethod.PIX },
@@ -50,37 +64,51 @@ export class TicketDetail implements OnChanges {
     { label: 'Sábado', value: WeekDay.SATURDAY },
     { label: 'Domingo', value: WeekDay.SUNDAY },
   ];
+
   public hourOptions = [
     '07:00', '08:00', '09:00', '10:00', '11:00', '12:00',
     '13:00', '14:00', '15:00', '16:00', '17:00', '18:00',
   ];
 
-  public isStatusMenuOpen = signal(false);
-  public pendingStatus = signal<TicketStatus | null>(null);
-  public isChangingStatus = signal(false);
+  public isStatusMenuOpen = false;
+  public pendingStatus: TicketStatus | null = null;
+  public isChangingStatus = false;
 
-  public isEditing = signal(false);
-  public isSaving = signal(false);
+  public isEditing = false;
+  public isSaving = false;
   public editForm!: FormGroup;
 
-  // ===== PROPOSTAS =====
-  public proposals = signal<Proposal[]>([]);
-  public isLoadingProposals = signal(false);
-  public isProposalFormOpen = signal(false);
-  public isSubmittingProposal = signal(false);
-  public proposalPriceControl = new FormControl<number | null>(null, [Validators.required, Validators.min(1)]);
-  public processingProposalId = signal<number | null>(null);
+  public proposals: Proposal[] = [];
+  public isLoadingProposals = false;
+  public isProposalFormOpen = false;
+  public isSubmittingProposal = false;
+  public processingProposalId: number | null = null;
 
-  get isProviderMode() {
+  public proposalPriceControl = new FormControl<number | null>(
+    null,
+    [Validators.required, Validators.min(1)]
+  );
+
+  constructor(
+    private authService: AuthService,
+    private viewModeService: ViewModeService,
+    private ticketService: TicketService,
+    private proposalService: ProposalService,
+    private cdr: ChangeDetectorRef
+  ) {}
+
+  get isProviderMode(): boolean {
     return this.viewModeService.isProviderMode;
   }
 
   get isOwnTicket(): boolean {
-    return !this.isProviderMode && this.ticket?.userId === this.authService.userId;
+    return !this.isProviderMode &&
+      this.ticket?.userId === this.authService.currentUser?.id;
   }
 
   get canEdit(): boolean {
-    return this.isOwnTicket && this.ticket?.status === TicketStatus.OPEN;
+    return this.isOwnTicket &&
+      this.ticket?.status === TicketStatus.OPEN;
   }
 
   get canChangeStatus(): boolean {
@@ -89,138 +117,185 @@ export class TicketDetail implements OnChanges {
 
   get availableTransitions(): TicketStatus[] {
     if (!this.ticket) return [];
-    return this.ticketService.getAvailableStatusTransitions(this.ticket.status)
+
+    return this.ticketService
+      .getAvailableStatusTransitions(this.ticket.status)
       .filter(status => status !== TicketStatus.IN_PROGRESS);
   }
 
   get isPendingStatusIrreversible(): boolean {
-    const status = this.pendingStatus();
-    return status !== null && TicketDetail.TERMINAL_STATUSES.includes(status);
+    return this.pendingStatus !== null &&
+      TicketDetail.TERMINAL_STATUSES.includes(this.pendingStatus);
   }
 
-  // proposta que o prestador logado já enviou pra esse ticket, se existir
   get myProposal(): Proposal | null {
-    const userId = this.authService.userId;
-    return this.proposals().find(p => p.professionalId === userId) ?? null;
+    const userId = this.authService.currentUser?.id;
+
+    if (userId === undefined) return null;
+
+    return this.proposals.find(
+      proposal => proposal.professionalId === userId
+    ) ?? null;
   }
 
   get canSendProposal(): boolean {
-    return this.isProviderMode
-      && this.ticket?.status === TicketStatus.OPEN
-      && this.myProposal === null;
+    return this.isProviderMode &&
+      this.ticket?.status === TicketStatus.OPEN &&
+      this.myProposal === null;
   }
 
-  // ===== CICLO DE VIDA =====
-
-  ngOnChanges(): void {
+  async ngOnChanges(): Promise<void> {
     if (this.isOpen && this.ticket) {
-      this.loadProposals(this.ticket.id);
+      await this.loadProposals(this.ticket.id);
     } else {
-      this.proposals.set([]);
+      this.proposals = [];
+    }
+
+    this.cdr.detectChanges();
+  }
+
+  private async loadProposals(ticketId: number): Promise<void> {
+    this.isLoadingProposals = true;
+
+    try {
+      this.proposals = await this.proposalService.getByTicketId(ticketId);
+    } catch (err) {
+      console.error('Erro ao carregar propostas:', err);
+      this.proposals = [];
+    } finally {
+      this.isLoadingProposals = false;
+      this.cdr.detectChanges();
     }
   }
 
-  private loadProposals(ticketId: number): void {
-    this.isLoadingProposals.set(true);
-    this.proposalService.getByTicketId(ticketId).subscribe({
-      next: (proposals) => {
-        this.proposals.set(proposals);
-        this.isLoadingProposals.set(false);
-      },
-      error: (err: HttpErrorResponse) => {
-        console.error('Erro ao carregar propostas:', err);
-        this.proposals.set([]);
-        this.isLoadingProposals.set(false);
-      },
-    });
-  }
-
-  // ===== STATUS =====
-
   toggleStatusMenu(): void {
     if (!this.canChangeStatus) return;
-    this.isStatusMenuOpen.update(open => !open);
+
+    this.isStatusMenuOpen = !this.isStatusMenuOpen;
   }
 
   selectNewStatus(status: TicketStatus): void {
-    this.isStatusMenuOpen.set(false);
-    this.pendingStatus.set(status);
+    this.isStatusMenuOpen = false;
+    this.pendingStatus = status;
   }
 
   cancelStatusRequest(): void {
-    this.pendingStatus.set(null);
+    this.pendingStatus = null;
   }
 
-  confirmStatusChange(): void {
-    const newStatus = this.pendingStatus();
-    if (!this.ticket || !newStatus || this.isChangingStatus()) return;
+  async confirmStatusChange(): Promise<void> {
+    if (!this.ticket || this.pendingStatus === null || this.isChangingStatus) {
+      return;
+    }
 
-    this.isChangingStatus.set(true);
+    this.isChangingStatus = true;
 
-    this.ticketService.updateStatus(this.ticket.id, this.ticket.status, newStatus).subscribe({
-      next: (updatedTicket) => {
-        this.ticket = updatedTicket;
-        this.pendingStatus.set(null);
-        this.isChangingStatus.set(false);
-        this.statusChanged.emit(updatedTicket);
-      },
-      error: (err: HttpErrorResponse) => {
-        this.isChangingStatus.set(false);
-        console.error('Erro ao alterar status do ticket:', err);
-      },
-    });
+    try {
+      const updatedTicket = await this.ticketService.updateStatus(
+        this.ticket.id,
+        this.ticket.status,
+        this.pendingStatus
+      );
+
+      this.ticket = updatedTicket;
+      this.pendingStatus = null;
+
+      this.statusChanged.emit(updatedTicket);
+      this.ticketUpdated.emit(updatedTicket);
+    } catch (err) {
+      console.error('Erro ao alterar status do ticket:', err);
+    } finally {
+      this.isChangingStatus = false;
+      this.cdr.detectChanges();
+    }
   }
-
-  // ===== EDIÇÃO =====
 
   startEditing(): void {
     if (!this.ticket) return;
 
     this.editForm = new FormGroup({
-      title: new FormControl(this.ticket.title, [Validators.required, Validators.maxLength(50)]),
-      description: new FormControl(this.ticket.description, [Validators.required, Validators.maxLength(500)]),
+      title: new FormControl(
+        this.ticket.title,
+        [Validators.required, Validators.maxLength(50)]
+      ),
+      description: new FormControl(
+        this.ticket.description,
+        [Validators.required, Validators.maxLength(500)]
+      ),
       address: new FormGroup({
-        street: new FormControl(this.ticket.address.street, [Validators.required]),
-        number: new FormControl(this.ticket.address.number, [Validators.required]),
-        neighborhood: new FormControl(this.ticket.address.neighborhood, [Validators.required]),
-        city: new FormControl(this.ticket.address.city, [Validators.required]),
-        state: new FormControl(this.ticket.address.state, [Validators.required, Validators.maxLength(2)]),
+        street: new FormControl(
+          this.ticket.address.street,
+          [Validators.required]
+        ),
+        number: new FormControl(
+          this.ticket.address.number,
+          [Validators.required]
+        ),
+        neighborhood: new FormControl(
+          this.ticket.address.neighborhood,
+          [Validators.required]
+        ),
+        city: new FormControl(
+          this.ticket.address.city,
+          [Validators.required]
+        ),
+        state: new FormControl(
+          this.ticket.address.state,
+          [Validators.required, Validators.maxLength(2)]
+        ),
         zipCode: new FormControl(this.ticket.address.zipCode),
         complement: new FormControl(this.ticket.address.complement),
       }),
-      priceMax: new FormControl(this.ticket.priceMax, [Validators.required]),
-      paymentMethods: new FormControl(this.ticket.paymentMethods ?? [], [Validators.required]),
-      availableDays: new FormControl(this.ticket.availableDays ?? [], [Validators.required]),
-      availableHours: new FormControl(this.ticket.availableHours ?? [], [Validators.required]),
+      priceMax: new FormControl(
+        this.ticket.priceMax,
+        [Validators.required]
+      ),
+      paymentMethods: new FormControl(
+        this.ticket.paymentMethods ?? [],
+        [Validators.required]
+      ),
+      availableDays: new FormControl(
+        this.ticket.availableDays ?? [],
+        [Validators.required]
+      ),
+      availableHours: new FormControl(
+        this.ticket.availableHours ?? [],
+        [Validators.required]
+      ),
     });
 
-    this.isEditing.set(true);
+    this.isEditing = true;
+    this.cdr.detectChanges();
   }
 
   cancelEditing(): void {
-    this.isEditing.set(false);
+    this.isEditing = false;
   }
 
   isEditFieldInvalid(field: string): boolean {
-    const control = this.editForm.get(field);
+    const control = this.editForm?.get(field);
+
     return !!control && control.invalid && control.touched;
   }
 
-  isEditOptionSelected(field: string, value: any): boolean {
-    return (this.editForm.get(field)?.value || []).includes(value);
+  isEditOptionSelected(field: string, value: unknown): boolean {
+    const current = this.editForm?.get(field)?.value ?? [];
+
+    return current.includes(value);
   }
 
-  toggleEditOption(field: string, value: any): void {
-    const current = this.editForm.get(field)?.value || [];
+  toggleEditOption(field: string, value: unknown): void {
+    const current = this.editForm.get(field)?.value ?? [];
+
     const updated = current.includes(value)
-      ? current.filter((item: any) => item !== value)
+      ? current.filter((item: unknown) => item !== value)
       : [...current, value];
 
     this.editForm.get(field)?.setValue(updated);
     this.editForm.get(field)?.markAsTouched();
   }
 
-  saveEdit(): void {
+  async saveEdit(): Promise<void> {
     if (!this.ticket) return;
 
     if (this.editForm.invalid) {
@@ -228,148 +303,161 @@ export class TicketDetail implements OnChanges {
       return;
     }
 
-    this.isSaving.set(true);
-    const value = this.editForm.getRawValue();
+    if (this.isSaving) return;
 
-    this.ticketService.update(this.ticket.id, value).subscribe({
-      next: (updatedTicket) => {
-        this.ticket = updatedTicket;
-        this.isSaving.set(false);
-        this.isEditing.set(false);
-        this.ticketUpdated.emit(updatedTicket);
-      },
-      error: (err: HttpErrorResponse) => {
-        this.isSaving.set(false);
-        console.error('Erro ao atualizar ticket:', err);
-      },
-    });
+    this.isSaving = true;
+
+    try {
+      const value = this.editForm.getRawValue();
+
+      const updatedTicket = await this.ticketService.update(
+        this.ticket.id,
+        value
+      );
+
+      this.ticket = updatedTicket;
+      this.isEditing = false;
+
+      this.ticketUpdated.emit(updatedTicket);
+    } catch (err) {
+      console.error('Erro ao atualizar ticket:', err);
+    } finally {
+      this.isSaving = false;
+      this.cdr.detectChanges();
+    }
   }
 
-  // ===== PROPOSTAS (PRESTADOR ENVIA) =====
-
   openProposalForm(): void {
-    this.isProposalFormOpen.set(true);
+    this.isProposalFormOpen = true;
   }
 
   cancelProposalForm(): void {
-    this.isProposalFormOpen.set(false);
+    this.isProposalFormOpen = false;
     this.proposalPriceControl.reset();
   }
 
-  submitProposal(): void {
+  async submitProposal(): Promise<void> {
     if (!this.ticket || this.proposalPriceControl.invalid) {
       this.proposalPriceControl.markAsTouched();
       return;
     }
 
-    this.isSubmittingProposal.set(true);
+    if (this.isSubmittingProposal) return;
 
-    this.proposalService.create({
-      priceRange: this.proposalPriceControl.value!,
-      ticketId: this.ticket.id,
-    }).subscribe({
-      next: (createdProposal) => {
-        this.proposals.update(current => [...current, createdProposal]);
-        this.bumpProposalsCount();
-        this.isSubmittingProposal.set(false);
-        this.isProposalFormOpen.set(false);
-        this.proposalPriceControl.reset();
-        this.closeModal();
-      },
-      error: (err: HttpErrorResponse) => {
-        this.isSubmittingProposal.set(false);
-        console.error('Erro ao enviar proposta:', err);
-      },
-    });
+    this.isSubmittingProposal = true;
+
+    try {
+      const createdProposal = await this.proposalService.create({
+        priceRange: this.proposalPriceControl.value!,
+        ticketId: this.ticket.id
+      });
+
+      this.proposals = [...this.proposals, createdProposal];
+
+      await this.bumpProposalsCount();
+
+      this.isProposalFormOpen = false;
+      this.proposalPriceControl.reset();
+
+      this.closeModal();
+    } catch (err) {
+      console.error('Erro ao enviar proposta:', err);
+    } finally {
+      this.isSubmittingProposal = false;
+      this.cdr.detectChanges();
+    }
   }
 
-  private bumpProposalsCount(): void {
+  private async bumpProposalsCount(): Promise<void> {
     if (!this.ticket) return;
+
     const newCount = (this.ticket.proposalsCount ?? 0) + 1;
 
-    this.ticketService.update(this.ticket.id, { proposalsCount: newCount }).subscribe({
-      next: (updatedTicket) => {
-        this.ticket = updatedTicket;
-        this.ticketUpdated.emit(updatedTicket);
-      },
-      error: (err: HttpErrorResponse) => console.error('Erro ao atualizar contagem de propostas:', err),
-    });
+    try {
+      const updatedTicket = await this.ticketService.update(
+        this.ticket.id,
+        { proposalsCount: newCount }
+      );
+
+      this.ticket = updatedTicket;
+      this.ticketUpdated.emit(updatedTicket);
+    } catch (err) {
+      console.error('Erro ao atualizar contagem de propostas:', err);
+    }
   }
 
-  // ===== PROPOSTAS (CLIENTE VÊ E DECIDE) =====
+  async onAcceptProposal(proposal: Proposal): Promise<void> {
+    if (this.processingProposalId !== null || !this.ticket) return;
 
-  onAcceptProposal(proposal: Proposal): void {
-    if (this.processingProposalId() !== null || !this.ticket) return;
-    this.processingProposalId.set(proposal.id);
+    this.processingProposalId = proposal.id;
 
-    this.proposalService.accept(proposal).subscribe({
-      next: () => {
-        this.ticketService.updateStatus(this.ticket!.id, this.ticket!.status, TicketStatus.IN_PROGRESS).subscribe({
-          next: (updatedTicket) => {
-            this.ticket = updatedTicket;
-            this.ticketUpdated.emit(updatedTicket);
-            this.rejectRemainingPending(proposal.id);
-          },
-          error: (err: HttpErrorResponse) => {
-            this.processingProposalId.set(null);
-            console.error('Erro ao atualizar status do ticket:', err);
-          },
-        });
-      },
-      error: (err: HttpErrorResponse) => {
-        this.processingProposalId.set(null);
-        console.error('Erro ao aceitar proposta:', err);
-      },
-    });
+    try {
+      await this.proposalService.accept(proposal);
+
+      const updatedTicket = await this.ticketService.updateStatus(
+        this.ticket.id,
+        this.ticket.status,
+        TicketStatus.IN_PROGRESS
+      );
+
+      this.ticket = updatedTicket;
+      this.ticketUpdated.emit(updatedTicket);
+
+      await this.rejectRemainingPending(proposal.id);
+    } catch (err) {
+      console.error('Erro ao aceitar proposta:', err);
+    } finally {
+      this.processingProposalId = null;
+      this.cdr.detectChanges();
+    }
   }
 
-  private rejectRemainingPending(acceptedProposalId: number): void {
-    const others = this.proposals().filter(
-      p => p.id !== acceptedProposalId && p.status === ProposalStatus.PENDING
+  private async rejectRemainingPending(
+    acceptedProposalId: number
+  ): Promise<void> {
+    if (!this.ticket) return;
+
+    const others = this.proposals.filter(
+      proposal =>
+        proposal.id !== acceptedProposalId &&
+        proposal.status === ProposalStatus.PENDING
     );
 
-    if (others.length === 0) {
-      this.processingProposalId.set(null);
-      this.loadProposals(this.ticket!.id);
-      return;
+    if (others.length > 0) {
+      const results = await Promise.allSettled(
+        others.map(proposal =>
+          this.proposalService.reject(proposal)
+        )
+      );
+
+      results.forEach(result => {
+        if (result.status === 'rejected') {
+          console.error(
+            'Erro ao rejeitar proposta concorrente:',
+            result.reason
+          );
+        }
+      });
     }
 
-    let remaining = others.length;
-    others.forEach(p => {
-      this.proposalService.reject(p).subscribe({
-        next: () => {
-          remaining--;
-          if (remaining === 0) {
-            this.processingProposalId.set(null);
-            this.loadProposals(this.ticket!.id);
-          }
-        },
-        error: (err: HttpErrorResponse) => {
-          console.error('Erro ao rejeitar proposta concorrente:', err);
-          remaining--;
-          if (remaining === 0) {
-            this.processingProposalId.set(null);
-            this.loadProposals(this.ticket!.id);
-          }
-        },
-      });
-    });
+    await this.loadProposals(this.ticket.id);
   }
 
-  onRejectProposal(proposal: Proposal): void {
-    if (this.processingProposalId() !== null || !this.ticket) return;
-    this.processingProposalId.set(proposal.id);
+  async onRejectProposal(proposal: Proposal): Promise<void> {
+    if (this.processingProposalId !== null || !this.ticket) return;
 
-    this.proposalService.reject(proposal).subscribe({
-      next: () => {
-        this.processingProposalId.set(null);
-        this.loadProposals(this.ticket!.id);
-      },
-      error: (err: HttpErrorResponse) => {
-        this.processingProposalId.set(null);
-        console.error('Erro ao rejeitar proposta:', err);
-      },
-    });
+    this.processingProposalId = proposal.id;
+
+    try {
+      await this.proposalService.reject(proposal);
+
+      await this.loadProposals(this.ticket.id);
+    } catch (err) {
+      console.error('Erro ao rejeitar proposta:', err);
+    } finally {
+      this.processingProposalId = null;
+      this.cdr.detectChanges();
+    }
   }
 
   getProposalStatusLabel(status: ProposalStatus): string {
@@ -378,31 +466,8 @@ export class TicketDetail implements OnChanges {
       [ProposalStatus.ACCEPTED]: 'Aceita',
       [ProposalStatus.REJECTED]: 'Recusada',
     };
+
     return labels[status] || status;
-  }
-
-  // ===== GERAIS =====
-
-  closeModal(): void {
-    this.isStatusMenuOpen.set(false);
-    this.pendingStatus.set(null);
-    this.isEditing.set(false);
-    this.isProposalFormOpen.set(false);
-    this.proposalPriceControl.reset();
-    this.close.emit();
-  }
-
-  onOverlayClick(event: MouseEvent): void {
-    if ((event.target as HTMLElement).classList.contains('modal-overlay')) {
-      this.closeModal();
-    }
-  }
-
-  formatDate(date: string): string {
-    if (!date) return '';
-    return new Date(date).toLocaleDateString('pt-BR', {
-      day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
-    });
   }
 
   getStatusLabel(status: TicketStatus): string {
@@ -412,7 +477,8 @@ export class TicketDetail implements OnChanges {
       [TicketStatus.COMPLETED]: 'Finalizado',
       [TicketStatus.CANCELLED]: 'Cancelado'
     };
-    return labels[status] || status || 'Desconhecido';
+
+    return labels[status] || 'Desconhecido';
   }
 
   getStatusClass(status: TicketStatus): string {
@@ -422,6 +488,7 @@ export class TicketDetail implements OnChanges {
       [TicketStatus.COMPLETED]: 'status-completed',
       [TicketStatus.CANCELLED]: 'status-cancelled'
     };
+
     return classes[status] || 'status-default';
   }
 
@@ -435,16 +502,54 @@ export class TicketDetail implements OnChanges {
       [WeekDay.SATURDAY]: 'Sábado',
       [WeekDay.SUNDAY]: 'Domingo',
     };
+
     return labels[day as WeekDay] || day;
   }
 
+  closeModal(): void {
+    this.isStatusMenuOpen = false;
+    this.pendingStatus = null;
+    this.isEditing = false;
+    this.isProposalFormOpen = false;
+    this.proposalPriceControl.reset();
+
+    this.close.emit();
+  }
+
+  onOverlayClick(event: MouseEvent): void {
+    if ((event.target as HTMLElement).classList.contains('modal-overlay')) {
+      this.closeModal();
+    }
+  }
+
+  formatDate(date: string): string {
+    if (!date) return '';
+
+    return new Date(date).toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
   formatList(list: string[] | undefined): string {
-    if (!list || list.length === 0) return 'Não informado';
+    if (!list || list.length === 0) {
+      return 'Não informado';
+    }
+
     return list.join(' • ');
   }
 
   formatCurrency(value: number | undefined): string {
-    if (value === undefined || value === null) return 'Não informado';
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+    if (value === undefined || value === null) {
+      return 'Não informado';
+    }
+
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
   }
 }

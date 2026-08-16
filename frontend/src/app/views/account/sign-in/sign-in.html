@@ -1,42 +1,93 @@
 <app-auth-layout>
   <div class="form-container">
+
     <h1>Entrar</h1>
-    <a routerLink="/register" class="auth-redirect-link">Não possui conta ? faça seu cadastro →</a>
 
-    <div class="input-icon">
-      <i class="fa-solid fa-envelope"></i>
-      <input
-        type="email"
-        placeholder="Email"
-        required>
-    </div>
+    <a routerLink="/register" class="auth-redirect-link">
+      Não possui conta? Faça seu cadastro →
+    </a>
 
-    <div class="input-icon">
-      <i class="fa-solid fa-lock"></i>
-      <input
-        type="password"
-        placeholder="Senha"
-        required>
-    </div>
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
 
-    <div class="auth-options">
-      <div class="remember-me">
-        <input type="checkbox" name="remember" id="remember">
-        <label for="remember">Lembrar dados</label>
+      <div class="input-icon">
+        <i class="fa-solid fa-envelope"></i>
+
+        <input
+          type="email"
+          placeholder="Email"
+          formControlName="email"
+          autocomplete="email">
       </div>
-      <a href="#" class="forgot-password">Esqueceu sua senha?</a>
-    </div>
 
-    <button class="btn-primary-auth">
-      Entrar
-    </button>
+      @if (
+        loginForm.get('email')?.invalid &&
+        loginForm.get('email')?.touched
+      ) {
+        <small class="error-msg">
+          Informe um email válido.
+        </small>
+      }
+
+      <div class="input-icon">
+        <i class="fa-solid fa-lock"></i>
+
+        <input
+          type="password"
+          placeholder="Senha"
+          formControlName="password"
+          autocomplete="current-password">
+      </div>
+
+      @if (
+        loginForm.get('password')?.invalid &&
+        loginForm.get('password')?.touched
+      ) {
+        <small class="error-msg">
+          Informe sua senha.
+        </small>
+      }
+
+      <div class="auth-options">
+        <div class="remember-me">
+          <input
+            type="checkbox"
+            name="remember"
+            id="remember">
+
+          <label for="remember">
+            Lembrar dados
+          </label>
+        </div>
+
+        <a href="#" class="forgot-password">
+          Esqueceu sua senha?
+        </a>
+      </div>
+
+      <button
+        type="submit"
+        class="btn-primary-auth"
+        [disabled]="loginForm.invalid || loading">
+
+        {{ loading ? 'Entrando...' : 'Entrar' }}
+
+      </button>
+
+    </form>
+
     <div class="divider">
       <span>ou continue com</span>
     </div>
 
     <button class="btn-google">
-      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" height="20" alt="Google">
+      <img
+        src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+        width="20"
+        height="20"
+        alt="Google">
+
       Google
     </button>
+
   </div>
 </app-auth-layout>

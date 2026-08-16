@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { firstValueFrom, Observable } from 'rxjs';
 import { User } from '../../models/user.model';
 
 @Injectable({
@@ -11,23 +11,36 @@ export class UserService {
 
   constructor(private http: HttpClient) {}
 
-  getById(id: number): Observable<User> {
-    return this.http.get<User>(`${this.baseUrl}/${id}`);
+  async getById(id: number): Promise<User> {
+    return await firstValueFrom(
+      this.http.get<User>(`${this.baseUrl}/${id}`)
+    )
   }
 
-  getProvidersWithUrgency(categoryId: number, state: string, city: string): Observable<User[]> {
-    let params = new HttpParams()
+  async getProvidersWithUrgency(
+    categoryId: number,
+    state: string,
+    city: string
+  ): Promise<User[]> {
+    const params = new HttpParams()
       .set('isProvider', 'true')
-      .set('isAvailableForUrgency', 'true') 
+      .set('isAvailableForUrgency', 'true')
       .set('state', state)
       .set('city', city);
 
-    return this.http.get<User[]>(this.baseUrl, { params });
+    return await firstValueFrom(
+      this.http.get<User[]>(this.baseUrl, { params })
+    );
   }
 
-  toggleUrgencyAvailability(userId: number, isAvailable: boolean): Observable<User> {
-    return this.http.patch<User>(`${this.baseUrl}/${userId}`, {
-      isAvailableForUrgency: isAvailable,
-    });
+  async toggleUrgencyAvailability(
+    userId: number,
+    isAvailable: boolean
+  ): Promise<User> {
+    return await firstValueFrom(
+      this.http.patch<User>(`${this.baseUrl}/${userId}`, {
+        isAvailableForUrgency: isAvailable,
+      })
+    );
   }
 }

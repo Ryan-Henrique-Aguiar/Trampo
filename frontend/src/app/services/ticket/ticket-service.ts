@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
+import { firstValueFrom, Observable, throwError } from 'rxjs';
 import { Ticket, UrgentTicket } from '../../models/ticket.model';
 import { environment } from '../../../environments/environment.development';
 import { CreateTicketRequest } from '../../dto/ticket/create-ticket-request';
@@ -52,60 +52,74 @@ export class TicketService {
     return TicketService.URGENT_TICKET_TRANSITIONS[currentStatus] ?? [];
   }
 
-  getTickets(filters?: {
-    status?: string;
-    categoryId?: number[];
-  }): Observable<Ticket[]> {
+  async getTickets(filters?: {status?: string; categoryId?: number[];}): Promise<Ticket[]> {
     let params = new HttpParams();
-
-    if (filters?.status) params = params.set('status', filters.status);
-    if (filters?.categoryId?.length) params = params.set('categoryId', filters.categoryId.join(','));
-
-    return this.http.get<Ticket[]>(this.baseUrl, { params });
+    if (filters?.status) {
+      params = params.set('status', filters.status);
+    }
+    if (filters?.categoryId?.length) {
+      params = params.set('categoryId', filters.categoryId.join(','));
+    }
+    return await firstValueFrom(
+      this.http.get<Ticket[]>(this.baseUrl, { params })
+    );
   }
 
-  getAll(): Observable<Ticket[]> {
-    return this.http.get<Ticket[]>(this.baseUrl);
+  async getAll(): Promise<Ticket[]> {
+    return await firstValueFrom(
+      this.http.get<Ticket[]>(this.baseUrl)
+    )
   }
 
-  getById(id: number): Observable<Ticket> {
-    return this.http.get<Ticket>(`${this.baseUrl}/${id}`);
+  async getById(id: number): Promise<Ticket>{
+    return await firstValueFrom(
+      this.http.get<Ticket>(`${this.baseUrl}/${id}`)
+    )
   }
 
-  getByUserId(userId: number): Observable<Ticket[]> {
-    return this.http.get<Ticket[]>(`${this.baseUrl}?userId=${userId}`);
+
+  async getByUserId(userId: number): Promise<Ticket[]> {
+    return await firstValueFrom(
+      this.http.get<Ticket[]>(`${this.baseUrl}?userId=${userId}`)
+    );
   }
 
   // Buscar tickets por categoria (para profissionais)
-  getByCategory(categoryId: number): Observable<Ticket[]> {
-    return this.http.get<Ticket[]>(`${this.baseUrl}?categoryId=${categoryId}`);
+  async getByCategory(categoryId: number): Promise<Ticket[]> {
+    return await firstValueFrom(
+      this.http.get<Ticket[]>(`${this.baseUrl}?categoryId=${categoryId}`)
+    );
   }
 
-  create(dto: CreateTicketRequest): Observable<Ticket> {
+  async create(dto: CreateTicketRequest): Promise<Ticket> {
     const payload = {
       code: this.generateTicketCode(),
       title: dto.title,
       description: dto.description,
       categoryId: Number(dto.categoryId),
+
       address: {
         ...dto.address,
-        complement: dto.address.complement || '' // evita null
+        complement: dto.address.complement || ''
       },
+
       priceMax: Number(dto.priceMax ?? 0),
       paymentMethods: dto.paymentMethods || [],
       availableDays: dto.availableDays || [],
       availableHours: dto.availableHours || [],
       createdAt: new Date().toISOString(),
       status: TicketStatus.OPEN,
-      userId: this.authService.userId,
+      userId: this.authService.currentUser?.id,
       proposalsCount: 0,
     };
 
-    return this.http.post<Ticket>(this.baseUrl, payload);
+    return await firstValueFrom(
+      this.http.post<Ticket>(this.baseUrl, payload)
+    );
   }
 
 
-  createUrgent(dto: CreateUrgentTicketRequest): Observable<UrgentTicket> {
+  async createUrgent(dto: CreateUrgentTicketRequest): Promise<UrgentTicket> {
     const payload = {
       title: dto.title,
       code: this.generateUrgentTicketCode(),
@@ -115,37 +129,50 @@ export class TicketService {
       providerId: dto.providerId,
       status: TicketStatus.IN_PROGRESS,
       createdAt: new Date().toISOString(),
-      userId: this.authService.userId,
+      userId: this.authService.currentUser?.id,
     };
 
-    return this.http.post<UrgentTicket>(this.urgentBaseUrl, payload);
+    return await firstValueFrom(
+      this.http.post<UrgentTicket>(this.urgentBaseUrl, payload)
+    );
   }
   
-  update(id: number, dto: UpdateTicketRequest): Observable<Ticket> {
-    return this.http.patch<Ticket>(`${this.baseUrl}/${id}`, dto);
+  async update(id: number, dto: UpdateTicketRequest): Promise<Ticket> {
+    return await firstValueFrom(
+      this.http.patch<Ticket>(`${this.baseUrl}/${id}`, dto)
+    );
   }
 
-  updateStatus(id: number, currentStatus: TicketStatus, newStatus: TicketStatus): Observable<Ticket> {
-    const allowed = TicketService.TICKET_TRANSITIONS[currentStatus] ?? [];
-
+  async updateStatus(
+    id: number,
+    currentStatus: TicketStatus,
+    newStatus: TicketStatus
+  ): Promise<Ticket> {
+    const allowed =
+      TicketService.TICKET_TRANSITIONS[currentStatus] ?? [];
     if (!allowed.includes(newStatus)) {
-      return throwError(() => new Error(`Transição de ${currentStatus} para ${newStatus} não é permitida.`));
+      throw new Error(
+        `Transição de ${currentStatus} para ${newStatus} não é permitida.`
+      );
     }
-
-    const payload: UpdateTicketStatusRequest = { status: newStatus };
-
+    const payload: UpdateTicketStatusRequest = {
+      status: newStatus
+    };
     if (newStatus === TicketStatus.COMPLETED) {
       payload.serviceDate = new Date().toISOString();
     }
-
-    return this.http.patch<Ticket>(`${this.baseUrl}/${id}`, payload);
+    return await firstValueFrom(
+      this.http.patch<Ticket>(
+        `${this.baseUrl}/${id}`,
+        payload
+      )
+    );
   }
 
-  updateUrgentStatus(id: number, currentStatus: TicketStatus, newStatus: TicketStatus): Observable<UrgentTicket> {
+  async updateUrgentStatus(id: number, currentStatus: TicketStatus, newStatus: TicketStatus): Promise<UrgentTicket> {
     const allowed = TicketService.URGENT_TICKET_TRANSITIONS[currentStatus] ?? [];
-
     if (!allowed.includes(newStatus)) {
-      return throwError(() => new Error(`Transição de ${currentStatus} para ${newStatus} não é permitida.`));
+      throw new Error(`Transição de ${currentStatus} para ${newStatus} não é permitida.`);
     }
 
     const payload: UpdateTicketStatusRequest = { status: newStatus };
@@ -154,11 +181,15 @@ export class TicketService {
       payload.serviceDate = new Date().toISOString();
     }
 
-    return this.http.patch<UrgentTicket>(`${this.urgentBaseUrl}/${id}`, payload);
+    return await firstValueFrom(
+      this.http.patch<UrgentTicket>(`${this.urgentBaseUrl}/${id}`, payload)
+    )
   }
 
 
-  delete(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/${id}`);
+  async delete(id: number): Promise<void> {
+    return await firstValueFrom(
+      this.http.delete<void>(`${this.baseUrl}/${id}`)
+    );
   }
 }

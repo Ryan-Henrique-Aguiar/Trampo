@@ -1,66 +1,95 @@
-import { Injectable, signal, inject } from '@angular/core';
-import { User } from '../../models/user.model';
-import { UserService } from '../user/user';
+import { Injectable, inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
+
+import { AuthResponseDto, UserDto } from '../../dto/auth/auth-response';
+import { LoginRequestDto } from '../../dto/auth/login-request';
+import { RegisterRequestDto } from '../../dto/auth/register-request.dto';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private userService = inject(UserService);
-  private userSignal = signal<User | null>(null);
-  private loadingSignal = signal(true);
 
-  constructor() {
-    // Troque o id aqui pra testar como cliente (1) ou prestador (2)
-    this.setMockUser(1);
+  private apiUrl = 'http://localhost:8080/api/v1/auth';
+
+  private platformId = inject(PLATFORM_ID);
+
+  currentUser: UserDto | null = this.getStoredUser();
+
+  constructor(private http: HttpClient) {}
+
+  async login(dto: LoginRequestDto): Promise<AuthResponseDto> {
+    const res = await firstValueFrom(
+      this.http.post<AuthResponseDto>(
+        `${this.apiUrl}/login`,
+        dto
+      )
+    );
+
+    this.setSession(res);
+
+    return res;
   }
 
-  get currentUser() {
-    return this.userSignal();
+  async register(dto: RegisterRequestDto): Promise<AuthResponseDto> {
+    return await firstValueFrom(
+      this.http.post<AuthResponseDto>(
+        `${this.apiUrl}/register`,
+        dto
+      )
+    );
   }
 
-  get isLoadingUser() {
-    return this.loadingSignal();
+  logout(): void {
+    if (!this.isBrowser()) return;
+
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+
+    this.currentUser = null;
   }
 
-  get isClient() {
-    return !this.userSignal()?.isProvider;
+  isLoggedIn(): boolean {
+    if (!this.isBrowser()) return false;
+
+    return !!localStorage.getItem('token');
   }
 
-  get isProvider() {
-    return this.userSignal()?.isProvider ?? false;
+  isProvider(): boolean {
+    return this.currentUser?.provider ?? false;
   }
 
-  get userId() {
-    return this.userSignal()?.id;
+  getToken(): string | null {
+    if (!this.isBrowser()) return null;
+
+    return localStorage.getItem('token');
   }
 
-  get userCategories() {
-    return this.userSignal()?.categoryIds || [];
+  private setSession(res: AuthResponseDto): void {
+    this.currentUser = res.user;
+
+    if (!this.isBrowser()) return;
+
+    localStorage.setItem('token', res.token);
+    localStorage.setItem(
+      'user',
+      JSON.stringify(res.user)
+    );
   }
 
-  isOwner(ownerId: number): boolean {
-    return this.userSignal()?.id === ownerId;
+  private getStoredUser(): UserDto | null {
+    if (!this.isBrowser()) return null;
+
+    const raw = localStorage.getItem('user');
+
+    return raw
+      ? JSON.parse(raw)
+      : null;
   }
 
-  hasCategory(categoryId: number): boolean {
-    return this.userCategories.includes(categoryId);
-  }
-
-  private login(user: User): void {
-    this.userSignal.set(user);
-    this.loadingSignal.set(false);
-  }
-
-  /** Busca o usuário real do db.json e "loga" com ele */
-  setMockUser(id: number): void {
-    this.loadingSignal.set(true);
-    this.userService.getById(id).subscribe({
-      next: (user) => this.login(user),
-      error: (err) => {
-        console.error('Erro ao carregar mock user:', err);
-        this.loadingSignal.set(false);
-      },
-    });
+  private isBrowser(): boolean {
+    return isPlatformBrowser(this.platformId);
   }
 }

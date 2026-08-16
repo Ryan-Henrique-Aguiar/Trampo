@@ -1,13 +1,20 @@
-import { Component, EventEmitter, Input, Output, OnChanges, inject, signal } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  Output
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpErrorResponse } from '@angular/common/http';
-import { forkJoin, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+
 import { Ticket } from '../../../models/ticket.model';
 import { Proposal } from '../../../models/proposal.model';
 import { User } from '../../../models/user.model';
+
 import { ProposalStatus } from '../../../enums/proposal-status';
 import { TicketStatus } from '../../../enums/ticket-status';
+
 import { ProposalService } from '../../../services/proposal/proposal-service';
 import { TicketService } from '../../../services/ticket/ticket-service';
 import { UserService } from '../../../services/user/user';
@@ -20,93 +27,124 @@ import { UserService } from '../../../services/user/user';
   styleUrl: './proposal-modal.css',
 })
 export class ProposalsModal implements OnChanges {
+
   @Input() isOpen = false;
   @Input() ticket: Ticket | null = null;
+
   @Output() close = new EventEmitter<void>();
   @Output() ticketUpdated = new EventEmitter<Ticket>();
 
-  private proposalService = inject(ProposalService);
-  private ticketService = inject(TicketService);
-  private userService = inject(UserService);
+  public proposals: Proposal[] = [];
+  public professionals = new Map<number, User>();
 
-  public proposals = signal<Proposal[]>([]);
-  public professionals = signal<Map<number, User>>(new Map());
-  public isLoading = signal(false);
-  public processingProposalId = signal<number | null>(null);
+  public isLoading = false;
+  public processingProposalId: number | null = null;
 
-  ngOnChanges(): void {
+  constructor(
+    private proposalService: ProposalService,
+    private ticketService: TicketService,
+    private userService: UserService,
+    private cdr: ChangeDetectorRef
+  ) {}
+
+  async ngOnChanges(): Promise<void> {
     if (this.isOpen && this.ticket) {
-      this.loadProposals(this.ticket.id);
+      await this.loadProposals(this.ticket.id);
     } else {
-      this.proposals.set([]);
-      this.professionals.set(new Map());
+      this.proposals = [];
+      this.professionals = new Map();
+    }
+
+    this.cdr.detectChanges();
+  }
+
+  private async loadProposals(ticketId: number): Promise<void> {
+    this.isLoading = true;
+
+    try {
+      this.proposals = await this.proposalService.getByTicketId(ticketId);
+
+      await this.loadProfessionals(this.proposals);
+    } catch (err) {
+      console.error('Erro ao carregar propostas:', err);
+
+      this.proposals = [];
+      this.professionals = new Map();
+    } finally {
+      this.isLoading = false;
+      this.cdr.detectChanges();
     }
   }
 
-  private loadProposals(ticketId: number): void {
-    this.isLoading.set(true);
-    this.proposalService.getByTicketId(ticketId).subscribe({
-      next: (proposals) => {
-        this.proposals.set(proposals);
-        this.loadProfessionals(proposals);
-      },
-      error: (err: HttpErrorResponse) => {
-        console.error('Erro ao carregar propostas:', err);
-        this.proposals.set([]);
-        this.isLoading.set(false);
-      },
-    });
-  }
-
-  private loadProfessionals(proposals: Proposal[]): void {
+  private async loadProfessionals(proposals: Proposal[]): Promise<void> {
     if (proposals.length === 0) {
-      this.professionals.set(new Map());
-      this.isLoading.set(false);
+      this.professionals = new Map();
       return;
     }
 
-    const uniqueIds = [...new Set(proposals.map(p => p.professionalId))];
-
-    forkJoin(
-      uniqueIds.map(id =>
-        this.userService.getById(id).pipe(
-          catchError((err: HttpErrorResponse) => {
-            console.error(`Erro ao carregar prestador ${id}:`, err);
-            return of(null);
-          })
-        )
+    const uniqueIds = [
+      ...new Set(
+        proposals.map(proposal => proposal.professionalId)
       )
-    ).subscribe((users) => {
-      const map = new Map<number, User>();
-      users.forEach(user => {
-        if (user) map.set(user.id, user);
-      });
-      this.professionals.set(map);
-      this.isLoading.set(false);
+    ];
+
+    const results = await Promise.allSettled(
+      uniqueIds.map(id => this.userService.getById(id))
+    );
+
+    const professionalsMap = new Map<number, User>();
+
+    results.forEach((result, index) => {
+      if (result.status === 'fulfilled') {
+        professionalsMap.set(
+          result.value.id,
+          result.value
+        );
+      } else {
+        console.error(
+          `Erro ao carregar prestador ${uniqueIds[index]}:`,
+          result.reason
+        );
+      }
     });
+
+    this.professionals = professionalsMap;
   }
 
   getProfessional(proposal: Proposal): User | undefined {
-    return this.professionals().get(proposal.professionalId);
+    return this.professionals.get(
+      proposal.professionalId
+    );
   }
 
   closeModal(): void {
-    this.processingProposalId.set(null);
+    this.processingProposalId = null;
+
     this.close.emit();
   }
 
   onOverlayClick(event: MouseEvent): void {
-    if ((event.target as HTMLElement).classList.contains('modal-overlay')) {
+    if (
+      (event.target as HTMLElement)
+        .classList
+        .contains('modal-overlay')
+    ) {
       this.closeModal();
     }
   }
 
-  // ===== CONTATO VIA WHATSAPP =====
   getWhatsAppLink(proposal: Proposal): string {
     const professional = this.getProfessional(proposal);
-    const phone = (professional?.phone || '').replace(/\D/g, '');
-    const name = professional?.name || 'prestador';
-    const message = `Olá ${name}! Vi sua proposta de ${this.formatCurrency(proposal.priceRange)} para o serviço "${this.ticket?.title}" e gostaria de conversar.`;
+
+    const phone = (professional?.phone ?? '')
+      .replace(/\D/g, '');
+
+    const name = professional?.name ?? 'prestador';
+
+    const message =
+      `Olá ${name}! Vi sua proposta de ${this.formatCurrency(proposal.priceRange)} ` +
+      `para o serviço "${this.ticket?.title}" e gostaria de conversar.`;
+
     return `https://wa.me/55${phone}?text=${encodeURIComponent(message)}`;
   }
 
@@ -114,79 +152,95 @@ export class ProposalsModal implements OnChanges {
     return !!this.getProfessional(proposal)?.phone;
   }
 
-  // ===== ACEITAR PROPOSTA =====
-  onAcceptProposal(proposal: Proposal): void {
-    if (this.processingProposalId() !== null || !this.ticket) return;
-    this.processingProposalId.set(proposal.id);
-
-    this.proposalService.accept(proposal).subscribe({
-      next: () => {
-        this.ticketService.updateStatus(this.ticket!.id, this.ticket!.status, TicketStatus.IN_PROGRESS).subscribe({
-          next: (updatedTicket) => {
-            this.ticket = updatedTicket;
-            this.ticketUpdated.emit(updatedTicket);
-            this.rejectRemainingPending(proposal.id);
-          },
-          error: (err: HttpErrorResponse) => {
-            this.processingProposalId.set(null);
-            console.error('Erro ao atualizar status do ticket:', err);
-          },
-        });
-      },
-      error: (err: HttpErrorResponse) => {
-        this.processingProposalId.set(null);
-        console.error('Erro ao aceitar proposta:', err);
-      },
-    });
-  }
-
-  private rejectRemainingPending(acceptedProposalId: number): void {
-    const others = this.proposals().filter(
-      p => p.id !== acceptedProposalId && p.status === ProposalStatus.PENDING
-    );
-
-    if (others.length === 0) {
-      this.processingProposalId.set(null);
-      this.loadProposals(this.ticket!.id);
+  async onAcceptProposal(proposal: Proposal): Promise<void> {
+    if (
+      this.processingProposalId !== null ||
+      !this.ticket
+    ) {
       return;
     }
 
-    let remaining = others.length;
-    others.forEach(p => {
-      this.proposalService.reject(p).subscribe({
-        next: () => {
-          remaining--;
-          if (remaining === 0) {
-            this.processingProposalId.set(null);
-            this.loadProposals(this.ticket!.id);
-          }
-        },
-        error: (err: HttpErrorResponse) => {
-          console.error('Erro ao rejeitar proposta concorrente:', err);
-          remaining--;
-          if (remaining === 0) {
-            this.processingProposalId.set(null);
-            this.loadProposals(this.ticket!.id);
-          }
-        },
-      });
-    });
+    this.processingProposalId = proposal.id;
+
+    try {
+      await this.proposalService.accept(proposal);
+
+      const updatedTicket = await this.ticketService.updateStatus(
+        this.ticket.id,
+        this.ticket.status,
+        TicketStatus.IN_PROGRESS
+      );
+
+      this.ticket = updatedTicket;
+
+      this.ticketUpdated.emit(updatedTicket);
+
+      await this.rejectRemainingPending(proposal.id);
+    } catch (err) {
+      console.error(
+        'Erro ao aceitar proposta:',
+        err
+      );
+    } finally {
+      this.processingProposalId = null;
+      this.cdr.detectChanges();
+    }
   }
 
-  onRejectProposal(proposal: Proposal): void {
-    if (this.processingProposalId() !== null || !this.ticket) return;
-    this.processingProposalId.set(proposal.id);
+  private async rejectRemainingPending(
+    acceptedProposalId: number
+  ): Promise<void> {
+    if (!this.ticket) return;
 
-    this.proposalService.reject(proposal).subscribe({
-      next: () => {
-        this.processingProposalId.set(null);
-        this.loadProposals(this.ticket!.id);
-      },
-      error: (err: HttpErrorResponse) => {
-        this.processingProposalId.set(null);
-        console.error('Erro ao rejeitar proposta:', err);
-      },
-    });
+    const others = this.proposals.filter(
+      proposal =>
+        proposal.id !== acceptedProposalId &&
+        proposal.status === ProposalStatus.PENDING
+    );
+
+    if (others.length > 0) {
+      const results = await Promise.allSettled(
+        others.map(proposal =>
+          this.proposalService.reject(proposal)
+        )
+      );
+
+      results.forEach(result => {
+        if (result.status === 'rejected') {
+          console.error(
+            'Erro ao rejeitar proposta concorrente:',
+            result.reason
+          );
+        }
+      });
+    }
+
+    await this.loadProposals(this.ticket.id);
+  }
+
+  async onRejectProposal(proposal: Proposal): Promise<void> {
+    if (
+      this.processingProposalId !== null ||
+      !this.ticket
+    ) {
+      return;
+    }
+
+    this.processingProposalId = proposal.id;
+
+    try {
+      await this.proposalService.reject(proposal);
+
+      await this.loadProposals(this.ticket.id);
+    } catch (err) {
+      console.error(
+        'Erro ao rejeitar proposta:',
+        err
+      );
+    } finally {
+      this.processingProposalId = null;
+      this.cdr.detectChanges();
+    }
   }
 
   getStatusLabel(status: ProposalStatus): string {
@@ -195,11 +249,18 @@ export class ProposalsModal implements OnChanges {
       [ProposalStatus.ACCEPTED]: 'Aceita',
       [ProposalStatus.REJECTED]: 'Recusada',
     };
+
     return labels[status] || status;
   }
 
   formatCurrency(value: number | undefined): string {
-    if (value === undefined || value === null) return 'Não informado';
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+    if (value === undefined || value === null) {
+      return 'Não informado';
+    }
+
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
   }
 }

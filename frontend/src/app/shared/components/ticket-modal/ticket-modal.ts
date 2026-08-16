@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, EventEmitter, Input, OnInit, Output, signal, SimpleChanges } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output, SimpleChanges } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { CategoryService } from '../../../services/category/category-service';
@@ -8,9 +8,7 @@ import { Category } from '../../../models/category.model';
 import { User } from '../../../models/user.model';
 import { PaymentMethod } from '../../../enums/payment-method';
 import { UserService } from '../../../services/user/user';
-import { LocationService, Estado, Cidade } from '../../../services/location/location';
-import { CepService } from '../../../services/cep/cep-service';
-import { CepBrasilApiService } from '../../../services/cep-brasil-api/cep-brasil-api-service';
+import { LocationService, State, City } from '../../../services/location/location';
 import { Ticket } from '../../../models/ticket.model';
 import { WeekDay } from '../../../enums/week-day';
 
@@ -44,15 +42,15 @@ export class TicketModal implements OnInit {
   @Input() preselectedCategoryId: number | null = null;
   @Output() close = new EventEmitter<void>();
   @Output() ticketCreated = new EventEmitter<Ticket>();
-  public categories = signal<Category[]>([]);
-  public currentStep = signal(1);
-  public isSubmitting = signal(false);
-  public providers = signal<User[]>([]);
-  public states = signal<Estado[]>([]);
-  public cities = signal<Cidade[]>([]);
-  public cepLoading = signal(false);
-  public cepError = signal<string | null>(null);
-  public sendingProviderId = signal<number | null>(null);
+  public categories: Category[] = [];
+  public currentStep = 1;
+  public isSubmitting = false;
+  public providers: User[] = [];
+  public states: State[] = []
+  public cities: City[] = [];
+  public cepLoading = false;
+  public cepError: string | null = null;
+  public sendingProviderId: number | null = null;
 
   public ticketForm!: FormGroup;
   public totalSteps = 3;
@@ -73,7 +71,7 @@ export class TicketModal implements OnInit {
     { label: 'Sábado', value: WeekDay.SATURDAY },
     { label: 'Domingo', value: WeekDay.SUNDAY },
   ];
-  
+
   public hourOptions = [
     '07:00', '08:00', '09:00', '10:00', '11:00', '12:00',
     '13:00', '14:00', '15:00', '16:00', '17:00', '18:00',
@@ -100,14 +98,18 @@ export class TicketModal implements OnInit {
     private ticketService: TicketService,
     private userService: UserService,
     private locationService: LocationService,
-    private cepService: CepService,
-    private cepBrasilApiService: CepBrasilApiService,
+    private cdr: ChangeDetectorRef
   ) { }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     this.initializeForm();
-    this.getCategories();
-    this.loadStates();
+
+    await Promise.all([
+      this.getCategories(),
+      this.loadStates()
+    ]);
+
+    this.cdr.detectChanges();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -139,31 +141,36 @@ export class TicketModal implements OnInit {
     });
   }
 
-  private loadStates(): void {
-    this.locationService.getEstados().subscribe({
-      next: (states) => this.states.set(states),
-      error: (err: HttpErrorResponse) => console.error('Erro ao carregar estados:', err),
-    });
+  private async loadStates(): Promise<void> {
+    try {
+      this.states = await this.locationService.getStates();
+    } catch {
+      console.error("Erro ao buscar estados")
+    }
+
   }
 
-  public onStateChange(): void {
+  public async onStateChange(): Promise<void> {
     const stateCode = this.ticketForm.get('address.state')?.value;
-    const state = this.states().find(s => s.sigla === stateCode);
+    const state = this.states.find(s => s.uf === stateCode);
 
     const cityControl = this.ticketForm.get('address.city');
     cityControl?.setValue(null);
     cityControl?.disable();
-    this.cities.set([]);
+    this.cities = [];
 
     if (!state) return;
 
-    this.locationService.getCidades(state.id).subscribe({
-      next: (cities) => {
-        this.cities.set(cities);
-        cityControl?.enable();
-      },
-      error: (err: HttpErrorResponse) => console.error('Erro ao carregar cidades:', err),
-    });
+    try {
+      this.cities = await this.locationService.getCities(state.uf);
+
+      cityControl?.enable()
+    } catch (err) {
+      console.error("Erro ao carregar cidades:", err)
+      this.cities = [];
+    } finally {
+      this.cdr.detectChanges();
+    }
   }
 
   public formatCep(event: any): void {
@@ -174,227 +181,237 @@ export class TicketModal implements OnInit {
     this.ticketForm.get('address.zipCode')?.setValue(value, { emitEvent: false });
   }
 
-  public onCepBlur(): void {
-    const cepControl = this.ticketForm.get('address.zipCode');
-    const cep = cepControl?.value;
+  public async onCepBlur(): Promise<void> {
+    const cep = this.ticketForm.get('address.zipCode')?.value;
 
     if (!cep) return;
 
     const cepClean = cep.replace(/\D/g, '');
+
     if (cepClean.length !== 8) {
-      this.cepError.set('CEP deve ter 8 dígitos');
+      this.cepError = 'CEP deve ter 8 dígitos';
       return;
     }
 
-    this.cepLoading.set(true);
-    this.cepError.set(null);
+    this.cepLoading = true;
+    this.cepError = null;
 
-    this.cepService.getCep(cepClean).subscribe({
-      next: (address) => {
-        if (!address || address.erro) {
-          this.tryBrasilApiFallback(cepClean);
-          return;
-        }
-        this.applyCepAddress({
-          street: address.logradouro,
-          neighborhood: address.bairro,
-          city: address.localidade,
-          state: address.uf,
-        });
-      },
-      error: () => this.tryBrasilApiFallback(cepClean),
-    });
+    try {
+      const address =
+        await this.locationService.getCep(cepClean);
+
+      await this.applyCepAddress({
+        street: address.street,
+        neighborhood: address.neighborhood,
+        city: address.city,
+        state: address.state
+      });
+
+    } catch (err) {
+      console.error('Erro ao buscar CEP:', err);
+
+      this.cepError =
+        'CEP não encontrado. Preencha o endereço manualmente.';
+
+      this.ticketForm
+        .get('address.city')
+        ?.disable();
+
+    } finally {
+      this.cepLoading = false;
+      this.cdr.detectChanges();
+    }
   }
 
-  // ViaCEP é a consulta primária; se falhar ou retornar vazio, fazemos fallback para BrasilAPI
-  // antes de desistir e deixar o usuário preencher o endereço manualmente
-  private tryBrasilApiFallback(cepClean: string): void {
-    this.cepBrasilApiService.getCep(cepClean).subscribe({
-      next: (address) => {
-        this.applyCepAddress({
-          street: address.street,
-          neighborhood: address.neighborhood,
-          city: address.city,
-          state: address.state,
-        });
-      },
-      error: () => {
-        this.cepLoading.set(false);
-        this.cepError.set('CEP não encontrado. Preencha o endereço manualmente abaixo.');
-        this.ticketForm.get('address.city')?.disable();
-      },
-    });
-  }
-
-  private applyCepAddress(data: NormalizedCepAddress): void {
+  private async applyCepAddress(data: NormalizedCepAddress): Promise<void> {
     this.ticketForm.get('address.street')?.setValue(data.street ?? null);
     this.ticketForm.get('address.neighborhood')?.setValue(data.neighborhood ?? null);
-
     const cityControl = this.ticketForm.get('address.city');
     const stateCode = data.state ?? null;
-
     if (!stateCode) {
-      this.cepLoading.set(false);
+      this.cepError = "Não conseguimos identificar o estado pelo CEP"
+      this.cepLoading = false;
       return;
     }
-
-    const state = this.states().find(s => s.sigla === stateCode);
-
+    const state = this.states.find(s => s.uf === stateCode);
     if (!state) {
-      // estado/cidade são selects agora, então não podemos forçar um valor que não está na lista do IBGE
       cityControl?.disable();
-      this.cepLoading.set(false);
-      this.cepError.set('Não conseguimos identificar o estado automaticamente. Selecione manualmente.');
+      this.cepLoading = false
+      this.cepError = "Não conseguimos identificar o estado automaticamente. Selecione manualmente.";
       return;
     }
-
     this.ticketForm.get('address.state')?.setValue(stateCode);
 
-    this.locationService.getCidades(state.id).subscribe({
-      next: (cities) => {
-        this.cities.set(cities);
-        cityControl?.enable();
-
-        const match = cities.find(c => normalizeText(c.nome) === normalizeText(data.city));
-        cityControl?.setValue(match ? match.nome : null);
-
-        if (!match) {
-          this.cepError.set('Cidade não encontrada na lista oficial. Selecione manualmente.');
-        }
-
-        this.cepLoading.set(false);
-      },
-      error: () => {
-        cityControl?.disable();
-        this.cepLoading.set(false);
-      },
-    });
+    try {
+      this.cities = await this.locationService.getCities(state.uf)
+      cityControl?.enable();
+      const match = this.cities.find(c => normalizeText(c.name) === normalizeText(data.city));
+      cityControl?.setValue(match ? match.name : null);
+      if (!match) {
+        this.cepError = "Cidade não encontrada na lista oficial. Selecione manualmente.";
+      }
+    } catch (err) {
+      console.error("Erro ao carregar cidades do estado:", err)
+      cityControl?.disable();
+      this.cepLoading = false;
+    }
   }
 
-  private getCategories(): void {
-    this.categoryService.getAll().subscribe({
-      next: (categories) => this.categories.set(categories),
-      error: (err: HttpErrorResponse) => console.error('Erro ao carregar categorias:', err),
-    });
+  private async getCategories(): Promise<void> {
+    try {
+      this.categories = await this.categoryService.getAll();
+    } catch (err) {
+      console.error("Erro ao buscar categorias")
+      this.categories = [];
+    } finally {
+      this.cdr.detectChanges();
+    }
   }
 
-  public saveTicket(): void {
+  public async saveTicket(): Promise<void> {
     if (this.ticketForm.invalid) {
       this.ticketForm.markAllAsTouched();
       return;
     }
 
+    this.isSubmitting = true;
+
     const value = this.ticketForm.getRawValue();
+
     const dto = {
       title: value.title,
       description: value.description,
       categoryId: Number(value.categoryId),
       address: value.address,
-      priceMax: value.priceMax,
+      priceMax: Number(value.priceMax),
       paymentMethods: value.paymentMethods,
       availableDays: value.availableDays,
-      availableHours: value.availableHours,
+      availableHours: value.availableHours
     };
 
-    this.ticketService.create(dto).subscribe({
-      next: (createdTicket) => {
-        this.ticketCreated.emit(createdTicket)
-        this.closeModal();
-        this.resetForm();
-      },
-      error: (err: HttpErrorResponse) => {
-        console.error('Erro ao criar ticket:', err);
-      },
-    });
+    try {
+      const createdTicket =
+        await this.ticketService.create(dto);
+
+      this.ticketCreated.emit(createdTicket);
+
+      this.closeModal();
+
+    } catch (err) {
+      console.error(
+        'Erro ao criar ticket:',
+        err
+      );
+
+    } finally {
+      this.isSubmitting = false;
+      this.cdr.detectChanges();
+    }
   }
 
-private saveUrgentTicket(provider: User, onSuccess: () => void): void {
-  const relevantFields = Object.values(this.urgentStepFields).flat();
-  const isValid = relevantFields.every(field => this.ticketForm.get(field)?.valid);
+  private async saveUrgentTicket(
+    provider: User
+  ): Promise<void> {
 
-  if (!isValid) {
-    relevantFields.forEach(field => this.ticketForm.get(field)?.markAsTouched());
-    console.warn('Formulário urgente inválido, campos:', relevantFields.filter(f => !this.ticketForm.get(f)?.valid));
-    return;
+    const relevantFields =
+      Object.values(this.urgentStepFields).flat();
+
+    const isValid = relevantFields.every(
+      field => this.ticketForm.get(field)?.valid
+    );
+
+    if (!isValid) {
+      relevantFields.forEach(
+        field =>
+          this.ticketForm
+            .get(field)
+            ?.markAsTouched()
+      );
+
+      return;
+    }
+
+    const value = this.ticketForm.getRawValue();
+
+    const dto = {
+      title: value.title,
+      description: value.description,
+      categoryId: Number(value.categoryId),
+      address: value.address,
+      providerId: provider.id
+    };
+
+    await this.ticketService.createUrgent(dto);
   }
-
-  const value = this.ticketForm.getRawValue();
-  const dto = {
-    title: value.title,
-    description: value.description,
-    categoryId: Number(value.categoryId),
-    address: value.address,
-    providerId: provider.id,
-  };
-
-  this.ticketService.createUrgent(dto).subscribe({
-    next: () => {
-      onSuccess();
-    },
-    error: (err: HttpErrorResponse) => {
-      console.error('Erro ao criar ticket urgente:', err);
-    },
-  });
-}
 
   // apenas busca prestadores para a categoria/localização, ainda não cria nada —
   // o ticket urgente só é criado quando o usuário realmente escolher alguém no WhatsApp
-  private searchProvidersForUrgentTicket(): void {
-    if (this.isSubmitting()) return;
-    this.isSubmitting.set(true);
+  private async searchProvidersForUrgentTicket(): Promise<void> {
+    if (this.isSubmitting) return;
+    this.isSubmitting = true;
 
     const value = this.ticketForm.getRawValue();
     const categoryId = Number(value.categoryId);
     const state = value.address.state;
     const city = value.address.city;
 
-    this.loadProviders(categoryId, state, city, () => {
-      this.isSubmitting.set(false);
-      this.currentStep.set(3);
-    });
+    try {
+      await this.loadProviders(categoryId, state, city)
+      this.currentStep = 3;
+    } finally {
+      this.isSubmitting = false;
+      this.cdr.detectChanges();
+    }
   }
 
+  private async loadProviders(
+    categoryId: number,
+    state: string,
+    city: string
+  ): Promise<void> {
 
-  private loadProviders(categoryId: number, state: string, city: string, onComplete?: () => void): void {
-    this.userService.getProvidersWithUrgency(categoryId, state, city).subscribe({
-      next: (providers: User[]) => {
-        const filtered = providers.filter(user =>
-          user.categoryIds?.includes(Number(categoryId))
+    try {
+      this.providers =
+        await this.userService.getProvidersWithUrgency(
+          categoryId,
+          state,
+          city
         );
-        this.providers.set(filtered);
 
-        if (filtered.length === 0) {
-          console.warn('Nenhum prestador encontrado para os critérios informados.');
-        }
-        onComplete?.();
-      },
-      error: (err: HttpErrorResponse) => {
-        console.error('Erro ao buscar prestadores:', err);
-        this.providers.set([]);
-        onComplete?.();
-      },
-    });
+      if (this.providers.length === 0) {
+        console.warn(
+          'Nenhum prestador encontrado para os critérios informados.'
+        );
+      }
+
+    } catch (err) {
+      console.error('Erro ao buscar prestadores:', err);
+      this.providers = [];
+
+    } finally {
+      this.cdr.detectChanges();
+    }
   }
 
   public nextStep(): void {
-    if (!this.isStepValid(this.currentStep())) {
-      this.markStepAsTouched(this.currentStep());
+    if (!this.isStepValid(this.currentStep)) {
+      this.markStepAsTouched(this.currentStep);
       return;
     }
 
-    if (this.isUrgent && this.currentStep() === 2) {
+    if (this.isUrgent && this.currentStep === 2) {
       this.searchProvidersForUrgentTicket();
       return;
     }
 
-    if (this.currentStep() < this.totalSteps) {
-      this.currentStep.update(step => step + 1);
+    if (this.currentStep < this.totalSteps) {
+      this.currentStep++;
     }
   }
 
   public prevStep(): void {
-    if (this.currentStep() > 1) {
-      this.currentStep.update(step => step - 1);
+    if (this.currentStep > 1) {
+      this.currentStep--;
     }
   }
 
@@ -427,14 +444,35 @@ private saveUrgentTicket(provider: User, onSuccess: () => void): void {
     this.ticketForm.get(field)?.markAsTouched();
   }
 
-  public openWhatsapp(provider: User): void {
-    this.saveUrgentTicket(provider, () => {
-      const message = `Olá ${provider.name}, vi seu perfil e preciso de um atendimento urgente.`;
-      const url = `https://wa.me/${provider.phone}?text=${encodeURIComponent(message)}`;
+  public async openWhatsapp(
+    provider: User
+  ): Promise<void> {
+
+    this.sendingProviderId = provider.id;
+
+    try {
+      await this.saveUrgentTicket(provider);
+
+      const message =
+        `Olá ${provider.name}, vi seu perfil e preciso de um atendimento urgente.`;
+
+      const url =
+        `https://wa.me/${provider.phone}?text=${encodeURIComponent(message)}`;
+
       window.open(url, '_blank');
+
       this.closeModal();
-      this.resetForm();
-    });
+
+    } catch (err) {
+      console.error(
+        'Erro ao criar ticket urgente:',
+        err
+      );
+
+    } finally {
+      this.sendingProviderId = null;
+      this.cdr.detectChanges();
+    }
   }
 
   public closeModal(): void {
@@ -449,17 +487,22 @@ private saveUrgentTicket(provider: User, onSuccess: () => void): void {
   }
 
   private resetForm(): void {
-    this.currentStep.set(1);
-    this.providers.set([]);
-    this.cities.set([]);
-    this.isSubmitting.set(false);
-    this.sendingProviderId.set(null);
-    this.cepError.set(null);
-    this.cepLoading.set(false);
+    this.currentStep = 1;
+    this.providers = [];
+    this.cities = [];
+    this.isSubmitting = false;
+    this.sendingProviderId = null;
+    this.cepError = null;
+    this.cepLoading = false;
+
     this.ticketForm.reset();
+
     this.ticketForm.get('paymentMethods')?.setValue([]);
     this.ticketForm.get('availableDays')?.setValue([]);
     this.ticketForm.get('availableHours')?.setValue([]);
+
     this.ticketForm.get('address.city')?.disable();
+
+    this.cdr.detectChanges();
   }
 }
