@@ -1,6 +1,9 @@
 import { User } from '../../models/user.model';
 
-export interface AuthResponse {
+export type UserDto = Omit<User, 'password'>;
+
+export interface AuthResponseDto {
   token: string;
-  user: User;
+  user: UserDto;
+  provider: boolean;
 }

@@ -58,7 +58,7 @@
             </div>
 
             <div class="navbar-icon">
-                @if (isProvider) {
+                @if (isProvider()) {
                 <div class="view-mode-switch-wrapper">
                     <button type="button" class="view-mode-switch" [class.view-mode-switch--provider]="isProviderMode"
                         (click)="toggleMode()">

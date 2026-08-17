@@ -13,11 +13,11 @@
         </div>
 
         <div class="modal-body">
-            @if (isLoading()) {
+            @if (isLoading) {
             <p class="proposals-empty">Carregando propostas...</p>
-            } @else if (proposals().length > 0) {
+            } @else if (proposals.length > 0) {
             <div class="proposal-list">
-                @for (proposal of proposals(); track proposal.id) {
+                @for (proposal of proposals; track proposal.id) {
                 <div class="proposal-card">
                     <div class="proposal-info">
                         <span class="proposal-provider">{{ getProfessional(proposal)?.name || 'Prestador #' + proposal.professionalId }}</span>
@@ -36,13 +36,13 @@
                         }
 
                         @if (proposal.status === 'PENDING') {
-                        <button type="button" class="btn-reject" [disabled]="processingProposalId() !== null"
+                        <button type="button" class="btn-reject" [disabled]="processingProposalId !== null"
                             (click)="onRejectProposal(proposal)">
                             Recusar
                         </button>
-                        <button type="button" class="btn-accept" [disabled]="processingProposalId() !== null"
+                        <button type="button" class="btn-accept" [disabled]="processingProposalId !== null"
                             (click)="onAcceptProposal(proposal)">
-                            {{ processingProposalId() === proposal.id ? 'Aceitando...' : 'Aceitar' }}
+                            {{ processingProposalId === proposal.id ? 'Aceitando...' : 'Aceitar' }}
                         </button>
                         }
                     </div>

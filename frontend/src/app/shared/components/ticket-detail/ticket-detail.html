@@ -30,7 +30,7 @@
                         }
                     </button>
 
-                    @if (isStatusMenuOpen()) {
+                    @if (isStatusMenuOpen) {
                     <div class="status-menu">
                         @for (status of availableTransitions; track status) {
                         <button type="button" class="status-menu-item" (click)="selectNewStatus(status)">
@@ -41,7 +41,7 @@
                     }
                 </div>
 
-                @if (canEdit && !isEditing() && !isProviderMode) {
+                @if (canEdit && !isEditing && !isProviderMode) {
                 <button type="button" class="btn-edit" (click)="startEditing()">
                     <i class="fa-solid fa-pen"></i>
                     Editar
@@ -50,11 +50,11 @@
             </div>
 
             <!-- Confirmação de mudança de status -->
-            @if (pendingStatus()) {
+            @if (pendingStatus) {
             <div class="status-confirm">
                 <p class="status-confirm-message">
                     Tem certeza que deseja alterar o status para
-                    <strong>{{ getStatusLabel(pendingStatus()!) }}</strong>?
+                    <strong>{{ getStatusLabel(pendingStatus!) }}</strong>?
                 </p>
 
                 @if (isPendingStatusIrreversible) {
@@ -65,20 +65,20 @@
                 }
 
                 <div class="status-confirm-actions">
-                    <button type="button" class="btn-confirm-back" [disabled]="isChangingStatus()"
+                    <button type="button" class="btn-confirm-back" [disabled]="isChangingStatus"
                         (click)="cancelStatusRequest()">
                         Voltar
                     </button>
-                    <button type="button" class="btn-confirm-proceed" [disabled]="isChangingStatus()"
+                    <button type="button" class="btn-confirm-proceed" [disabled]="isChangingStatus"
                         (click)="confirmStatusChange()">
-                        {{ isChangingStatus() ? 'Alterando...' : 'Confirmar' }}
+                        {{ isChangingStatus ? 'Alterando...' : 'Confirmar' }}
                     </button>
                 </div>
             </div>
             }
 
             <!-- ===== MODO VISUALIZAÇÃO ===== -->
-            @if (!isEditing()) {
+            @if (!isEditing) {
 
             @if (ticket.description) {
             <div class="detail-group">
@@ -168,7 +168,7 @@
             }
 
             <!-- ===== MODO EDIÇÃO ===== -->
-            @if (isEditing() && !isProviderMode) {
+            @if (isEditing && !isProviderMode) {
             <form [formGroup]="editForm" class="edit-form">
                 <div class="form-group">
                     <label>Título</label>
@@ -304,7 +304,7 @@
             }
 
             <!-- Formulário de nova proposta -->
-            @if (isProposalFormOpen()) {
+            @if (isProposalFormOpen) {
             <div class="status-confirm">
                 <div class="form-group">
                     <label>Seu valor para este serviço (R$)</label>
@@ -314,13 +314,13 @@
                     }
                 </div>
                 <div class="status-confirm-actions">
-                    <button type="button" class="btn-confirm-back" [disabled]="isSubmittingProposal()"
+                    <button type="button" class="btn-confirm-back" [disabled]="isSubmittingProposal"
                         (click)="cancelProposalForm()">
                         Cancelar
                     </button>
-                    <button type="button" class="btn-confirm-proceed" [disabled]="isSubmittingProposal()"
+                    <button type="button" class="btn-confirm-proceed" [disabled]="isSubmittingProposal"
                         (click)="submitProposal()">
-                        {{ isSubmittingProposal() ? 'Enviando...' : 'Confirmar Proposta' }}
+                        {{ isSubmittingProposal ? 'Enviando...' : 'Confirmar Proposta' }}
                     </button>
                 </div>
             </div>
@@ -330,15 +330,15 @@
 
         <!-- FOOTER -->
         <div class="modal-footer">
-            @if (isEditing()) {
-            <button type="button" class="btn-close" [disabled]="isSaving()" (click)="cancelEditing()">Cancelar</button>
-            <button type="button" class="btn-primary" [disabled]="isSaving()" (click)="saveEdit()">
-                {{ isSaving() ? 'Salvando...' : 'Salvar Alterações' }}
+            @if (isEditing) {
+            <button type="button" class="btn-close" [disabled]="isSaving" (click)="cancelEditing()">Cancelar</button>
+            <button type="button" class="btn-primary" [disabled]="isSaving" (click)="saveEdit()">
+                {{ isSaving ? 'Salvando...' : 'Salvar Alterações' }}
             </button>
             } @else {
             <button type="button" class="btn-close" (click)="closeModal()">Fechar</button>
 
-            @if (canSendProposal && !isProposalFormOpen()) {
+            @if (canSendProposal && !isProposalFormOpen) {
             <button type="button" class="btn-primary" (click)="openProposalForm()">
                 <i class="fa-solid fa-paper-plane"></i>
                 Enviar Proposta

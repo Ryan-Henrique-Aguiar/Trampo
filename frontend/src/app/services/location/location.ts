@@ -1,30 +1,68 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 
-export interface Estado {
+export interface State {
   id: number;
-  sigla: string;
-  nome: string;
+  uf: string;
+  name: string;
 }
 
-export interface Cidade {
+export interface City {
   id: number;
-  nome: string;
+  name: string;
+}
+
+export interface BrasilApiCepResponse {
+  cep: string;
+  state: string;
+  city: string;
+  neighborhood: string;
+  street: string;
+  service: string;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class LocationService {
-  private http = inject(HttpClient);
-  private baseUrl = 'https://servicodados.ibge.gov.br/api/v1/localidades';
 
-  getEstados(): Observable<Estado[]> {
-    return this.http.get<Estado[]>(`${this.baseUrl}/estados?orderBy=nome`);
+  private readonly baseUrl = 'https://brasilapi.com.br/api';
+
+  constructor(private http: HttpClient) {}
+
+  async getCep(cep: string): Promise<BrasilApiCepResponse> {
+    return await firstValueFrom(
+      this.http.get<BrasilApiCepResponse>(
+        `${this.baseUrl}/cep/v2/${cep}`
+      )
+    );
   }
 
-  getCidades(estadoId: number): Observable<Cidade[]> {
-    return this.http.get<Cidade[]>(`${this.baseUrl}/estados/${estadoId}/municipios?orderBy=nome`);
+  async getStates(): Promise<State[]> {
+    const states = await firstValueFrom(
+      this.http.get<any[]>(
+        `${this.baseUrl}/ibge/uf/v1`
+      )
+    );
+
+    return states.map(state => ({
+      id: state.id,
+      uf: state.sigla,
+      name: state.nome
+    }));
+  }
+
+  async getCities(uf: string): Promise<City[]> {
+    const cities = await firstValueFrom(
+      this.http.get<any[]>(
+        `${this.baseUrl}/ibge/municipios/v1/${uf}`
+      )
+    );
+
+    return cities.map(city => ({
+      id: Number(city.codigo_ibge),
+      name: city.nome
+    }));
   }
 }

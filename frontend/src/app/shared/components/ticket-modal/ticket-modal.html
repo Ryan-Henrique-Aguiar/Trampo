@@ -12,26 +12,26 @@
         <!-- Stepper -->
         <div class="stepper">
             <div class="step-wrapper">
-                <div class="step-circle" [class.active]="currentStep() === 1" [class.done]="currentStep() > 1">
-                    @if (currentStep() > 1) { <i class="fa-solid fa-check"></i> } @else { 1 }
+                <div class="step-circle" [class.active]="currentStep === 1" [class.done]="currentStep > 1">
+                    @if (currentStep> 1) { <i class="fa-solid fa-check"></i> } @else { 1 }
                 </div>
-                <span class="step-label" [class.active]="currentStep() === 1">Básico</span>
+                <span class="step-label" [class.active]="currentStep === 1">Básico</span>
             </div>
-            <div class="step-line" [class.done]="currentStep() > 1"></div>
+            <div class="step-line" [class.done]="currentStep > 1"></div>
 
             <div class="step-wrapper">
-                <div class="step-circle" [class.active]="currentStep() === 2" [class.done]="currentStep() > 2">
-                    @if (currentStep() > 2) { <i class="fa-solid fa-check"></i> } @else { 2 }
+                <div class="step-circle" [class.active]="currentStep === 2" [class.done]="currentStep > 2">
+                    @if (currentStep > 2) { <i class="fa-solid fa-check"></i> } @else { 2 }
                 </div>
-                <span class="step-label" [class.active]="currentStep() === 2">Endereço</span>
+                <span class="step-label" [class.active]="currentStep === 2">Endereço</span>
             </div>
-            <div class="step-line" [class.done]="currentStep() > 2"></div>
+            <div class="step-line" [class.done]="currentStep > 2"></div>
 
             <div class="step-wrapper">
-                <div class="step-circle" [class.active]="currentStep() === 3">
+                <div class="step-circle" [class.active]="currentStep === 3">
                     3
                 </div>
-                <span class="step-label" [class.active]="currentStep() === 3">
+                <span class="step-label" [class.active]="currentStep === 3">
                     {{ isUrgent ? 'Prestadores' : 'Detalhes' }}
                 </span>
             </div>
@@ -40,7 +40,7 @@
         <form [formGroup]="ticketForm">
 
             <!-- Passo 1: Informações básicas -->
-            @if (currentStep() === 1) {
+            @if (currentStep === 1) {
             <div class="form-section">
                 <div class="form-group">
                     <label>Título</label>
@@ -63,7 +63,7 @@
                     <label>Categoria</label>
                     <select formControlName="categoryId">
                         <option [ngValue]="null" disabled>Selecione uma categoria</option>
-                        @for (category of categories(); track category.id) {
+                        @for (category of categories; track category.id) {
                         <option [ngValue]="category.id">{{ category.name }}</option>
                         }
                     </select>
@@ -75,17 +75,17 @@
             }
 
             <!-- Passo 2: Endereço (CEP autopreenche estado/cidade/rua/bairro) -->
-            @if (currentStep() === 2) {
+            @if (currentStep === 2) {
             <div class="form-section" formGroupName="address">
                 <div class="form-group">
                     <label>CEP <span class="optional">(opcional, agiliza o preenchimento)</span></label>
                     <input type="text" formControlName="zipCode" placeholder="Digite seu CEP" maxlength="9"
                         (input)="formatCep($event)" (blur)="onCepBlur()" />
-                    @if (cepLoading()) {
+                    @if (cepLoading) {
                     <span class="field-hint">Buscando endereço...</span>
                     }
-                    @if (cepError()) {
-                    <span class="field-error">{{ cepError() }}</span>
+                    @if (cepError) {
+                    <span class="field-error">{{ cepError }}</span>
                     }
                 </div>
 
@@ -94,8 +94,8 @@
                         <label>Estado</label>
                         <select formControlName="state" (change)="onStateChange()">
                             <option [ngValue]="null" disabled>Selecione o estado</option>
-                            @for (state of states(); track state.id) {
-                            <option [value]="state.sigla">{{ state.nome }}</option>
+                            @for (state of states; track state.id) {
+                            <option [value]="state.uf">{{ state.name }}</option>
                             }
                         </select>
                         @if (isInvalid('address.state')) {
@@ -107,8 +107,8 @@
                         <label>Cidade</label>
                         <select formControlName="city">
                             <option [ngValue]="null" disabled>Selecione a cidade</option>
-                            @for (city of cities(); track city.id) {
-                            <option [value]="city.nome">{{ city.nome }}</option>
+                            @for (city of cities; track city.id) {
+                            <option [value]="city.name">{{ city.name }}</option>
                             }
                         </select>
                         @if (isInvalid('address.city')) {
@@ -150,7 +150,7 @@
             }
 
             <!-- Passo 3 (normal): Detalhes -->
-            @if (currentStep() === 3 && !isUrgent) {
+            @if (currentStep === 3 && !isUrgent) {
             <div class="form-section">
                     <div class="form-group">
                         <label>Orçamento máximo (R$)</label>
@@ -208,7 +208,7 @@
             }
 
             <!-- Passo 3 (urgente): Prestadores disponíveis -->
-            @if (currentStep() === 3 && isUrgent) {
+            @if (currentStep === 3 && isUrgent) {
             <div class="form-section">
                 <p class="providers-intro">
                     Encontramos prestadores atendendo em modo urgente perto de você.
@@ -216,7 +216,7 @@
                 </p>
 
                 <div class="provider-list">
-                    @for (provider of providers(); track provider.id) {
+                    @for (provider of providers; track provider.id) {
                     <div class="provider-card">
                         <div class="provider-info">
                             <span class="provider-name">{{ provider.name }}</span>
@@ -225,15 +225,15 @@
                                 <i class="fa-solid fa-star"></i>
                             </span>
                         </div>
-                        <button type="button" class="btn-whatsapp" [disabled]="sendingProviderId() !== null"
+                        <button type="button" class="btn-whatsapp" [disabled]="sendingProviderId !== null"
                             (click)="openWhatsapp(provider)">
                             <i class="fa-brands fa-whatsapp"></i>
-                            {{ sendingProviderId() === provider.id ? 'Criando chamado...' : 'Chamar no WhatsApp' }}
+                            {{ sendingProviderId === provider.id ? 'Criando chamado...' : 'Chamar no WhatsApp' }}
                         </button>
                     </div>
                     }
 
-                    @if (!providers().length) {
+                    @if (!providers.length) {
                     <p class="providers-empty">Nenhum prestador disponível no momento para esta categoria e cidade.</p>
                     }
                 </div>
@@ -241,37 +241,37 @@
             }
 
             <div class="modal-footer">
-                @if (!(isUrgent && currentStep() === 3)) {
+                @if (!(isUrgent && currentStep === 3)) {
                 <button type="button" class="btn-cancel" (click)="closeModal()">
                     Cancelar
                 </button>
                 }
 
                 <div class="footer-right">
-                    @if (currentStep() > 1 && !(isUrgent && currentStep() === 3)) {
+                    @if (currentStep > 1 && !(isUrgent && currentStep === 3)) {
                     <button type="button" class="btn-back" (click)="prevStep()">
                         Voltar
                     </button>
                     }
 
                     @if (isUrgent) {
-                        @if (currentStep() < 3) {
-                            <button type="button" class="btn-next" [disabled]="isSubmitting()" (click)="nextStep()">
-                                {{ currentStep() === 2 ? (isSubmitting() ? 'Buscando prestadores...' : 'Buscar prestadores') : 'Próximo' }}
+                        @if (currentStep < 3) {
+                            <button type="button" class="btn-next" [disabled]="isSubmitting" (click)="nextStep()">
+                                {{ currentStep === 2 ? (isSubmitting ? 'Buscando prestadores...' : 'Buscar prestadores') : 'Próximo' }}
                             </button>
                         }
-                        @if (currentStep() === 3) {
+                        @if (currentStep === 3) {
                             <button type="button" class="btn-submit" (click)="closeModal()">
                                 Concluir
                             </button>
                         }
                     } @else {
-                        @if (currentStep() < 3) {
+                        @if (currentStep < 3) {
                             <button type="button" class="btn-next" (click)="nextStep()">
                                 Próximo
                             </button>
                         }
-                        @if (currentStep() === 3) {
+                        @if (currentStep === 3) {
                             <button type="button" class="btn-submit" (click)="saveTicket()">
                                 Solicitar serviço
                             </button>
