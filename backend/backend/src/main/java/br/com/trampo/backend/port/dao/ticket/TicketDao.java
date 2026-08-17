@@ -1,6 +1,7 @@
-package br.com.trampo.backend.port.dao;
+package br.com.trampo.backend.port.dao.ticket;
 
-import br.com.trampo.backend.domain.Ticket;
+import br.com.trampo.backend.domain.Users;
+import br.com.trampo.backend.domain.ticket.Ticket;
 
 import java.sql.SQLException;
 import java.util.List;

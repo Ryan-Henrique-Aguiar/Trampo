@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS users (
     name VARCHAR(100) NOT NULL,
     password VARCHAR(255) NOT NULL,
     email VARCHAR(150) UNIQUE NOT NULL,
-    phone VARCHAR(20),
+    phone VARCHAR(20) NOT NULL,
     nickname VARCHAR(100),
     cpf CHAR(11) UNIQUE NOT NULL,
     rating NUMERIC(3,2),
@@ -90,7 +90,11 @@ CREATE TABLE IF NOT EXISTS address (
     city VARCHAR(100) NOT NULL,
     state VARCHAR(2) NOT NULL,
     zip_code VARCHAR(8) NOT NULL,
-    complement VARCHAR(100)
+    complement VARCHAR(100),
+
+    user_id INT NOT NULL,
+
+    FOREIGN KEY (user_id) REFERENCES users(id)
 
 );
 

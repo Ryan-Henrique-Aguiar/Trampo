@@ -17,4 +17,17 @@ public class Address {
     private String zipCode;
     private String complement;
 
+    private Users user;
+
+    // Construtor para criação de novos endereços
+    public Address(String street, String number, String neighborhood, String city, String state, String zipcode, String complement, Users user) {
+        this.street = street;
+        this.number = number;
+        this.neighborhood = neighborhood;
+        this.city = city;
+        this.state = state;
+        this.zipCode = zipcode;
+        this.complement = complement;
+        this.user = user;
+    }
 }

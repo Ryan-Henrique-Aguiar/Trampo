@@ -1,12 +1,12 @@
-package br.com.trampo.backend.implementation.dao;
+package br.com.trampo.backend.implementation.dao.ticket;
 
 import br.com.trampo.backend.domain.Address;
 import br.com.trampo.backend.domain.Category;
-import br.com.trampo.backend.domain.Ticket;
+import br.com.trampo.backend.domain.ticket.Ticket;
 import br.com.trampo.backend.domain.Users;
 import br.com.trampo.backend.domain.enums.StatusTicket;
 import br.com.trampo.backend.port.dao.AddressDao;
-import br.com.trampo.backend.port.dao.TicketDao;
+import br.com.trampo.backend.port.dao.ticket.TicketDao;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -32,26 +32,27 @@ public class TicketPostgresDaoImpl implements TicketDao {
         try {
             connection.setAutoCommit(false); // Início da transação
 
-            // 1. Se o Endereço for novo (id == null ou 0), salva primeiro para obter o id
-            if (ticket.getAddress() != null && ticket.getAddress().getId() == 0) {
-                Address savedAddress = addressDao.saveWithConnection(ticket.getAddress(), connection);
+            // 1. Salva o endereço se for novo (id == null ou id == 0)
+            if (ticket.getAddress() != null &&
+                    (ticket.getAddress().getId() == null || ticket.getAddress().getId() == 0)) {
+
+                Address savedAddress = addressDao.save(ticket.getAddress());
                 ticket.setAddress(savedAddress);
             }
 
             // 2. Insere o Ticket com a FK address_id vinculada
             String sql = "INSERT INTO ticket (code ,title, description, price_max, " +
-                    "service_date, user_id, address_id, category_id) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id";
+                    "user_id, address_id, category_id) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id";
 
             try (PreparedStatement stmt = connection.prepareStatement(sql)) {
                 stmt.setString(1, ticket.getCode());
                 stmt.setString(2, ticket.getTitle());
                 stmt.setString(3, ticket.getDescription());
                 stmt.setObject(4, ticket.getPriceMax(), Types.NUMERIC);
-                stmt.setTimestamp(5, ticket.getServiceDate() != null ? Timestamp.valueOf(ticket.getServiceDate()) : null);
-                stmt.setInt(6, ticket.getClient().getId());
-                stmt.setInt(7, ticket.getAddress().getId());
-                stmt.setInt(8, ticket.getCategory().getId());
+                stmt.setInt(5, ticket.getClient().getId());
+                stmt.setInt(6, ticket.getAddress().getId());
+                stmt.setInt(7, ticket.getCategory().getId());
 
                 try (ResultSet rs = stmt.executeQuery()) {
                     if (rs.next()) {

@@ -2,12 +2,12 @@ package br.com.trampo.backend.dao;
 
 import br.com.trampo.backend.domain.Address;
 import br.com.trampo.backend.domain.Category;
-import br.com.trampo.backend.domain.Ticket;
+import br.com.trampo.backend.domain.ticket.Ticket;
 import br.com.trampo.backend.domain.Users;
 import br.com.trampo.backend.domain.enums.StatusTicket;
 import br.com.trampo.backend.port.dao.AddressDao;
 import br.com.trampo.backend.port.dao.CategoryDao;
-import br.com.trampo.backend.port.dao.TicketDao;
+import br.com.trampo.backend.port.dao.ticket.TicketDao;
 import br.com.trampo.backend.port.dao.users.UsersDao;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;

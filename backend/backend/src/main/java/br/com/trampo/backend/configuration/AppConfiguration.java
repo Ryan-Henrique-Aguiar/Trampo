@@ -3,13 +3,17 @@ package br.com.trampo.backend.configuration;
 import br.com.trampo.backend.implementation.dao.AddressPostgresDaoImpl;
 import br.com.trampo.backend.implementation.dao.CategoryPostgresDaoImpl;
 import br.com.trampo.backend.implementation.dao.UsersCategoryPostgresDaoImpl;
+import br.com.trampo.backend.implementation.dao.ticket.AvailableDayDaoImpl;
+import br.com.trampo.backend.implementation.dao.ticket.AvailableHourDaoImpl;
 import br.com.trampo.backend.implementation.dao.users.UsersPostgresDaoImpl;
-import br.com.trampo.backend.implementation.dao.TicketPostgresDaoImpl;
+import br.com.trampo.backend.implementation.dao.ticket.TicketPostgresDaoImpl;
 import br.com.trampo.backend.port.dao.AddressDao;
 import br.com.trampo.backend.port.dao.CategoryDao;
 import br.com.trampo.backend.port.dao.UsersCategoryDao;
+import br.com.trampo.backend.port.dao.ticket.AvailableDayDao;
+import br.com.trampo.backend.port.dao.ticket.AvailableHourDao;
 import br.com.trampo.backend.port.dao.users.UsersDao;
-import br.com.trampo.backend.port.dao.TicketDao;
+import br.com.trampo.backend.port.dao.ticket.TicketDao;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -63,5 +67,18 @@ public class AppConfiguration {
     }
 
     @Bean
-    public UsersCategoryDao usersCategoryDao(final Connection connection) {return new UsersCategoryPostgresDaoImpl(connection);}
+    public UsersCategoryDao usersCategoryDao(final Connection connection) {
+        return new UsersCategoryPostgresDaoImpl(connection);
+    }
+
+    @Bean
+    public AvailableDayDao availableDayDao(final Connection connection) {
+        return new AvailableDayDaoImpl(connection);
+    }
+
+    @Bean
+    public AvailableHourDao availableHourDao(final Connection connection) {
+        return new AvailableHourDaoImpl(connection);
+    }
+
 }
