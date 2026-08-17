@@ -123,6 +123,62 @@
   transform: scale(1.2);
   transition: 0.2s ease;
 }
+
+/* ---------- VIEW MODE SWITCH (navbar) ---------- */
+
+.view-mode-switch-wrapper {
+  background: var(--white);
+  border-radius: 999px;
+  padding: 8px 16px;
+}
+
+.view-mode-switch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  padding: 0;
+}
+
+.view-mode-switch-track {
+  position: relative;
+  width: 40px;
+  height: 22px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.1);
+  transition: background 0.25s ease;
+  flex-shrink: 0;
+}
+
+.view-mode-switch--provider .view-mode-switch-track {
+  background: var(--primary-dark);
+}
+
+.view-mode-switch-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--white);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  transition: transform 0.25s ease;
+}
+
+.view-mode-switch--provider .view-mode-switch-knob {
+  transform: translateX(18px);
+}
+
+.view-mode-switch-label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--primary-dark);
+  white-space: nowrap;
+}
+
 .logo-navbar-mobile{
     display: none;
 }
@@ -130,7 +186,8 @@
 .page-content {
   flex: 1;
   padding: 28px;
-  overflow-y: auto; /* só aqui rola */
+  overflow-y: auto;
+  position: relative; 
 }
 
 .footer {
@@ -224,7 +281,6 @@
   width: 18px;
   text-align: center;
 }
-
 /* ---------- BOTTOM NAV (somente mobile) ---------- */
 
 .bottom-nav {
@@ -306,5 +362,9 @@
 
   .bottom-nav a.active {
     color: var(--primary);
+  }
+
+  .view-mode-switch-label {
+    display: none;
   }
 }

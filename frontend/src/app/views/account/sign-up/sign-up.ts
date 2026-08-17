@@ -1,161 +1,184 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { AuthLayout } from "../../../shared/components/auth-layout/auth-layout";
-import { RouterLink } from '@angular/router';
-import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { LocationService, Estado, Cidade } from '../../../services/location/location';
-
-export interface RegisterRequest {
-  nome: string;
-  email: string;
-  senha: string;
-  confirmarSenha: string;
-
-  telefone: string;
-  cpf: string;
-  dataNascimento: string;
-  estado: string;
-  cidade: string;
-
-  isPrestador: boolean;
-
-  categoria?: string;
-  descricao?: string;
-}
-
-function senhasIguaisValidator(group: AbstractControl) {
-  const senha = group.get('senha')?.value;
-  const confirmar = group.get('confirmarSenha')?.value;
-  return senha === confirmar ? null : { senhasDivergentes: true };
-}
+import { Router, RouterLink } from '@angular/router';
+import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { LocationService, State, City } from '../../../services/location/location';
+import { AuthService } from '../../../services/auth/auth';
+import { RegisterRequestDto } from '../../../dto/auth/register-request.dto';
+import { Category } from '../../../models/category.model';
+import { CategoryService } from '../../../services/category/category-service';
+import { NgSelectModule } from '@ng-select/ng-select';
+import { ToastrService } from '@iqx-limited/ngx-toastr';
 
 @Component({
   selector: 'app-sign-up',
-  imports: [AuthLayout, RouterLink, ReactiveFormsModule],
+  imports: [AuthLayout, RouterLink, ReactiveFormsModule, NgSelectModule],
   templateUrl: './sign-up.html',
   styleUrl: './sign-up.css',
 })
 export class SignUp implements OnInit {
-  private locationService = inject(LocationService);
+  registerForm;
 
   currentStep = 1;
+  errorMsg = '';
+  loading = false;
 
-  estados: Estado[] = [];
-  cidades: Cidade[] = [];
+  categories: Category[] = [];
+  states: State[] = [];
+  cities: City[] = [];
 
-  maxDate: string = new Date().toISOString().split('T')[0];
+  // campos que pertencem a cada step, usado tanto pra navegação quanto pra travar os botões
+  private stepFields: Record<number, string[]> = {
+    1: ['name', 'email', 'password'],
+    2: ['phone', 'cpf', 'state', 'city'],
+    3: ['categoryIds'],
+  };
 
-  registerForm = new FormGroup(
-    {
-      nome: new FormControl('', Validators.required),
+  constructor(
+    private fb: FormBuilder,
+    private locationService: LocationService,
+    private authService: AuthService,
+    private categoryService: CategoryService,
+    private router: Router,
+    private cdr: ChangeDetectorRef,
+    private toastrService: ToastrService
+  ) {
+    this.registerForm = this.fb.group({
+      name: new FormControl('', Validators.required),
+      password: new FormControl('', [Validators.required, Validators.minLength(6)]),
       email: new FormControl('', [Validators.required, Validators.email]),
-      senha: new FormControl('', [Validators.required, Validators.minLength(6)]),
-      confirmarSenha: new FormControl('', Validators.required),
-
-      telefone: new FormControl('', Validators.required),
+      phone: new FormControl('', Validators.required),
       cpf: new FormControl('', Validators.required),
-      dataNascimento: new FormControl('', Validators.required),
-      estado: new FormControl('', Validators.required),
-      cidade: new FormControl({ value: '', disabled: true }, Validators.required),
-
-      isPrestador: new FormControl(false),
-
-      categoria: new FormControl(''),
-      descricao: new FormControl(''),
-    },
-    { validators: senhasIguaisValidator }
-  );
-
-  ngOnInit() {
-    this.locationService.getEstados()
-      .subscribe(data => this.estados = data);
-
-    this.registerForm.get('isPrestador')?.valueChanges
-      .subscribe(isPrestador => {
-        this.atualizarValidatorsPrestador(isPrestador ?? false);
-      });
-
-    this.atualizarValidatorsPrestador(this.registerForm.get('isPrestador')?.value ?? false);
-  }
-
-  private atualizarValidatorsPrestador(isPrestador: boolean) {
-    const categoria = this.registerForm.get('categoria');
-    const descricao = this.registerForm.get('descricao');
-
-    if (isPrestador) {
-      categoria?.setValidators([Validators.required]);
-      descricao?.setValidators([Validators.required]);
-    } else {
-      categoria?.clearValidators();
-      descricao?.clearValidators();
-    }
-
-    categoria?.updateValueAndValidity();
-    descricao?.updateValueAndValidity();
-  }
-
-  onEstadoChange() {
-    const nomeEstado = this.registerForm.get('estado')?.value;
-    const estado = this.estados.find(e => e.nome === nomeEstado);
-    if (!estado) return;
-
-    this.cidades = [];
-    this.registerForm.get('cidade')?.disable();
-
-    this.locationService.getCidades(estado.id).subscribe(data => {
-      this.cidades = data;
-      this.registerForm.get('cidade')?.enable();
+      state: new FormControl('', Validators.required),
+      city: new FormControl({ value: '', disabled: true }, Validators.required),
+      provider: new FormControl(false),
+      categoryIds: new FormControl<number[]>([]),
     });
   }
 
-  get isPrestador(): boolean {
-    return this.registerForm.get('isPrestador')?.value ?? false;
-  }
+  async ngOnInit(): Promise<void> {
+    try {
+      const [states, categories] = await Promise.all([
+        this.locationService.getStates(),
+        this.categoryService.getAll()
+      ]);
 
-  abrirCalendario(input: HTMLInputElement) {
-    if (typeof input.showPicker === 'function') {
-      try {
-        input.showPicker();
-      } catch {
-        // navegador sem suporte a showPicker em certos contextos
-      }
-    }
-  }
+      this.states = states;
+      this.categories = categories;
 
-  // Marca os campos como "touched" para que as mensagens de erro apareçam
-  private marcarCamposComoTocados(fields: string[]) {
-    fields.forEach(field => this.registerForm.get(field)?.markAsTouched());
-  }
-
-  nextStep() {
-    if (this.currentStep === 1) {
-      const fields = ['nome', 'email', 'senha', 'confirmarSenha'];
-      this.marcarCamposComoTocados(fields);
-
-      const invalid = fields.some(field => this.registerForm.get(field)?.invalid);
-      if (invalid) return;
-
-      if (this.registerForm.hasError('senhasDivergentes')) return;
+    } catch (err) {
+      console.error('Erro ao carregar dados:', err);
+    } finally {
+      this.cdr.detectChanges();
     }
 
-    if (this.currentStep === 2) {
-      const fields = ['telefone', 'cpf', 'dataNascimento', 'estado', 'cidade'];
-      this.marcarCamposComoTocados(fields);
+    this.registerForm.get('provider')?.valueChanges.subscribe((provider) => {
+      this.updateProviderValidators(provider ?? false);
+    });
 
-      const invalid = fields.some(field => this.registerForm.get(field)?.invalid);
-      if (invalid) return;
+    this.updateProviderValidators(
+      this.registerForm.get('provider')?.value ?? false
+    );
+  }
+
+  private updateProviderValidators(provider: boolean): void {
+    const categoryIds = this.registerForm.get('categoryIds');
+    if (provider) {
+      categoryIds?.setValidators([Validators.required]);
+    } else {
+      categoryIds?.clearValidators();
     }
 
+    categoryIds?.updateValueAndValidity();
+  }
+
+async onStateChange(): Promise<void> {
+  const uf = this.registerForm.get('state')?.value;
+  const state = this.states.find(state => state.uf === uf);
+
+  const cityControl = this.registerForm.get('city');
+
+  cityControl?.setValue('');
+  cityControl?.disable();
+
+  this.cities = [];
+
+  if (!state) return;
+
+  try {
+    this.cities = await this.locationService.getCities(state.uf);
+    cityControl?.enable();
+  } catch (err) {
+    console.error('Erro ao carregar cidades:', err);
+  } finally {
+    this.cdr.detectChanges();
+  }
+}
+
+  get isProvider(): boolean {
+    return this.registerForm.get('provider')?.value ?? false;
+  }
+
+  // usado tanto pra bloquear os botões quanto pro nextStep()
+  isStepValid(step: number): boolean {
+    const fields = this.stepFields[step];
+    if (!fields) return true;
+    return fields.every((field) => this.registerForm.get(field)?.valid);
+  }
+
+  nextStep(): void {
+    if (!this.isStepValid(this.currentStep)) return;
     this.currentStep++;
   }
 
-  prevStep() {
+  prevStep(): void {
     this.currentStep--;
   }
 
-  onRegister() {
-    if (this.registerForm.invalid) return;
-
-    const payload: RegisterRequest = this.registerForm.getRawValue() as RegisterRequest;
-    console.log(payload);
+async onRegister(): Promise<void> {
+  if (this.registerForm.invalid || this.loading) {
+    this.registerForm.markAllAsTouched();
+    return;
   }
+
+  this.loading = true;
+  this.errorMsg = '';
+  this.cdr.detectChanges();
+
+  const dto: RegisterRequestDto = {
+    name: this.registerForm.value.name!,
+    email: this.registerForm.value.email!,
+    password: this.registerForm.value.password!,
+    cpf: this.registerForm.value.cpf!,
+    phone: this.registerForm.value.phone!,
+    provider: this.registerForm.value.provider!,
+    city: this.registerForm.value.city!,
+    state: this.registerForm.value.state!,
+    categoryIds: this.registerForm.value.categoryIds ?? []
+  };
+
+  try {
+    await this.authService.register(dto);
+
+    this.toastrService.success(
+      'Conta criada com sucesso!'
+    );
+
+    await this.router.navigate(['/login']);
+
+  } catch (err: any) {
+    console.error('Erro ao cadastrar:', err);
+
+    const message =
+      err.error?.message ?? 'Erro ao cadastrar usuário';
+
+    this.errorMsg = message;
+
+    this.toastrService.error(message);
+
+  } finally {
+    this.loading = false;
+    this.cdr.detectChanges();
+  }
+}
 }

@@ -1,0 +1,286 @@
+@if (isOpen) {
+<div class="modal-overlay" (click)="onOverlayClick($event)">
+    <div class="modal">
+
+        <div class="modal-header">
+            <h2>{{ isUrgent ? 'Serviço urgente' : 'Solicitar serviço' }}</h2>
+            <button class="modal-close" (click)="closeModal()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- Stepper -->
+        <div class="stepper">
+            <div class="step-wrapper">
+                <div class="step-circle" [class.active]="currentStep === 1" [class.done]="currentStep > 1">
+                    @if (currentStep> 1) { <i class="fa-solid fa-check"></i> } @else { 1 }
+                </div>
+                <span class="step-label" [class.active]="currentStep === 1">Básico</span>
+            </div>
+            <div class="step-line" [class.done]="currentStep > 1"></div>
+
+            <div class="step-wrapper">
+                <div class="step-circle" [class.active]="currentStep === 2" [class.done]="currentStep > 2">
+                    @if (currentStep > 2) { <i class="fa-solid fa-check"></i> } @else { 2 }
+                </div>
+                <span class="step-label" [class.active]="currentStep === 2">Endereço</span>
+            </div>
+            <div class="step-line" [class.done]="currentStep > 2"></div>
+
+            <div class="step-wrapper">
+                <div class="step-circle" [class.active]="currentStep === 3">
+                    3
+                </div>
+                <span class="step-label" [class.active]="currentStep === 3">
+                    {{ isUrgent ? 'Prestadores' : 'Detalhes' }}
+                </span>
+            </div>
+        </div>
+
+        <form [formGroup]="ticketForm">
+
+            <!-- Passo 1: Informações básicas -->
+            @if (currentStep === 1) {
+            <div class="form-section">
+                <div class="form-group">
+                    <label>Título</label>
+                    <input type="text" formControlName="title" placeholder="Ex: Pintura de quarto" />
+                    @if (isInvalid('title')) {
+                    <span class="field-error">Título é obrigatório.</span>
+                    }
+                </div>
+
+                <div class="form-group">
+                    <label>Descrição</label>
+                    <textarea formControlName="description" placeholder="Descreva o serviço com detalhes..."
+                        rows="3"></textarea>
+                    @if (isInvalid('description')) {
+                    <span class="field-error">Descrição é obrigatória.</span>
+                    }
+                </div>
+
+                <div class="form-group">
+                    <label>Categoria</label>
+                    <select formControlName="categoryId">
+                        <option [ngValue]="null" disabled>Selecione uma categoria</option>
+                        @for (category of categories; track category.id) {
+                        <option [ngValue]="category.id">{{ category.name }}</option>
+                        }
+                    </select>
+                    @if (isInvalid('categoryId')) {
+                    <span class="field-error">Selecione uma categoria.</span>
+                    }
+                </div>
+            </div>
+            }
+
+            <!-- Passo 2: Endereço (CEP autopreenche estado/cidade/rua/bairro) -->
+            @if (currentStep === 2) {
+            <div class="form-section" formGroupName="address">
+                <div class="form-group">
+                    <label>CEP <span class="optional">(opcional, agiliza o preenchimento)</span></label>
+                    <input type="text" formControlName="zipCode" placeholder="Digite seu CEP" maxlength="9"
+                        (input)="formatCep($event)" (blur)="onCepBlur()" />
+                    @if (cepLoading) {
+                    <span class="field-hint">Buscando endereço...</span>
+                    }
+                    @if (cepError) {
+                    <span class="field-error">{{ cepError }}</span>
+                    }
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Estado</label>
+                        <select formControlName="state" (change)="onStateChange()">
+                            <option [ngValue]="null" disabled>Selecione o estado</option>
+                            @for (state of states; track state.id) {
+                            <option [value]="state.uf">{{ state.name }}</option>
+                            }
+                        </select>
+                        @if (isInvalid('address.state')) {
+                        <span class="field-error">Estado é obrigatório.</span>
+                        }
+                    </div>
+
+                    <div class="form-group">
+                        <label>Cidade</label>
+                        <select formControlName="city">
+                            <option [ngValue]="null" disabled>Selecione a cidade</option>
+                            @for (city of cities; track city.id) {
+                            <option [value]="city.name">{{ city.name }}</option>
+                            }
+                        </select>
+                        @if (isInvalid('address.city')) {
+                        <span class="field-error">Cidade é obrigatória.</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Bairro</label>
+                    <input type="text" formControlName="neighborhood" placeholder="Digite o bairro" />
+                    @if (isInvalid('address.neighborhood')) {
+                    <span class="field-error">Bairro é obrigatório.</span>
+                    }
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Rua</label>
+                        <input type="text" formControlName="street" placeholder="Digite a rua" />
+                        @if (isInvalid('address.street')) {
+                        <span class="field-error">Rua é obrigatória.</span>
+                        }
+                    </div>
+                    <div class="form-group">
+                        <label>Número</label>
+                        <input type="text" formControlName="number" placeholder="Digite o número da residência" />
+                        @if (isInvalid('address.number')) {
+                        <span class="field-error">Número é obrigatório.</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Complemento <span class="optional">(opcional)</span></label>
+                    <input type="text" formControlName="complement" placeholder="Apto 12, Casa B..." />
+                </div>
+            </div>
+            }
+
+            <!-- Passo 3 (normal): Detalhes -->
+            @if (currentStep === 3 && !isUrgent) {
+            <div class="form-section">
+                    <div class="form-group">
+                        <label>Orçamento máximo (R$)</label>
+                        <input type="number" formControlName="priceMax" placeholder="Digite o orçamento máximo" min="0" />
+                        @if (isInvalid('priceMax')) {
+                        <span class="field-error">Orçamento máximo é obrigatório.</span>
+                        }
+                    </div>
+                <div class="form-group">
+                    <label>Formas de pagamento</label>
+                    <div class="chip-group">
+                        @for (option of paymentOptions; track option.value) {
+                        <button type="button" class="chip"
+                            [class.chip--selected]="isSelected('paymentMethods', option.value)"
+                            (click)="toggleSelection('paymentMethods', option.value)">
+                            {{ option.label }}
+                        </button>
+                        }
+                    </div>
+                    @if (isInvalid('paymentMethods')) {
+                    <span class="field-error">Selecione pelo menos uma forma de pagamento.</span>
+                    }
+                </div>
+
+                <div class="form-group">
+                    <label>Dias disponíveis</label>
+                    <div class="chip-group">
+                        @for (day of dayOptions; track day.value) {
+                        <button type="button" class="chip" [class.chip--selected]="isSelected('availableDays', day.value)"
+                            (click)="toggleSelection('availableDays', day.value)">
+                            {{ day.label }}
+                        </button>
+                        }
+                    </div>
+                    @if (isInvalid('availableDays')) {
+                    <span class="field-error">Selecione pelo menos um dia.</span>
+                    }
+                </div>
+
+                <div class="form-group">
+                    <label>Horários disponíveis</label>
+                    <div class="chip-group">
+                        @for (hour of hourOptions; track hour) {
+                        <button type="button" class="chip" [class.chip--selected]="isSelected('availableHours', hour)"
+                            (click)="toggleSelection('availableHours', hour)">
+                            {{ hour }}
+                        </button>
+                        }
+                    </div>
+                    @if (isInvalid('availableHours')) {
+                    <span class="field-error">Selecione pelo menos um horário.</span>
+                    }
+                </div>
+            </div>
+            }
+
+            <!-- Passo 3 (urgente): Prestadores disponíveis -->
+            @if (currentStep === 3 && isUrgent) {
+            <div class="form-section">
+                <p class="providers-intro">
+                    Encontramos prestadores atendendo em modo urgente perto de você.
+                    Envie uma mensagem no WhatsApp para negociar diretamente.
+                </p>
+
+                <div class="provider-list">
+                    @for (provider of providers; track provider.id) {
+                    <div class="provider-card">
+                        <div class="provider-info">
+                            <span class="provider-name">{{ provider.name }}</span>
+                            <span class="provider-meta">
+                                {{ provider.rating ? provider.rating : 'Novo' }}
+                                <i class="fa-solid fa-star"></i>
+                            </span>
+                        </div>
+                        <button type="button" class="btn-whatsapp" [disabled]="sendingProviderId !== null"
+                            (click)="openWhatsapp(provider)">
+                            <i class="fa-brands fa-whatsapp"></i>
+                            {{ sendingProviderId === provider.id ? 'Criando chamado...' : 'Chamar no WhatsApp' }}
+                        </button>
+                    </div>
+                    }
+
+                    @if (!providers.length) {
+                    <p class="providers-empty">Nenhum prestador disponível no momento para esta categoria e cidade.</p>
+                    }
+                </div>
+            </div>
+            }
+
+            <div class="modal-footer">
+                @if (!(isUrgent && currentStep === 3)) {
+                <button type="button" class="btn-cancel" (click)="closeModal()">
+                    Cancelar
+                </button>
+                }
+
+                <div class="footer-right">
+                    @if (currentStep > 1 && !(isUrgent && currentStep === 3)) {
+                    <button type="button" class="btn-back" (click)="prevStep()">
+                        Voltar
+                    </button>
+                    }
+
+                    @if (isUrgent) {
+                        @if (currentStep < 3) {
+                            <button type="button" class="btn-next" [disabled]="isSubmitting" (click)="nextStep()">
+                                {{ currentStep === 2 ? (isSubmitting ? 'Buscando prestadores...' : 'Buscar prestadores') : 'Próximo' }}
+                            </button>
+                        }
+                        @if (currentStep === 3) {
+                            <button type="button" class="btn-submit" (click)="closeModal()">
+                                Concluir
+                            </button>
+                        }
+                    } @else {
+                        @if (currentStep < 3) {
+                            <button type="button" class="btn-next" (click)="nextStep()">
+                                Próximo
+                            </button>
+                        }
+                        @if (currentStep === 3) {
+                            <button type="button" class="btn-submit" (click)="saveTicket()">
+                                Solicitar serviço
+                            </button>
+                        }
+                    }
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>
+}

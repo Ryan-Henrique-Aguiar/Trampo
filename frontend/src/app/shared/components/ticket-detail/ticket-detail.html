@@ -1,0 +1,352 @@
+@if (isOpen && ticket) {
+<div class="modal-overlay" (click)="onOverlayClick($event)">
+    <div class="modal">
+
+        <!-- HEADER -->
+        <div class="modal-header">
+            <div class="header-left">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <span class="ticket-code">{{ ticket.code }}</span>
+                </div>
+                <h2>{{ ticket.title }}</h2>
+            </div>
+            <button class="modal-close" (click)="closeModal()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- BODY -->
+        <div class="modal-body">
+
+            <!-- Status + ações -->
+            <div class="status-row">
+                <div class="status-dropdown">
+                    <button type="button" class="status-badge status-badge--button"
+                        [class]="getStatusClass(ticket.status)" [class.status-badge--disabled]="!canChangeStatus"
+                        (click)="toggleStatusMenu()">
+                        {{ getStatusLabel(ticket.status) }}
+                        @if (canChangeStatus) {
+                        <i class="fa-solid fa-chevron-down status-badge-icon"></i>
+                        }
+                    </button>
+
+                    @if (isStatusMenuOpen) {
+                    <div class="status-menu">
+                        @for (status of availableTransitions; track status) {
+                        <button type="button" class="status-menu-item" (click)="selectNewStatus(status)">
+                            {{ getStatusLabel(status) }}
+                        </button>
+                        }
+                    </div>
+                    }
+                </div>
+
+                @if (canEdit && !isEditing && !isProviderMode) {
+                <button type="button" class="btn-edit" (click)="startEditing()">
+                    <i class="fa-solid fa-pen"></i>
+                    Editar
+                </button>
+                }
+            </div>
+
+            <!-- Confirmação de mudança de status -->
+            @if (pendingStatus) {
+            <div class="status-confirm">
+                <p class="status-confirm-message">
+                    Tem certeza que deseja alterar o status para
+                    <strong>{{ getStatusLabel(pendingStatus!) }}</strong>?
+                </p>
+
+                @if (isPendingStatusIrreversible) {
+                <p class="status-confirm-warning">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    Essa ação não pode ser desfeita depois de confirmada.
+                </p>
+                }
+
+                <div class="status-confirm-actions">
+                    <button type="button" class="btn-confirm-back" [disabled]="isChangingStatus"
+                        (click)="cancelStatusRequest()">
+                        Voltar
+                    </button>
+                    <button type="button" class="btn-confirm-proceed" [disabled]="isChangingStatus"
+                        (click)="confirmStatusChange()">
+                        {{ isChangingStatus ? 'Alterando...' : 'Confirmar' }}
+                    </button>
+                </div>
+            </div>
+            }
+
+            <!-- ===== MODO VISUALIZAÇÃO ===== -->
+            @if (!isEditing) {
+
+            @if (ticket.description) {
+            <div class="detail-group">
+                <label>Descrição</label>
+                <p class="description-text">{{ ticket.description }}</p>
+            </div>
+            }
+
+            <div class="detail-grid">
+                @if (ticket.serviceDate) {
+                <div class="detail-group">
+                    <label>Concluído em</label>
+                    <span class="detail-value">{{ formatDate(ticket.serviceDate) }}</span>
+                </div>
+                }
+
+                @if (!isProviderMode && ticket.proposalsCount !== undefined && ticket.proposalsCount !== null) {
+                <div class="detail-group">
+                    <label>Propostas</label>
+                    <span class="detail-value">{{ ticket.proposalsCount }}</span>
+                </div>
+                }
+            </div>
+
+            @if (ticket.address) {
+            <div class="detail-group">
+                <label>Endereço</label>
+                <div class="address-block">
+                    @if(!isProviderMode){
+                    <span>{{ ticket.address.street }}, {{ ticket.address.number }}</span>
+                    <span class="zip-code">CEP: {{ ticket.address.zipCode }}</span>
+                    }
+                    <span>{{ ticket.address.neighborhood }}</span>
+                    <span>{{ ticket.address.city }} - {{ ticket.address.state }}</span>
+                </div>
+            </div>
+            }
+
+            @if (ticket.priceMax || ticket.paymentMethods || ticket.availableDays || ticket.availableHours) {
+            <div class="detail-section">
+                <h4>Detalhes do Serviço</h4>
+
+                @if (ticket.priceMax) {
+                <div class="detail-group">
+                    <label>{{ isProviderMode ? 'Faixa de Valor Aceita' : 'Orçamento Máximo' }}</label>
+                    <span class="detail-value">{{ formatCurrency(ticket.priceMax) }}</span>
+                </div>
+                }
+
+                @if (ticket.paymentMethods && ticket.paymentMethods.length > 0) {
+                <div class="detail-group">
+                    <label>Formas de Pagamento</label>
+                    <div class="chips-container">
+                        @for (method of ticket.paymentMethods; track method) {
+                        <span class="chip">{{ method }}</span>
+                        }
+                    </div>
+                </div>
+                }
+
+                <div class="schedule-grid">
+                    @if (ticket.availableDays && ticket.availableDays.length > 0) {
+                    <div class="detail-group">
+                        <label>Dias Disponíveis</label>
+                        <div class="chips-container">
+                            @for (day of ticket.availableDays; track day) {
+                            <span class="chip chip-small">{{ getDayLabel(day) }}</span>
+                            }
+                        </div>
+                    </div>
+                    }
+
+                    @if (ticket.availableHours && ticket.availableHours.length > 0) {
+                    <div class="detail-group">
+                        <label>Horários Disponíveis</label>
+                        <div class="chips-container">
+                            @for (hour of ticket.availableHours; track hour) {
+                            <span class="chip chip-small">{{ hour }}</span>
+                            }
+                        </div>
+                    </div>
+                    }
+                </div>
+            </div>
+            }
+
+            }
+
+            <!-- ===== MODO EDIÇÃO ===== -->
+            @if (isEditing && !isProviderMode) {
+            <form [formGroup]="editForm" class="edit-form">
+                <div class="form-group">
+                    <label>Título</label>
+                    <input type="text" formControlName="title" />
+                    @if (isEditFieldInvalid('title')) {
+                    <span class="field-error">Título é obrigatório.</span>
+                    }
+                </div>
+                <div class="form-group">
+                    <label>Descrição</label>
+                    <textarea formControlName="description" rows="3"></textarea>
+                    @if (isEditFieldInvalid('description')) {
+                    <span class="field-error">Descrição é obrigatória.</span>
+                    }
+                </div>
+
+                <div class="form-section" formGroupName="address">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Rua</label>
+                            <input type="text" formControlName="street" />
+                            @if (isEditFieldInvalid('address.street')) {
+                            <span class="field-error">Rua é obrigatória.</span>
+                            }
+                        </div>
+                        <div class="form-group">
+                            <label>Número</label>
+                            <input type="text" formControlName="number" />
+                            @if (isEditFieldInvalid('address.number')) {
+                            <span class="field-error">Número é obrigatório.</span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Bairro</label>
+                        <input type="text" formControlName="neighborhood" />
+                        @if (isEditFieldInvalid('address.neighborhood')) {
+                        <span class="field-error">Bairro é obrigatório.</span>
+                        }
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Cidade</label>
+                            <input type="text" formControlName="city" />
+                            @if (isEditFieldInvalid('address.city')) {
+                            <span class="field-error">Cidade é obrigatória.</span>
+                            }
+                        </div>
+                        <div class="form-group">
+                            <label>Estado</label>
+                            <input type="text" formControlName="state" maxlength="2" />
+                            @if (isEditFieldInvalid('address.state')) {
+                            <span class="field-error">Estado é obrigatório.</span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Complemento <span class="optional">(opcional)</span></label>
+                        <input type="text" formControlName="complement" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Preço máximo (R$)</label>
+                    <input type="number" formControlName="priceMax" min="0" />
+                    @if (isEditFieldInvalid('priceMax')) {
+                    <span class="field-error">Preço máximo é obrigatório.</span>
+                    }
+                </div>
+
+                <div class="form-group">
+                    <label>Formas de pagamento</label>
+                    <div class="chip-group">
+                        @for (option of paymentOptions; track option.value) {
+                        <button type="button" class="chip"
+                            [class.chip--selected]="isEditOptionSelected('paymentMethods', option.value)"
+                            (click)="toggleEditOption('paymentMethods', option.value)">
+                            {{ option.label }}
+                        </button>
+                        }
+                    </div>
+                    @if (isEditFieldInvalid('paymentMethods')) {
+                    <span class="field-error">Selecione pelo menos uma forma de pagamento.</span>
+                    }
+                </div>
+
+                <div class="form-group">
+                    <label>Dias disponíveis</label>
+                    <div class="chip-group">
+                        @for (day of dayOptions; track day.value) {
+                        <button type="button" class="chip"
+                            [class.chip--selected]="isEditOptionSelected('availableDays', day.value)"
+                            (click)="toggleEditOption('availableDays', day.value)">
+                            {{ day.label }}
+                        </button>
+                        }
+                    </div>
+                    @if (isEditFieldInvalid('availableDays')) {
+                    <span class="field-error">Selecione pelo menos um dia.</span>
+                    }
+                </div>
+
+                <div class="form-group">
+                    <label>Horários disponíveis</label>
+                    <div class="chip-group">
+                        @for (hour of hourOptions; track hour) {
+                        <button type="button" class="chip"
+                            [class.chip--selected]="isEditOptionSelected('availableHours', hour)"
+                            (click)="toggleEditOption('availableHours', hour)">
+                            {{ hour }}
+                        </button>
+                        }
+                    </div>
+                    @if (isEditFieldInvalid('availableHours')) {
+                    <span class="field-error">Selecione pelo menos um horário.</span>
+                    }
+                </div>
+
+            </form>
+            }
+
+            <!-- Proposta já enviada pelo prestador -->
+            @if (isProviderMode && myProposal) {
+            <div class="status-confirm">
+                <p class="status-confirm-message">
+                    Você já enviou uma proposta de <strong>{{ formatCurrency(myProposal.priceRange) }}</strong>
+                    para este serviço. Status: <strong>{{ getProposalStatusLabel(myProposal.status) }}</strong>
+                </p>
+            </div>
+            }
+
+            <!-- Formulário de nova proposta -->
+            @if (isProposalFormOpen) {
+            <div class="status-confirm">
+                <div class="form-group">
+                    <label>Seu valor para este serviço (R$)</label>
+                    <input type="number" [formControl]="proposalPriceControl" min="1" placeholder="Ex: 450" />
+                    @if (proposalPriceControl.invalid && proposalPriceControl.touched) {
+                    <span class="field-error">Informe um valor válido.</span>
+                    }
+                </div>
+                <div class="status-confirm-actions">
+                    <button type="button" class="btn-confirm-back" [disabled]="isSubmittingProposal"
+                        (click)="cancelProposalForm()">
+                        Cancelar
+                    </button>
+                    <button type="button" class="btn-confirm-proceed" [disabled]="isSubmittingProposal"
+                        (click)="submitProposal()">
+                        {{ isSubmittingProposal ? 'Enviando...' : 'Confirmar Proposta' }}
+                    </button>
+                </div>
+            </div>
+            }
+
+        </div>
+
+        <!-- FOOTER -->
+        <div class="modal-footer">
+            @if (isEditing) {
+            <button type="button" class="btn-close" [disabled]="isSaving" (click)="cancelEditing()">Cancelar</button>
+            <button type="button" class="btn-primary" [disabled]="isSaving" (click)="saveEdit()">
+                {{ isSaving ? 'Salvando...' : 'Salvar Alterações' }}
+            </button>
+            } @else {
+            <button type="button" class="btn-close" (click)="closeModal()">Fechar</button>
+
+            @if (canSendProposal && !isProposalFormOpen) {
+            <button type="button" class="btn-primary" (click)="openProposalForm()">
+                <i class="fa-solid fa-paper-plane"></i>
+                Enviar Proposta
+            </button>
+            }
+            }
+        </div>
+
+    </div>
+</div>
+}

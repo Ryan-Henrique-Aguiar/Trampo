@@ -1,0 +1,45 @@
+<!-- ticket-card.html -->
+<div class="ticket-card">
+  <div class="ticket-top">
+    <span class="ticket-code">{{ ticket.code }}</span>
+    <span class="ticket-status" [class]="'ticket-status--' + ticket.status">
+      {{ getStatusLabel(ticket.status) }}
+    </span>
+  </div>
+
+  <p class="ticket-title">{{ ticket.title }}</p>
+
+  <div class="ticket-footer">
+    <div class="ticket-meta">
+      <span>
+        <i class="fa-solid fa-location-dot"></i>
+        {{ ticket.address.neighborhood }}, {{ ticket.address.city }}
+      </span>
+
+      <span>
+        <i class="fa-solid fa-clock"></i>
+        {{ formatDate(ticket.createdAt) }}
+      </span>
+
+      @if (ticket.priceMax) {
+      <span>
+        <i class="fa-solid fa-sack-dollar"></i>
+        Até: {{ formatCurrency(ticket.priceMax) }}
+      </span>
+      }
+
+      @if (!isProviderMode && ticket.proposalsCount) {
+      <span>
+        <i class="fa-solid fa-comment-dots"></i>
+        {{ ticket.proposalsCount }} propostas
+      </span>
+      }
+    </div>
+    <div class="group-btn-detail">
+      <button class="btn-detail-proposal" (click)="onViewDetails()">Detalhes</button>
+      @if(!isProviderMode){
+        <button class="btn-detail-proposal" (click)="onViewProposals()">Propostas | {{ ticket.proposalsCount }}</button>
+      }
+    </div>
+  </div>
+</div>

@@ -1,5 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&display=swap');
-
+@import '@ng-select/ng-select/themes/default.theme.css';
 :root {
 
   /* =========================
@@ -181,4 +181,34 @@ body {
 
 .checkbox-card input:checked + .toggle::after {
   left: 20px;
+}
+
+ng-select {
+  width: 100%;
+  margin-top: 6px;
+  font-family: 'Syne', sans-serif;
+}
+
+ng-select .ng-select-container {
+  min-height: 48px;
+
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+
+  background: var(--surface);
+
+  font-size: var(--font-size-md);
+}
+
+ng-select.ng-select-focused .ng-select-container {
+  border-color: var(--primary);
+  box-shadow: none;
+}
+
+ng-select.ng-invalid.ng-touched .ng-select-container {
+  border-color: red;
+}
+
+ng-select .ng-value {
+  font-size: var(--font-size-sm);
 }

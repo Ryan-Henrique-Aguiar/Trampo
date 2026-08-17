@@ -1,0 +1,63 @@
+@if (isOpen && ticket) {
+<div class="modal-overlay" (click)="onOverlayClick($event)">
+    <div class="modal">
+
+        <div class="modal-header">
+            <div class="header-left">
+                <span class="ticket-code">{{ ticket.code }}</span>
+                <h2>Propostas Recebidas</h2>
+            </div>
+            <button class="modal-close" (click)="closeModal()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="modal-body">
+            @if (isLoading) {
+            <p class="proposals-empty">Carregando propostas...</p>
+            } @else if (proposals.length > 0) {
+            <div class="proposal-list">
+                @for (proposal of proposals; track proposal.id) {
+                <div class="proposal-card">
+                    <div class="proposal-info">
+                        <span class="proposal-provider">{{ getProfessional(proposal)?.name || 'Prestador #' + proposal.professionalId }}</span>
+                        <span class="proposal-price">{{ formatCurrency(proposal.priceRange) }}</span>
+                        <span class="proposal-status" [class]="'proposal-status--' + proposal.status.toLowerCase()">
+                            {{ getStatusLabel(proposal.status) }}
+                        </span>
+                    </div>
+
+                    <div class="proposal-actions">
+                        @if (hasValidPhone(proposal)) {
+                        <a class="btn-whatsapp" [href]="getWhatsAppLink(proposal)" target="_blank" rel="noopener">
+                            <i class="fa-brands fa-whatsapp"></i>
+                            Contatar
+                        </a>
+                        }
+
+                        @if (proposal.status === 'PENDING') {
+                        <button type="button" class="btn-reject" [disabled]="processingProposalId !== null"
+                            (click)="onRejectProposal(proposal)">
+                            Recusar
+                        </button>
+                        <button type="button" class="btn-accept" [disabled]="processingProposalId !== null"
+                            (click)="onAcceptProposal(proposal)">
+                            {{ processingProposalId === proposal.id ? 'Aceitando...' : 'Aceitar' }}
+                        </button>
+                        }
+                    </div>
+                </div>
+                }
+            </div>
+            } @else {
+            <p class="proposals-empty">Nenhuma proposta recebida ainda.</p>
+            }
+        </div>
+
+        <div class="modal-footer">
+            <button type="button" class="btn-close" (click)="closeModal()">Fechar</button>
+        </div>
+
+    </div>
+</div>
+}

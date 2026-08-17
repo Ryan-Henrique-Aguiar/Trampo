@@ -40,6 +40,42 @@
   padding-left: 36px;
 }
 
+.input-icon select {
+  width: 100%;
+  height: 48px;
+
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+
+  padding: 0 36px;
+
+  font-family: 'Syne', sans-serif;
+  font-size: var(--font-size-md);
+
+  color: var(--text-primary);
+  background: var(--surface);
+
+  margin-top: 6px;
+
+  cursor: pointer;
+
+  appearance: none;
+}
+
+.input-icon select:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.input-icon select:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.input-icon select.ng-invalid.ng-touched {
+  border-color: red;
+}
+
 input[type="email"],
 input[type="password"],
 input[type="text"],
@@ -78,6 +114,41 @@ input[type="date"]::placeholder {
   color: var(--text-secondary);
   background: var(--surface);
   padding: 0 4px;
+}
+.input-icon select {
+  width: 100%;
+  height: 48px;
+
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+
+  padding: 0 36px;
+
+  font-family: 'Syne', sans-serif;
+  font-size: var(--font-size-md);
+
+  color: var(--text-primary);
+  background: var(--surface);
+
+  margin-top: 6px;
+
+  cursor: pointer;
+
+  appearance: none;
+}
+
+.input-icon select:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.input-icon select:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.input-icon select.ng-invalid.ng-touched {
+  border-color: red;
 }
 
 a:hover {
