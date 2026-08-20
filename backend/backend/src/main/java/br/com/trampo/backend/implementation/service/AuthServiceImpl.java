@@ -2,7 +2,9 @@ package br.com.trampo.backend.implementation.service;
 
 import br.com.trampo.backend.domain.Users;
 import br.com.trampo.backend.dto.RegisterDto;
+import br.com.trampo.backend.infra.exception.CategoryNotFoundException;
 import br.com.trampo.backend.infra.exception.EmailAlreadyExistsException;
+import br.com.trampo.backend.infra.exception.InvalidCategoryException;
 import br.com.trampo.backend.port.dao.CategoryDao;
 import br.com.trampo.backend.port.dao.UsersCategoryDao;
 import br.com.trampo.backend.port.dao.users.UsersDao;
@@ -39,12 +41,14 @@ public class AuthServiceImpl implements AuthService {
         if (usersDao.findByEmail(data.email()).isPresent()) {
             throw new EmailAlreadyExistsException("Email já cadastrado");
         }
+        if (!data.provider() && data.categoryIds() != null && !data.categoryIds().isEmpty()) {
+            throw new InvalidCategoryException("Cliente não possui os categorias");
+        }
         if (data.provider() && data.categoryIds() != null) {
             for (Integer categoryId : data.categoryIds()) {
                 if (categoryDao.findById(categoryId).isEmpty()) {
-                    throw new RuntimeException(
-                            "Categoria não encontrada: " + categoryId
-                    );
+                    throw new CategoryNotFoundException("Categoria não encontrada: " + categoryId);
+
                 }
             }
         }
