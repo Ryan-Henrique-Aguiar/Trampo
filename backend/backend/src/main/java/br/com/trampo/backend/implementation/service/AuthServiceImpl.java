@@ -2,6 +2,7 @@ package br.com.trampo.backend.implementation.service;
 
 import br.com.trampo.backend.domain.Users;
 import br.com.trampo.backend.dto.RegisterDto;
+import br.com.trampo.backend.infra.exception.EmailAlreadyExistsException;
 import br.com.trampo.backend.port.dao.CategoryDao;
 import br.com.trampo.backend.port.dao.UsersCategoryDao;
 import br.com.trampo.backend.port.dao.users.UsersDao;
@@ -36,7 +37,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public void register(RegisterDto data) {
         if (usersDao.findByEmail(data.email()).isPresent()) {
-            throw new RuntimeException("Email já cadastrado");
+            throw new EmailAlreadyExistsException("Email já cadastrado");
         }
         if (data.provider() && data.categoryIds() != null) {
             for (Integer categoryId : data.categoryIds()) {
@@ -69,8 +70,8 @@ public class AuthServiceImpl implements AuthService {
             if (data.provider() && data.categoryIds() != null) {
                 for (Integer categoryId : data.categoryIds()) {
                     usersCategoryDao.save(
-                        savedUser.getId(),
-                        categoryId
+                            savedUser.getId(),
+                            categoryId
                     );
                 }
             }
@@ -88,16 +89,16 @@ public class AuthServiceImpl implements AuthService {
                 );
             }
             throw new RuntimeException(
-                "Erro ao cadastrar usuário",
-                e
+                    "Erro ao cadastrar usuário",
+                    e
             );
         } finally {
             try {
                 connection.setAutoCommit(true);
             } catch (SQLException e) {
                 throw new RuntimeException(
-                    "Erro ao restaurar conexão",
-                    e
+                        "Erro ao restaurar conexão",
+                        e
                 );
             }
         }

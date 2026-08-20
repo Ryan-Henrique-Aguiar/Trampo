@@ -34,7 +34,8 @@ public class UserServiceImpl implements UserService {
                     user.getName(),
                     user.getRating() != null ? user.getRating() : 0.0,
                     user.getCompletedServicesCount(),
-                    user.isProvider()
+                    user.isProvider(),
+                    user.getCategories()
             );
 
             list.add(userDto);
