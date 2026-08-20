@@ -5,7 +5,7 @@ import { firstValueFrom } from 'rxjs';
 import { Proposal } from '../../models/proposal.model';
 import { CreateProposalRequest } from '../../dto/proposal/create-proposal-request';
 import { ProposalStatus } from '../../enums/proposal-status';
-import { environment } from '../../../environments/environment.development';
+import { environment } from '../../../environments/environment';
 import { AuthService } from '../auth/auth';
 
 @Injectable({
@@ -16,7 +16,7 @@ export class ProposalService {
   private http = inject(HttpClient);
   private authService = inject(AuthService);
 
-  private baseUrl = `${environment.apiUrl}/proposals`;
+  private baseUrl = `${environment.devApiUrl}/proposals`;
 
   async getByTicketId(ticketId: number): Promise<Proposal[]> {
     return await firstValueFrom(

@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { firstValueFrom, Observable, throwError } from 'rxjs';
 import { Ticket, UrgentTicket } from '../../models/ticket.model';
-import { environment } from '../../../environments/environment.development';
+import { environment } from '../../../environments/environment';
 import { CreateTicketRequest } from '../../dto/ticket/create-ticket-request';
 import { UpdateTicketStatusRequest } from '../../dto/ticket/update-ticket-status-request';
 import { CreateUrgentTicketRequest } from '../../dto/urgent-ticket/create-urgent-ticket-request';
@@ -14,8 +14,8 @@ import { UpdateTicketRequest } from '../../dto/ticket/update-ticket-request';
 export class TicketService {
 
   private http = inject(HttpClient);
-  private baseUrl = `${environment.apiUrl}/tickets`;
-  private urgentBaseUrl = `${environment.apiUrl}/urgentTickets`;
+  private baseUrl = `${environment.devApiUrl}/tickets`;
+  private urgentBaseUrl = `${environment.devApiUrl}/urgentTickets`;
   private authService = inject(AuthService
 
   );

@@ -6,13 +6,14 @@ import { firstValueFrom } from 'rxjs';
 import { AuthResponseDto, UserDto } from '../../dto/auth/auth-response';
 import { LoginRequestDto } from '../../dto/auth/login-request';
 import { RegisterRequestDto } from '../../dto/auth/register-request.dto';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
 
-  private apiUrl = 'http://localhost:8080/api/v1/auth';
+  private apiUrl = `${environment.apiUrl}/auth`;
 
   private platformId = inject(PLATFORM_ID);
 
