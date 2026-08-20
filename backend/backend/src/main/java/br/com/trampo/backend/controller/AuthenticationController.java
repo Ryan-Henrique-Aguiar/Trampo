@@ -22,6 +22,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("api/v1/auth")
 public class AuthenticationController {
@@ -42,18 +44,33 @@ public class AuthenticationController {
 
 
     @PostMapping("/login")
-    public ResponseEntity login(@RequestBody @Validated AuthenticationDto data) {
+    public ResponseEntity<LoginResponseDto> login(@RequestBody @Validated AuthenticationDto data) {
         // Variável que obtem o valor de uma instância de uma classe do spring security
         var usernamePassword = new UsernamePasswordAuthenticationToken(data.email(), data.password());
         var auth = this.authenticationManager.authenticate(usernamePassword);
-        var token = tokenService.generateToken((Users) auth.getPrincipal());
+        var authenticatedUser = (Users) auth.getPrincipal();
+        var token = tokenService.generateToken(authenticatedUser);
+        var userDto = new UserDto(
+                authenticatedUser.getId(),
+                authenticatedUser.getName(),
+                authenticatedUser.getRating(),
+                authenticatedUser.isProvider(),
+                authenticatedUser.isAvailableForUrgency(),
+                authenticatedUser.getCreatedServicesCount(),
+                authenticatedUser.getServiceStartDate(),
+                authenticatedUser.getCompletedServicesCount(),
+                authenticatedUser.getCity(),
+                authenticatedUser.getState()
+        );
 
-        return ResponseEntity.ok(new LoginResponseDto(token));
+        return ResponseEntity.ok(new LoginResponseDto(token, userDto));
     }
 
     @PostMapping("/register")
-    public ResponseEntity register(@RequestBody @Validated RegisterDto data) {
+    public ResponseEntity<Map<String, String>> register(@RequestBody @Validated RegisterDto data) {
         authService.register(data);
-        return ResponseEntity.ok().body("Usuario criado com sucesso!");
+        return ResponseEntity.ok().body(
+                Map.of("message", "Usuário criado com sucesso!")
+        );
     }
 }

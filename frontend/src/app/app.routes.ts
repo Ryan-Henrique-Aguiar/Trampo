@@ -30,6 +30,11 @@ export const routes: Routes = [
     children: [
       {
         path: '',
+        pathMatch: 'full',
+        redirectTo: 'home'
+      },
+      {
+        path: 'home',
         component: Home
       },
       {
@@ -46,6 +51,6 @@ export const routes: Routes = [
   // Qualquer rota inexistente
   {
     path: '**',
-    redirectTo: ''
+    redirectTo: 'home'
   }
 ];

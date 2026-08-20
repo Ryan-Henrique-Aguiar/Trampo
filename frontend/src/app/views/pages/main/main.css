@@ -124,6 +124,28 @@
   transition: 0.2s ease;
 }
 
+.logout-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  background: transparent;
+  color: var(--white);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  transition: background 0.2s ease;
+}
+
+.logout-button:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.logout-button i {
+  font-size: var(--font-size-md);
+}
+
 /* ---------- VIEW MODE SWITCH (navbar) ---------- */
 
 .view-mode-switch-wrapper {
@@ -314,6 +336,10 @@
   }
 
   .navbar-icon i.icon-settings {
+    display: none;
+  }
+
+  .logout-button span {
     display: none;
   }
 

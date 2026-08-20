@@ -4,6 +4,6 @@ export interface Proposal {
   id: number;
   priceRange: number;
   status: ProposalStatus;
-  professionalId: number;   // FK -> User.id (isprovider true)
+  professionalId: number;
   ticketId: number;         // FK -> Ticket.id
 }

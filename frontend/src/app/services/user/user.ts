@@ -24,7 +24,7 @@ export class UserService {
     city: string
   ): Promise<User[]> {
     const params = new HttpParams()
-      .set('isProvider', 'true')
+      .set('provider', 'true')
       .set('isAvailableForUrgency', 'true')
       .set('state', state)
       .set('city', city);

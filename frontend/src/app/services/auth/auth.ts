@@ -6,6 +6,7 @@ import { firstValueFrom } from 'rxjs';
 import { AuthResponseDto, UserDto } from '../../dto/auth/auth-response';
 import { LoginRequestDto } from '../../dto/auth/login-request';
 import { RegisterRequestDto } from '../../dto/auth/register-request.dto';
+import { RegisterResponseDto } from '../../dto/auth/register-response.dto';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -34,9 +35,9 @@ export class AuthService {
     return res;
   }
 
-  async register(dto: RegisterRequestDto): Promise<AuthResponseDto> {
+  async register(dto: RegisterRequestDto): Promise<RegisterResponseDto> {
     return await firstValueFrom(
-      this.http.post<AuthResponseDto>(
+      this.http.post<RegisterResponseDto>(
         `${this.apiUrl}/register`,
         dto
       )
@@ -55,7 +56,7 @@ export class AuthService {
   isLoggedIn(): boolean {
     if (!this.isBrowser()) return false;
 
-    return !!localStorage.getItem('token');
+    return !!this.getToken() && this.currentUser !== null;
   }
 
   isProvider(): boolean {
@@ -85,9 +86,15 @@ export class AuthService {
 
     const raw = localStorage.getItem('user');
 
-    return raw
-      ? JSON.parse(raw)
-      : null;
+    if (!raw) return null;
+
+    try {
+      return JSON.parse(raw) as UserDto;
+    } catch {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      return null;
+    }
   }
 
   private isBrowser(): boolean {

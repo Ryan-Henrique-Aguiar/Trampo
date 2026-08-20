@@ -1,5 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../../services/auth/auth';
 import { ViewModeService } from '../../../services/view-mode/view-mode-service';
 
@@ -18,11 +18,12 @@ export class Main implements OnInit {
 
   private authService = inject(AuthService);
   private viewModeService = inject(ViewModeService);
+  private router = inject(Router);
 
   isHelpOpen = false;
 
-  get isProvider() {
-    return this.authService.isProvider;
+  get provider(): boolean {
+    return this.authService.isProvider();
   }
 
   get isProviderMode() {
@@ -35,5 +36,11 @@ export class Main implements OnInit {
 
   toggleMode(): void {
     this.viewModeService.toggle();
+  }
+
+  async logout(): Promise<void> {
+    this.authService.logout();
+    this.viewModeService.setMode('client');
+    await this.router.navigate(['/login']);
   }
 }

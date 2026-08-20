@@ -158,10 +158,10 @@ async onRegister(): Promise<void> {
   };
 
   try {
-    await this.authService.register(dto);
+    const response = await this.authService.register(dto);
 
     this.toastrService.success(
-      'Conta criada com sucesso!'
+      response.message
     );
 
     await this.router.navigate(['/login']);

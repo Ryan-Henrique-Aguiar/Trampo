@@ -29,13 +29,17 @@ public class UserServiceImpl implements UserService {
         List<UserDto> list = new ArrayList<>();
 
         for (Users user : usersDao.findAll()) {
-
             UserDto userDto = new UserDto(
+                    user.getId(),
                     user.getName(),
-                    user.getRating() != null ? user.getRating() : 0.0,
-                    user.getCompletedServicesCount(),
+                    user.getRating(),
                     user.isProvider(),
-                    user.getCategories()
+                    user.isAvailableForUrgency(),
+                    user.getCreatedServicesCount(),
+                    user.getServiceStartDate(),
+                    user.getCompletedServicesCount(),
+                    user.getCity(),
+                    user.getState()
             );
 
             list.add(userDto);
