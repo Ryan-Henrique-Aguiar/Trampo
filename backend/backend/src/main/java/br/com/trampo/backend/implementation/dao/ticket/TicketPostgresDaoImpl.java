@@ -50,7 +50,7 @@ public class TicketPostgresDaoImpl implements TicketDao {
                 stmt.setString(2, ticket.getTitle());
                 stmt.setString(3, ticket.getDescription());
                 stmt.setObject(4, ticket.getPriceMax(), Types.NUMERIC);
-                stmt.setInt(5, ticket.getClient().getId());
+                stmt.setInt(5, ticket.getUser().getId());
                 stmt.setInt(6, ticket.getAddress().getId());
                 stmt.setInt(7, ticket.getCategory().getId());
 
@@ -110,10 +110,45 @@ public class TicketPostgresDaoImpl implements TicketDao {
         return tickets;
     }
 
+    @Override
+    public List<Ticket> findByUserId(int userId) throws SQLException {
+        List<Ticket> tickets = new ArrayList<>();
+
+        String sql = """
+        SELECT
+            t.*,
+            a.street,
+            a.number,
+            a.neighborhood,
+            a.city,
+            a.state,
+            a.zip_code,
+            a.complement
+        FROM ticket t
+        INNER JOIN address a ON a.id = t.address_id
+        WHERE t.user_id = ?
+        ORDER BY t.created_at DESC
+        """;
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    tickets.add(mapResultSetToTicket(rs));
+                }
+            }
+        }
+
+        return tickets;
+    }
+
     // Helper method para mapear o ResultSet para a entidade Java
     private Ticket mapResultSetToTicket(ResultSet rs) throws SQLException {
         Ticket ticket = new Ticket();
         ticket.setId(rs.getInt("id"));
+        ticket.setCode(rs.getString("code"));
+        ticket.setProposalsCount(rs.getInt("proposals_count"));
         ticket.setTitle(rs.getString("title"));
         ticket.setDescription(rs.getString("description"));
         ticket.setPriceMax(rs.getBigDecimal("price_max"));
@@ -127,9 +162,9 @@ public class TicketPostgresDaoImpl implements TicketDao {
         ticket.setStatus(StatusTicket.valueOf(rs.getString("status")));
 
 
-        Users client = new Users();
-        client.setId(rs.getInt("client_id"));
-        ticket.setClient(client);
+        Users user = new Users();
+        user.setId(rs.getInt("user_id"));
+        ticket.setUser(user);
 
         Category category = new Category();
         category.setId(rs.getInt("category_id"));

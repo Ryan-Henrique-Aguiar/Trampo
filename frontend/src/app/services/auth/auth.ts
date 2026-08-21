@@ -18,7 +18,7 @@ export class AuthService {
 
   private platformId = inject(PLATFORM_ID);
 
-  currentUser: UserDto | null = this.getStoredUser();
+  currentUser: UserDto | null = null;
 
   constructor(private http: HttpClient) {}
 
@@ -53,10 +53,47 @@ export class AuthService {
     this.currentUser = null;
   }
 
-  isLoggedIn(): boolean {
+  async validateSession(): Promise<boolean> {
     if (!this.isBrowser()) return false;
 
-    return !!this.getToken() && this.currentUser !== null;
+    localStorage.removeItem('user');
+
+    const token = this.getToken();
+
+    if (!token || this.isTokenExpired(token)) {
+      this.logout();
+      return false;
+    }
+
+    try {
+      this.currentUser = await firstValueFrom(
+        this.http.get<UserDto>(`${this.apiUrl}/me`)
+      );
+      return true;
+    } catch {
+      this.logout();
+      return false;
+    }
+  }
+
+  private isTokenExpired(token: string): boolean {
+    try {
+      const base64 = token
+        .split('.')[1]
+        .replace(/-/g, '+')
+        .replace(/_/g, '/');
+
+      const padded = base64.padEnd(
+        Math.ceil(base64.length / 4) * 4,
+        '='
+      );
+
+      const payload = JSON.parse(atob(padded));
+
+      return !payload.exp || payload.exp * 1000 <= Date.now();
+    } catch {
+      return true;
+    }
   }
 
   isProvider(): boolean {
@@ -74,27 +111,8 @@ export class AuthService {
 
     if (!this.isBrowser()) return;
 
+    localStorage.removeItem('user');
     localStorage.setItem('token', res.token);
-    localStorage.setItem(
-      'user',
-      JSON.stringify(res.user)
-    );
-  }
-
-  private getStoredUser(): UserDto | null {
-    if (!this.isBrowser()) return null;
-
-    const raw = localStorage.getItem('user');
-
-    if (!raw) return null;
-
-    try {
-      return JSON.parse(raw) as UserDto;
-    } catch {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      return null;
-    }
   }
 
   private isBrowser(): boolean {

@@ -1,4 +1,4 @@
-import { Component, computed, OnInit, signal, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { CategoryService } from '../../../services/category/category-service';
@@ -15,7 +15,6 @@ import { AuthService } from '../../../services/auth/auth';
 import { ViewModeService } from '../../../services/view-mode/view-mode-service';
 import { TicketDetail } from "../../../shared/components/ticket-detail/ticket-detail";
 import { ProposalsModal } from "../../../shared/components/proposal-modal/proposal-modal"; // ajuste o caminho
-import { tick } from '@angular/core/testing';
 
 @Component({
   selector: 'app-home',
@@ -50,7 +49,7 @@ export class Home implements OnInit {
     private authService: AuthService,
     private viewModeService: ViewModeService,
     private cdr: ChangeDetectorRef
-  ){
+  ) {
 
   }
 
@@ -66,11 +65,10 @@ export class Home implements OnInit {
     return this.viewModeService.isProviderMode;
   }
 
-  get firstThreeMyTickets(): Ticket[]{
-    return this.tickets
-    .filter(ticket => ticket.status === TicketStatus.OPEN)
-    .slice(0, 3)
+  get firstThreeMyTickets(): Ticket[] {
+    return this.tickets.slice(0, 3);
   }
+
   get firstThreeCategories(): Category[] {
     return this.categories.slice(0, 3);
   }
@@ -83,50 +81,50 @@ export class Home implements OnInit {
     if (this.authService.isProvider()) {
       this.viewModeService.setMode('provider');
     }
-    this.loadHomeData();
+    this.loadTickets();
+    this.loadCategories();
   }
 
-  private async loadHomeData(): Promise<void> {
+  private async loadTickets(): Promise<void> {
     this.loading = true;
     this.error = null;
-
     try {
-      await Promise.all([
-        this.loadCategories(),
-        this.loadTickets()
-      ]);
+      this.tickets =
+        await this.ticketService.getMyTickets();
+
+  //    if (this.authService.isProvider()) {
+  //      this.availableTickets =
+   //       await this.ticketService.getAvailableTickets();
+   //   }
+     this.availableTickets = [];
     } catch (err) {
-      console.error('Erro ao carregar home:', err);
-      this.error = 'Erro ao carregar os dados.';
+      console.error(
+        'Erro ao carregar tickets:',
+        err
+      );
+      this.tickets = [];
+      this.availableTickets = [];
+      this.error =
+        'Não foi possível carregar seus serviços.';
     } finally {
       this.loading = false;
       this.cdr.detectChanges();
     }
   }
-  private async loadTickets(): Promise<void> {
-    const userId = this.authService.currentUser?.id;
 
-    if (userId === undefined) {
-      throw new Error('Usuário não autenticado.');
-    }
-
-    // Enquanto tickets estiverem no JSON Server
-    this.tickets =
-      await this.ticketService.getByUserId(userId);
-
-    if (this.authService.isProvider()) {
-      const categoryIds =
-        this.authService.currentUser?.categoryIds ?? [];
-
-      this.availableTickets =
-        await this.ticketService.getTickets({
-          status: TicketStatus.OPEN,
-          categoryId: categoryIds
-        });
-    }
-  }
   private async loadCategories(): Promise<void> {
-    this.categories = await this.categoryService.getAll();
+    try {
+      this.categories =
+        await this.categoryService.getAll();
+    } catch (err) {
+      console.error(
+        'Erro ao carregar categorias:',
+        err
+      );
+      this.categories = [];
+    } finally {
+      this.cdr.detectChanges();
+    }
   }
 
   // ===== MODAL DE DETALHES =====
@@ -142,10 +140,10 @@ export class Home implements OnInit {
   }
 
   onTicketUpdated(updatedTicket: Ticket): void {
-    this.tickets =this.tickets.map(ticket=>
+    this.tickets = this.tickets.map(ticket =>
       ticket.id === updatedTicket.id
-      ? updatedTicket
-      : ticket
+        ? updatedTicket
+        : ticket
     )
     this.selectedTicket = updatedTicket;
     this.cdr.detectChanges();

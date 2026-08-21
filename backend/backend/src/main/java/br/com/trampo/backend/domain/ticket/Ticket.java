@@ -30,18 +30,18 @@ public class Ticket {
 
     private StatusTicket status;
 
-    private Users client;
+    private Users user;
     private Address address;
     private Category category;
 
 
     // Construtor utilizado na criacao do ticket
-    public Ticket(String code, String title, String description, double priceMax, Users client, Address address, Category category) {
+    public Ticket(String code, String title, String description, double priceMax, Users user, Address address, Category category) {
         this.code = code;
         this.title = title;
         this.description = description;
         this.priceMax = BigDecimal.valueOf(priceMax); // Converte de double para BigDecimal
-        this.client = client;
+        this.user = user;
         this.address = address;
 
 

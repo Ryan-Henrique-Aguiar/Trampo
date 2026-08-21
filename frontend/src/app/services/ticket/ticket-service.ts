@@ -14,7 +14,7 @@ import { UpdateTicketRequest } from '../../dto/ticket/update-ticket-request';
 export class TicketService {
 
   private http = inject(HttpClient);
-  private baseUrl = `${environment.devApiUrl}/tickets`;
+  private baseUrl = `${environment.apiUrl}/tickets`;
   private urgentBaseUrl = `${environment.devApiUrl}/urgentTickets`;
   private authService = inject(AuthService
 
@@ -34,16 +34,6 @@ export class TicketService {
     [TicketStatus.CANCELLED]: [],
   };
 
-
-  private generateTicketCode(): string {
-    const random = Math.random().toString(36).substring(2, 8).toUpperCase();
-    return `TRP-${random}`;
-  }
-  private generateUrgentTicketCode(): string {
-    const random = Math.random().toString(36).substring(2, 8).toUpperCase();
-    return `TRP-URG-${random}`;
-  }
-
   getAvailableStatusTransitions(currentStatus: TicketStatus): TicketStatus[] {
     return TicketService.TICKET_TRANSITIONS[currentStatus] ?? [];
   }
@@ -52,68 +42,43 @@ export class TicketService {
     return TicketService.URGENT_TICKET_TRANSITIONS[currentStatus] ?? [];
   }
 
-  async getTickets(filters?: {status?: string; categoryId?: number[];}): Promise<Ticket[]> {
-    let params = new HttpParams();
-    if (filters?.status) {
-      params = params.set('status', filters.status);
-    }
-    if (filters?.categoryId?.length) {
-      params = params.set('categoryId', filters.categoryId.join(','));
-    }
-    return await firstValueFrom(
-      this.http.get<Ticket[]>(this.baseUrl, { params })
+  async getMyTickets(): Promise<Ticket[]> {
+    return firstValueFrom(
+      this.http.get<Ticket[]>(this.baseUrl)
     );
   }
 
-  async getAll(): Promise<Ticket[]> {
-    return await firstValueFrom(
-      this.http.get<Ticket[]>(this.baseUrl)
-    )
-  }
 
-  async getById(id: number): Promise<Ticket>{
+  async getById(id: number): Promise<Ticket> {
     return await firstValueFrom(
       this.http.get<Ticket>(`${this.baseUrl}/${id}`)
     )
   }
 
-
-  async getByUserId(userId: number): Promise<Ticket[]> {
-    return await firstValueFrom(
-      this.http.get<Ticket[]>(`${this.baseUrl}?userId=${userId}`)
-    );
-  }
-
-  // Buscar tickets por categoria (para profissionais)
-  async getByCategory(categoryId: number): Promise<Ticket[]> {
-    return await firstValueFrom(
-      this.http.get<Ticket[]>(`${this.baseUrl}?categoryId=${categoryId}`)
+  async getAvailableTickets(): Promise<Ticket[]> {
+    return firstValueFrom(
+      this.http.get<Ticket[]>(
+        `${this.baseUrl}/available`
+      )
     );
   }
 
   async create(dto: CreateTicketRequest): Promise<Ticket> {
-    const payload = {
-      code: this.generateTicketCode(),
+    const payload: CreateTicketRequest = {
       title: dto.title,
       description: dto.description,
       categoryId: Number(dto.categoryId),
-
+      priceMax: Number(dto.priceMax),
       address: {
         ...dto.address,
-        complement: dto.address.complement || ''
+        complement: dto.address.complement ?? ''
       },
-
-      priceMax: Number(dto.priceMax ?? 0),
-      paymentMethods: dto.paymentMethods || [],
-      availableDays: dto.availableDays || [],
-      availableHours: dto.availableHours || [],
-      createdAt: new Date().toISOString(),
-      status: TicketStatus.OPEN,
-      userId: this.authService.currentUser?.id,
-      proposalsCount: 0,
+      paymentMethods: dto.paymentMethods ?? [],
+      availableDays: dto.availableDays ?? [],
+      availableHours: dto.availableHours ?? []
     };
 
-    return await firstValueFrom(
+    return firstValueFrom(
       this.http.post<Ticket>(this.baseUrl, payload)
     );
   }
@@ -122,7 +87,6 @@ export class TicketService {
   async createUrgent(dto: CreateUrgentTicketRequest): Promise<UrgentTicket> {
     const payload = {
       title: dto.title,
-      code: this.generateUrgentTicketCode(),
       description: dto.description,
       categoryId: Number(dto.categoryId),
       address: dto.address,
@@ -136,7 +100,7 @@ export class TicketService {
       this.http.post<UrgentTicket>(this.urgentBaseUrl, payload)
     );
   }
-  
+
   async update(id: number, dto: UpdateTicketRequest): Promise<Ticket> {
     return await firstValueFrom(
       this.http.patch<Ticket>(`${this.baseUrl}/${id}`, dto)

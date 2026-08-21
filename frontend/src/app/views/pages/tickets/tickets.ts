@@ -1,7 +1,6 @@
 import { ChangeDetectorRef, Component, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TicketService } from '../../../services/ticket/ticket-service';
-import { TicketStatus } from '../../../enums/ticket-status';
 import { TicketCard } from "../../../shared/components/ticket-card/ticket-card";
 import { ActionCards } from "../../../shared/components/action-cards/action-cards";
 import { AuthService } from '../../../services/auth/auth';
@@ -25,7 +24,7 @@ export class Tickets implements OnInit {
     private authService: AuthService,
     private viewModeService: ViewModeService,
     private cdr: ChangeDetectorRef
-  ){}
+  ) { }
 
   get isProviderMode() {
     return this.viewModeService.isProviderMode;
@@ -39,45 +38,33 @@ export class Tickets implements OnInit {
   }
 
   private async loadTickets(): Promise<void> {
-    const userId = this.authService.currentUser?.id;
-    if (userId === undefined) {
-      this.error = "Usuario não autenticado";
-      this.cdr.detectChanges();
-      return;
-    }
-
     this.loading = true;
     this.error = null;
 
-    try{
-      this.tickets = await this.ticketService.getTickets();
+    try {
+      this.tickets =
+        await this.ticketService.getMyTickets();
 
-      if(this.authService.isProvider()){
-        const categoryIds = this.authService.currentUser?.categoryIds ??[];
-        this.availableTickets = await this.ticketService.getTickets({
-          status: TicketStatus.OPEN,
-          categoryId: categoryIds
-        })
-      }
-    }catch(err){
-      console.error("Erro ao carregar tickets:", err);
-      this.error = "Erro ao carregar tickets.";
+     // if (this.authService.isProvider()) {
+    //    this.availableTickets =
+    //      await this.ticketService.getAvailableTickets();
+  //    }
+      this.availableTickets = [];
+
+    } catch (err) {
+      console.error(
+        'Erro ao carregar tickets:',
+        err
+      );
+
+      this.error = 'Erro ao carregar tickets.';
       this.tickets = [];
       this.availableTickets = [];
-    }finally{
+
+    } finally {
       this.loading = false;
       this.cdr.detectChanges();
     }
-    
   }
 
-  getStatusLabel(status: TicketStatus): string {
-    const labels: Record<TicketStatus, string> = {
-      [TicketStatus.OPEN]: 'Aberto',
-      [TicketStatus.IN_PROGRESS]: 'Em andamento',
-      [TicketStatus.COMPLETED]: 'Finalizado',
-      [TicketStatus.CANCELLED]: 'Cancelado'
-    };
-    return labels[status] || status;
-  }
 }

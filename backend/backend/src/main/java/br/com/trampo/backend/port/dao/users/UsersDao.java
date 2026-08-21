@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface UsersDao {
-    Users save(Users client);
+    Users save(Users user);
 
     Optional<Users> findById(long id);
 

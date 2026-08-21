@@ -13,4 +13,6 @@ public interface TicketDao {
     Optional<Ticket> findById(int id) throws SQLException;
 
     List<Ticket> findAll() throws SQLException;
+
+    List<Ticket> findByUserId(int userId) throws SQLException;
 }
