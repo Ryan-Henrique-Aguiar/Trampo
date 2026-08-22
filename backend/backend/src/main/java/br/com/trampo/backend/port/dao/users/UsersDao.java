@@ -12,5 +12,9 @@ public interface UsersDao {
 
     Optional<Users> findByEmail(String email);
 
+    Optional<Users> findByCpf(String cpf);
+
+    Optional<Users> findByPhone(String phone);
+
     List<Users> findAll();
 }

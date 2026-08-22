@@ -34,4 +34,60 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
+
+    @ExceptionHandler(InvalidCpfException.class)
+    private ResponseEntity<RestErrorMessage> invalidCpfHandler(
+            InvalidCpfException exception
+    ) {
+        RestErrorMessage error = new RestErrorMessage(
+                HttpStatus.BAD_REQUEST,
+                exception.getMessage()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(error);
+    }
+
+    @ExceptionHandler(InvalidPhoneException.class)
+    private ResponseEntity<RestErrorMessage> invalidPhoneHandler(
+            InvalidPhoneException exception
+    ) {
+        RestErrorMessage error = new RestErrorMessage(
+                HttpStatus.BAD_REQUEST,
+                exception.getMessage()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(error);
+    }
+
+    @ExceptionHandler(CpfAlreadyExistsException.class)
+    private ResponseEntity<RestErrorMessage> cpfAlreadyExistsHandler(
+            CpfAlreadyExistsException exception
+    ) {
+        RestErrorMessage error = new RestErrorMessage(
+                HttpStatus.CONFLICT,
+                exception.getMessage()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(error);
+    }
+
+    @ExceptionHandler(PhoneAlreadyExistsException.class)
+    private ResponseEntity<RestErrorMessage> phoneAlreadyExistsHandler(
+            PhoneAlreadyExistsException exception
+    ) {
+        RestErrorMessage error = new RestErrorMessage(
+                HttpStatus.CONFLICT,
+                exception.getMessage()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(error);
+    }
 }

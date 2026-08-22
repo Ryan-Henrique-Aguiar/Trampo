@@ -212,6 +212,58 @@ public class UsersPostgresDaoImpl implements UsersDao {
     }
 
     @Override
+    public Optional<Users> findByCpf(String cpf) {
+        String sql = """
+            SELECT *
+            FROM users
+            WHERE cpf = ?
+            """;
+
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, cpf);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return Optional.of(mapUser(resultSet));
+                }
+
+                return Optional.empty();
+            }
+        } catch (SQLException exception) {
+            throw new RuntimeException(
+                    "Erro ao buscar usuário pelo CPF",
+                    exception
+            );
+        }
+    }
+
+    @Override
+    public Optional<Users> findByPhone(String phone) {
+        String sql = """
+            SELECT *
+            FROM users
+            WHERE phone = ?
+            """;
+
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, phone);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return Optional.of(mapUser(resultSet));
+                }
+
+                return Optional.empty();
+            }
+        } catch (SQLException exception) {
+            throw new RuntimeException(
+                    "Erro ao buscar usuário pelo telefone",
+                    exception
+            );
+        }
+    }
+
+    @Override
     public List<Users> findAll() {
 
         List<Users> users = new ArrayList<>();

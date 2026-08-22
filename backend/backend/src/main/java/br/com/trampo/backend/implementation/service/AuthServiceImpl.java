@@ -2,9 +2,9 @@ package br.com.trampo.backend.implementation.service;
 
 import br.com.trampo.backend.domain.Users;
 import br.com.trampo.backend.dto.RegisterDto;
-import br.com.trampo.backend.infra.exception.CategoryNotFoundException;
-import br.com.trampo.backend.infra.exception.EmailAlreadyExistsException;
-import br.com.trampo.backend.infra.exception.InvalidCategoryException;
+import br.com.trampo.backend.infra.exception.*;
+import br.com.trampo.backend.infra.validation.CpfValidator;
+import br.com.trampo.backend.infra.validation.PhoneValidator;
 import br.com.trampo.backend.port.dao.CategoryDao;
 import br.com.trampo.backend.port.dao.UsersCategoryDao;
 import br.com.trampo.backend.port.dao.users.UsersDao;
@@ -38,6 +38,22 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void register(RegisterDto data) {
+        String normalizedCpf = CpfValidator.normalize(data.cpf());
+        String normalizedPhone = PhoneValidator.normalize(data.phone());
+        if (!CpfValidator.isValid(normalizedCpf)) {
+            throw new InvalidCpfException("CPF inválido");
+        }
+        if (usersDao.findByCpf(normalizedCpf).isPresent()) {
+            throw new CpfAlreadyExistsException("CPF já cadastrado");
+        }
+
+        if (!PhoneValidator.isValid(normalizedPhone)) {
+            throw new InvalidPhoneException("Telefone inválido");
+        }
+        if(usersDao.findByPhone(normalizedPhone).isPresent()){
+            throw new PhoneAlreadyExistsException("Telefone já cadastrado");
+        }
+
         if (usersDao.findByEmail(data.email()).isPresent()) {
             throw new EmailAlreadyExistsException("Email já cadastrado");
         }
@@ -63,8 +79,8 @@ public class AuthServiceImpl implements AuthService {
                     data.email(),
                     encryptedPassword,
                     data.name(),
-                    data.cpf(),
-                    data.phone(),
+                    normalizedCpf,
+                    normalizedPhone,
                     data.city(),
                     data.state(),
                     data.provider()
