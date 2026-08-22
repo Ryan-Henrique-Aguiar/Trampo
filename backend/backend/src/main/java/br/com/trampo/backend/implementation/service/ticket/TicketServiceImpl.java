@@ -2,11 +2,14 @@ package br.com.trampo.backend.implementation.service.ticket;
 
 import br.com.trampo.backend.domain.Address;
 import br.com.trampo.backend.domain.Users;
+import br.com.trampo.backend.domain.enums.PaymentMethod;
 import br.com.trampo.backend.domain.ticket.AvailableDay;
 import br.com.trampo.backend.domain.ticket.AvailableHour;
 import br.com.trampo.backend.domain.ticket.Ticket;
 import br.com.trampo.backend.domain.ticket.TicketPaymentMethod;
 import br.com.trampo.backend.dto.ticket.*;
+import br.com.trampo.backend.infra.exception.DatabaseException;
+import br.com.trampo.backend.infra.exception.UnauthorizedUserException;
 import br.com.trampo.backend.mapper.ticket.TicketMapper;
 import br.com.trampo.backend.port.dao.ticket.AvailableDayDao;
 import br.com.trampo.backend.port.dao.ticket.AvailableHourDao;
@@ -137,25 +140,30 @@ public class TicketServiceImpl implements TicketService {
 
     }
 
+
     @Override
     public List<TicketDto> getMyTickets(Users user) {
         if (user == null || user.getId() == null) {
-            throw new IllegalArgumentException(
-                    "Usuário autenticado é obrigatório."
-            );
+            throw new UnauthorizedUserException("Usuário não autenticado ou inválido.");
         }
 
         try {
-            return ticketDao.findByUserId(user.getId())
-                    .stream()
-                    .map(ticketMapper::toDto)
-                    .toList();
+            List<Ticket> tickets = ticketDao.findByUserId(user.getId());
+
+            return tickets.stream().map(ticket -> {
+                try {
+                    List<PaymentMethod> paymentMethods = ticketPaymentMethodDao.findByTicketId(ticket.getId());
+                    List<String> availableDays = availableDayDao.findByTicketId(ticket.getId());
+                    List<String> availableHours = availableHourDao.findByTicketId(ticket.getId());
+
+                    return ticketMapper.toDto(ticket, paymentMethods, availableDays, availableHours);
+                } catch (SQLException e) {
+                    throw new DatabaseException("Erro ao carregar os detalhes do ticket ID: " + ticket.getId(), e);
+                }
+            }).toList();
 
         } catch (SQLException e) {
-            throw new RuntimeException(
-                    "Erro ao consultar tickets do usuário.",
-                    e
-            );
+            throw new DatabaseException("Erro ao consultar tickets do usuário no banco de dados.", e);
         }
     }
 }

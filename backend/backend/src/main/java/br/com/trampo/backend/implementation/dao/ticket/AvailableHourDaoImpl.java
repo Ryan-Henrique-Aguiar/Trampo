@@ -6,6 +6,8 @@ import br.com.trampo.backend.domain.ticket.Ticket;
 import br.com.trampo.backend.port.dao.ticket.AvailableHourDao;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class AvailableHourDaoImpl implements AvailableHourDao {
 
@@ -56,6 +58,24 @@ public class AvailableHourDaoImpl implements AvailableHourDao {
             connection.setAutoCommit(originalAutoCommit);
         }
 
+    }
+
+    @Override
+    public List<String> findByTicketId(Integer ticketId) throws SQLException {
+        List<String> hours = new ArrayList<>();
+        // O TO_CHAR formata a coluna TIME do Postgres para o formato "HH:mm" (ex: "08:00")
+        String sql = "SELECT TO_CHAR(available_hour, 'HH24:MI') AS formatted_hour FROM ticket_available_hour WHERE ticket_id = ?";
+
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setInt(1, ticketId);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    hours.add(rs.getString("formatted_hour"));
+                }
+            }
+        }
+        return hours;
     }
 
 }
