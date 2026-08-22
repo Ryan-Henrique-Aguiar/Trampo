@@ -80,10 +80,10 @@ export class SignIn {
     const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/home';
     await this.router.navigateByUrl(returnUrl);
 
-  } catch (err) {
-    console.error('Erro no login:', err);
+  } catch (err: any) {
+    const message = err.error.message ?? 'Erro ao realizar login'
 
-    this.toastrService.error('Credenciais inválidas');
+    this.toastrService.error(message);
   } finally {
     this.loading = false;
     this.cdr.detectChanges();
