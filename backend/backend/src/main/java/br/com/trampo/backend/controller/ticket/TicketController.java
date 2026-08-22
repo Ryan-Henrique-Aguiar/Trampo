@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -35,6 +36,16 @@ public class TicketController {
             @AuthenticationPrincipal Users user
     ) {
         return ResponseEntity.ok(ticketService.getMyTickets(user));
+    }
+
+    @GetMapping("/available")
+    public ResponseEntity<List<TicketDto>> findAvailableTicekts(
+            @AuthenticationPrincipal Users user,
+            @RequestParam(required = false) Integer categoryId,
+            @RequestParam(required = false) BigDecimal minPrice,
+            @RequestParam(required = false) BigDecimal maxPrice
+            ){
+        return ResponseEntity.ok(ticketService.getAvailableTickets(user, categoryId, minPrice, maxPrice));
     }
 
 }

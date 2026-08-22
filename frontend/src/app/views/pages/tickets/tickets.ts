@@ -45,12 +45,10 @@ export class Tickets implements OnInit {
       this.tickets =
         await this.ticketService.getMyTickets();
 
-     // if (this.authService.isProvider()) {
-    //    this.availableTickets =
-    //      await this.ticketService.getAvailableTickets();
-  //    }
-      this.availableTickets = [];
-
+      if (this.authService.isProvider()) {
+        this.availableTickets =
+          await this.ticketService.getAvailableTickets();
+      }
     } catch (err) {
       console.error(
         'Erro ao carregar tickets:',

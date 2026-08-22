@@ -8,6 +8,7 @@ import br.com.trampo.backend.domain.enums.StatusTicket;
 import br.com.trampo.backend.port.dao.AddressDao;
 import br.com.trampo.backend.port.dao.ticket.TicketDao;
 
+import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -94,6 +95,82 @@ public class TicketPostgresDaoImpl implements TicketDao {
     }
 
     @Override
+    public List<Ticket> findAvailableForProvider(int providerId, String city, String state, Integer categoryId, BigDecimal minPrice, BigDecimal maxPrice) throws SQLException {
+        List<Ticket> tickets = new ArrayList<>();
+
+        String sql = """
+            SELECT DISTINCT
+                t.*,
+                a.street,
+                a.number,
+                a.neighborhood,
+                a.city,
+                a.state,
+                a.zip_code,
+                a.complement
+            FROM ticket t
+            INNER JOIN address a
+                ON a.id = t.address_id
+            INNER JOIN user_category uc
+                ON uc.category_id = t.category_id
+               AND uc.user_id = ?
+            WHERE t.status = 'OPEN'
+              AND t.user_id <> ?
+              AND LOWER(a.city) = LOWER(?)
+              AND a.state = ?
+              AND (? IS NULL OR t.category_id = ?)
+              AND (? IS NULL OR t.price_max >= ?)
+              AND (? IS NULL OR t.price_max <= ?)
+            ORDER BY t.created_at DESC
+            """;
+
+        try (PreparedStatement stmt =
+                     connection.prepareStatement(sql)) {
+
+            stmt.setInt(1, providerId);
+            stmt.setInt(2, providerId);
+            stmt.setString(3, city);
+            stmt.setString(4, state);
+
+            if (categoryId != null) {
+                stmt.setInt(5, categoryId);
+                stmt.setInt(6, categoryId);
+            } else {
+                stmt.setNull(5, Types.INTEGER);
+                stmt.setNull(6, Types.INTEGER);
+            }
+
+            if (minPrice != null) {
+                stmt.setBigDecimal(7, minPrice);
+                stmt.setBigDecimal(8, minPrice);
+            } else {
+                stmt.setNull(7, Types.NUMERIC);
+                stmt.setNull(8, Types.NUMERIC);
+            }
+
+            if (maxPrice != null) {
+                stmt.setBigDecimal(9, maxPrice);
+                stmt.setBigDecimal(10, maxPrice);
+            } else {
+                stmt.setNull(9, Types.NUMERIC);
+                stmt.setNull(10, Types.NUMERIC);
+            }
+
+            try (ResultSet resultSet =
+                         stmt.executeQuery()) {
+
+                while (resultSet.next()) {
+                    tickets.add(
+                            mapResultSetToTicket(resultSet)
+                    );
+                }
+            }
+        }
+
+        return tickets;
+    }
+
+    @Override
     public List<Ticket> findAll() throws SQLException {
         List<Ticket> tickets = new ArrayList<>();
         String sql = "SELECT t.*, a.street, a.number, a.neighborhood, a.city, a.state, a.zip_code, a.complement " +
@@ -109,6 +186,8 @@ public class TicketPostgresDaoImpl implements TicketDao {
         }
         return tickets;
     }
+
+
 
     @Override
     public List<Ticket> findByUserId(int userId) throws SQLException {

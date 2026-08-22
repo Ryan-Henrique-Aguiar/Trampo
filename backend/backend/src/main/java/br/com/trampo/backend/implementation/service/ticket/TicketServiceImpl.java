@@ -21,6 +21,7 @@ import br.com.trampo.backend.utils.TicketCodeGenerate;
 import org.springframework.stereotype.Service;
 import org.yaml.snakeyaml.constructor.DuplicateKeyException;
 
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -164,6 +165,35 @@ public class TicketServiceImpl implements TicketService {
 
         } catch (SQLException e) {
             throw new DatabaseException("Erro ao consultar tickets do usuário no banco de dados.", e);
+        }
+    }
+
+    @Override
+    public List<TicketDto> getAvailableTickets(Users user, Integer categoryId, BigDecimal minPrice, BigDecimal maxPrice
+    ) {
+        if (user == null || user.getId() == null) {
+            throw new IllegalArgumentException("Usuário autenticado é obrigatório");
+        }
+
+        if (!user.isProvider()) {
+            throw new IllegalArgumentException("Apenas prestadores podem consultar tickets disponíveis");
+        }
+
+        try {
+            return ticketDao.findAvailableForProvider(
+                            user.getId(),
+                            user.getCity(),
+                            user.getState(),
+                            categoryId,
+                            minPrice,
+                            maxPrice
+                    )
+                    .stream()
+                    .map(ticketMapper::toDto)
+                    .toList();
+
+        } catch (SQLException exception) {
+            throw new RuntimeException("Erro ao consultar tickets disponíveis", exception);
         }
     }
 }

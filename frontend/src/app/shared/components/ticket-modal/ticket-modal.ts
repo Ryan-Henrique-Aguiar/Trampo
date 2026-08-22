@@ -11,6 +11,7 @@ import { UserService } from '../../../services/user/user';
 import { LocationService, State, City } from '../../../services/location/location';
 import { Ticket } from '../../../models/ticket.model';
 import { WeekDay } from '../../../enums/week-day';
+import { ToastrService } from '@iqx-limited/ngx-toastr';
 
 interface NormalizedCepAddress {
   street?: string | null;
@@ -98,7 +99,8 @@ export class TicketModal implements OnInit {
     private ticketService: TicketService,
     private userService: UserService,
     private locationService: LocationService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private toastrService: ToastrService
   ) { }
 
   async ngOnInit(): Promise<void> {
@@ -294,7 +296,7 @@ export class TicketModal implements OnInit {
         await this.ticketService.create(dto);
 
       this.ticketCreated.emit(createdTicket);
-
+      this.toastrService.success("Ticket criado com sucesso")
       this.closeModal();
 
     } catch (err) {

@@ -9,7 +9,7 @@ import { CreateUrgentTicketRequest } from '../../dto/urgent-ticket/create-urgent
 import { TicketStatus } from '../../enums/ticket-status';
 import { AuthService } from '../auth/auth';
 import { UpdateTicketRequest } from '../../dto/ticket/update-ticket-request';
-
+import { AvailableTicketFilters } from '../../dto/ticket/available-ticket-filters';
 @Injectable({ providedIn: 'root' })
 export class TicketService {
 
@@ -55,11 +55,21 @@ export class TicketService {
     )
   }
 
-  async getAvailableTickets(): Promise<Ticket[]> {
+  async getAvailableTickets(filters?: AvailableTicketFilters): Promise<Ticket[]> {
+    let params = new HttpParams();
+
+    if (filters?.categoryId != null) {
+      params = params.set('categoryId',filters.categoryId.toString());
+    }
+
+    if (filters?.minPrice != null) {params = params.set('minPrice',filters.minPrice.toString());
+    }
+
+    if (filters?.maxPrice != null) {params = params.set('maxPrice',filters.maxPrice.toString());
+    }
+
     return firstValueFrom(
-      this.http.get<Ticket[]>(
-        `${this.baseUrl}/available`
-      )
+      this.http.get<Ticket[]>(`${this.baseUrl}/available`,{ params })
     );
   }
 

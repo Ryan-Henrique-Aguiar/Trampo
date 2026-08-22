@@ -19,7 +19,7 @@ export class AuthService {
   private platformId = inject(PLATFORM_ID);
 
   currentUser: UserDto | null = null;
-
+  
   constructor(private http: HttpClient) {}
 
   async login(dto: LoginRequestDto): Promise<AuthResponseDto> {
@@ -34,7 +34,7 @@ export class AuthService {
 
     return res;
   }
-
+  
   async register(dto: RegisterRequestDto): Promise<RegisterResponseDto> {
     return await firstValueFrom(
       this.http.post<RegisterResponseDto>(
@@ -107,8 +107,6 @@ export class AuthService {
   }
 
   private setSession(res: AuthResponseDto): void {
-    this.currentUser = res.user;
-
     if (!this.isBrowser()) return;
 
     localStorage.removeItem('user');

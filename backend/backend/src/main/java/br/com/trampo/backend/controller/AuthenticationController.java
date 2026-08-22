@@ -44,9 +44,8 @@ public class AuthenticationController {
         var auth = this.authenticationManager.authenticate(usernamePassword);
         var authenticatedUser = (Users) auth.getPrincipal();
         var token = tokenService.generateToken(authenticatedUser);
-        var userDto = userMapper.toDto(authenticatedUser);
 
-        return ResponseEntity.ok(new LoginResponseDto(token, userDto));
+        return ResponseEntity.ok(new LoginResponseDto(token));
     }
 
     @GetMapping("/me")
