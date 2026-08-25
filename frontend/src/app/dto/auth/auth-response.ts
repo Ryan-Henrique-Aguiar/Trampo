@@ -1,9 +1,17 @@
-import { User } from '../../models/user.model';
-
-export type UserDto = Omit<User, 'password'>;
+export interface UserDto {
+  id: number;
+  name: string;
+  rating: number | null;
+  provider: boolean;
+  availableForUrgency: boolean;
+  createdServicesCount: number | null;
+  serviceStartDate: string | null;
+  completedServicesCount: number | null;
+  city: string;
+  state: string;
+  categoryIds?: number[];
+}
 
 export interface AuthResponseDto {
   token: string;
-  user: UserDto;
-  provider: boolean;
 }

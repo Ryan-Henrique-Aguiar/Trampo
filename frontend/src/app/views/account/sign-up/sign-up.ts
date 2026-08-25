@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { AuthLayout } from "../../../shared/components/auth-layout/auth-layout";
 import { Router, RouterLink } from '@angular/router';
-import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, FormControl, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { LocationService, State, City } from '../../../services/location/location';
 import { AuthService } from '../../../services/auth/auth';
 import { RegisterRequestDto } from '../../../dto/auth/register-request.dto';
@@ -22,6 +22,13 @@ export class SignUp implements OnInit {
   currentStep = 1;
   errorMsg = '';
   loading = false;
+  showPassword = false;
+  showRepeatPassword = false;
+  fieldErrors: Record<'email' | 'cpf' | 'phone', string> = {
+    email: '',
+    cpf: '',
+    phone: ''
+  };
 
   categories: Category[] = [];
   states: State[] = [];
@@ -29,9 +36,8 @@ export class SignUp implements OnInit {
 
   // campos que pertencem a cada step, usado tanto pra navegação quanto pra travar os botões
   private stepFields: Record<number, string[]> = {
-    1: ['name', 'email', 'password'],
-    2: ['phone', 'cpf', 'state', 'city'],
-    3: ['categoryIds'],
+    1: ['name', 'email', 'password', 'repeatPassword', 'phone', 'cpf'],
+    2: ['state', 'city', 'categoryIds'],
   };
 
   constructor(
@@ -46,6 +52,7 @@ export class SignUp implements OnInit {
     this.registerForm = this.fb.group({
       name: new FormControl('', Validators.required),
       password: new FormControl('', [Validators.required, Validators.minLength(6)]),
+      repeatPassword: new FormControl('', Validators.required),
       email: new FormControl('', [Validators.required, Validators.email]),
       phone: new FormControl('', Validators.required),
       cpf: new FormControl('', Validators.required),
@@ -53,7 +60,14 @@ export class SignUp implements OnInit {
       city: new FormControl({ value: '', disabled: true }, Validators.required),
       provider: new FormControl(false),
       categoryIds: new FormControl<number[]>([]),
-    });
+    }, { validators: this.passwordsMatchValidator });
+  }
+
+  private passwordsMatchValidator(control: AbstractControl): ValidationErrors | null {
+    const password = control.get('password')?.value;
+    const repeatPassword = control.get('repeatPassword')?.value;
+
+    return password === repeatPassword ? null : { passwordsMismatch: true };
   }
 
   async ngOnInit(): Promise<void> {
@@ -79,6 +93,12 @@ export class SignUp implements OnInit {
     this.updateProviderValidators(
       this.registerForm.get('provider')?.value ?? false
     );
+
+    (['email', 'cpf', 'phone'] as const).forEach((field) => {
+      this.registerForm.get(field)?.valueChanges.subscribe(() => {
+        this.fieldErrors[field] = '';
+      });
+    });
   }
 
   private updateProviderValidators(provider: boolean): void {
@@ -123,16 +143,54 @@ async onStateChange(): Promise<void> {
   isStepValid(step: number): boolean {
     const fields = this.stepFields[step];
     if (!fields) return true;
-    return fields.every((field) => this.registerForm.get(field)?.valid);
+
+    const fieldsAreValid = fields.every((field) => this.registerForm.get(field)?.valid);
+    const passwordsMatch = step !== 1 || !this.registerForm.hasError('passwordsMismatch');
+    const fieldsHaveNoServerErrors = step !== 1
+      || Object.values(this.fieldErrors).every((message) => !message);
+
+    return fieldsAreValid && passwordsMatch && fieldsHaveNoServerErrors;
   }
 
   nextStep(): void {
+    this.markStepAsTouched(this.currentStep);
+
     if (!this.isStepValid(this.currentStep)) return;
     this.currentStep++;
   }
 
+  private markStepAsTouched(step: number): void {
+    this.stepFields[step]?.forEach((field) => {
+      this.registerForm.get(field)?.markAsTouched();
+    });
+  }
+
   prevStep(): void {
     this.currentStep--;
+  }
+
+  togglePasswordVisibility(): void {
+    this.showPassword = !this.showPassword;
+  }
+
+  toggleRepeatPasswordVisibility(): void {
+    this.showRepeatPassword = !this.showRepeatPassword;
+  }
+
+  private applyFieldError(message: string): void {
+    const normalizedMessage = message.toLowerCase();
+    const field = normalizedMessage.includes('email')
+      ? 'email'
+      : normalizedMessage.includes('cpf')
+        ? 'cpf'
+        : normalizedMessage.includes('telefone')
+          ? 'phone'
+          : null;
+
+    if (!field) return;
+
+    this.fieldErrors[field] = message;
+    this.registerForm.get(field)?.markAsTouched();
   }
 
 async onRegister(): Promise<void> {
@@ -158,10 +216,10 @@ async onRegister(): Promise<void> {
   };
 
   try {
-    await this.authService.register(dto);
+    const response = await this.authService.register(dto);
 
     this.toastrService.success(
-      'Conta criada com sucesso!'
+      response.message
     );
 
     await this.router.navigate(['/login']);
@@ -169,10 +227,13 @@ async onRegister(): Promise<void> {
   } catch (err: any) {
     console.error('Erro ao cadastrar:', err);
 
+    this.currentStep = 1;
+
     const message =
       err.error?.message ?? 'Erro ao cadastrar usuário';
 
     this.errorMsg = message;
+    this.applyFieldError(message);
 
     this.toastrService.error(message);
 

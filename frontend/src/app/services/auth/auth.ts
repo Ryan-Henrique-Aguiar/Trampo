@@ -6,18 +6,20 @@ import { firstValueFrom } from 'rxjs';
 import { AuthResponseDto, UserDto } from '../../dto/auth/auth-response';
 import { LoginRequestDto } from '../../dto/auth/login-request';
 import { RegisterRequestDto } from '../../dto/auth/register-request.dto';
+import { RegisterResponseDto } from '../../dto/auth/register-response.dto';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
 
-  private apiUrl = 'http://localhost:8080/api/v1/auth';
+  private apiUrl = `${environment.apiUrl}/auth`;
 
   private platformId = inject(PLATFORM_ID);
 
-  currentUser: UserDto | null = this.getStoredUser();
-
+  currentUser: UserDto | null = null;
+  
   constructor(private http: HttpClient) {}
 
   async login(dto: LoginRequestDto): Promise<AuthResponseDto> {
@@ -32,10 +34,10 @@ export class AuthService {
 
     return res;
   }
-
-  async register(dto: RegisterRequestDto): Promise<AuthResponseDto> {
+  
+  async register(dto: RegisterRequestDto): Promise<RegisterResponseDto> {
     return await firstValueFrom(
-      this.http.post<AuthResponseDto>(
+      this.http.post<RegisterResponseDto>(
         `${this.apiUrl}/register`,
         dto
       )
@@ -51,10 +53,47 @@ export class AuthService {
     this.currentUser = null;
   }
 
-  isLoggedIn(): boolean {
+  async validateSession(): Promise<boolean> {
     if (!this.isBrowser()) return false;
 
-    return !!localStorage.getItem('token');
+    localStorage.removeItem('user');
+
+    const token = this.getToken();
+
+    if (!token || this.isTokenExpired(token)) {
+      this.logout();
+      return false;
+    }
+
+    try {
+      this.currentUser = await firstValueFrom(
+        this.http.get<UserDto>(`${this.apiUrl}/me`)
+      );
+      return true;
+    } catch {
+      this.logout();
+      return false;
+    }
+  }
+
+  private isTokenExpired(token: string): boolean {
+    try {
+      const base64 = token
+        .split('.')[1]
+        .replace(/-/g, '+')
+        .replace(/_/g, '/');
+
+      const padded = base64.padEnd(
+        Math.ceil(base64.length / 4) * 4,
+        '='
+      );
+
+      const payload = JSON.parse(atob(padded));
+
+      return !payload.exp || payload.exp * 1000 <= Date.now();
+    } catch {
+      return true;
+    }
   }
 
   isProvider(): boolean {
@@ -68,25 +107,10 @@ export class AuthService {
   }
 
   private setSession(res: AuthResponseDto): void {
-    this.currentUser = res.user;
-
     if (!this.isBrowser()) return;
 
+    localStorage.removeItem('user');
     localStorage.setItem('token', res.token);
-    localStorage.setItem(
-      'user',
-      JSON.stringify(res.user)
-    );
-  }
-
-  private getStoredUser(): UserDto | null {
-    if (!this.isBrowser()) return null;
-
-    const raw = localStorage.getItem('user');
-
-    return raw
-      ? JSON.parse(raw)
-      : null;
   }
 
   private isBrowser(): boolean {

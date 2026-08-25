@@ -2,6 +2,9 @@ package br.com.trampo.backend.implementation.service;
 
 import br.com.trampo.backend.domain.Users;
 import br.com.trampo.backend.dto.RegisterDto;
+import br.com.trampo.backend.infra.exception.*;
+import br.com.trampo.backend.infra.validation.CpfValidator;
+import br.com.trampo.backend.infra.validation.PhoneValidator;
 import br.com.trampo.backend.port.dao.CategoryDao;
 import br.com.trampo.backend.port.dao.UsersCategoryDao;
 import br.com.trampo.backend.port.dao.users.UsersDao;
@@ -35,15 +38,33 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void register(RegisterDto data) {
+        String normalizedCpf = CpfValidator.normalize(data.cpf());
+        String normalizedPhone = PhoneValidator.normalize(data.phone());
+        if (!CpfValidator.isValid(normalizedCpf)) {
+            throw new InvalidCpfException("CPF inválido");
+        }
+        if (usersDao.findByCpf(normalizedCpf).isPresent()) {
+            throw new CpfAlreadyExistsException("CPF já cadastrado");
+        }
+
+        if (!PhoneValidator.isValid(normalizedPhone)) {
+            throw new InvalidPhoneException("Telefone inválido");
+        }
+        if(usersDao.findByPhone(normalizedPhone).isPresent()){
+            throw new PhoneAlreadyExistsException("Telefone já cadastrado");
+        }
+
         if (usersDao.findByEmail(data.email()).isPresent()) {
-            throw new RuntimeException("Email já cadastrado");
+            throw new EmailAlreadyExistsException("Email já cadastrado");
+        }
+        if (!data.provider() && data.categoryIds() != null && !data.categoryIds().isEmpty()) {
+            throw new InvalidCategoryException("Cliente não possui os categorias");
         }
         if (data.provider() && data.categoryIds() != null) {
             for (Integer categoryId : data.categoryIds()) {
                 if (categoryDao.findById(categoryId).isEmpty()) {
-                    throw new RuntimeException(
-                            "Categoria não encontrada: " + categoryId
-                    );
+                    throw new CategoryNotFoundException("Categoria não encontrada: " + categoryId);
+
                 }
             }
         }
@@ -58,8 +79,8 @@ public class AuthServiceImpl implements AuthService {
                     data.email(),
                     encryptedPassword,
                     data.name(),
-                    data.cpf(),
-                    data.phone(),
+                    normalizedCpf,
+                    normalizedPhone,
                     data.city(),
                     data.state(),
                     data.provider()
@@ -69,8 +90,8 @@ public class AuthServiceImpl implements AuthService {
             if (data.provider() && data.categoryIds() != null) {
                 for (Integer categoryId : data.categoryIds()) {
                     usersCategoryDao.save(
-                        savedUser.getId(),
-                        categoryId
+                            savedUser.getId(),
+                            categoryId
                     );
                 }
             }
@@ -88,16 +109,16 @@ public class AuthServiceImpl implements AuthService {
                 );
             }
             throw new RuntimeException(
-                "Erro ao cadastrar usuário",
-                e
+                    "Erro ao cadastrar usuário",
+                    e
             );
         } finally {
             try {
                 connection.setAutoCommit(true);
             } catch (SQLException e) {
                 throw new RuntimeException(
-                    "Erro ao restaurar conexão",
-                    e
+                        "Erro ao restaurar conexão",
+                        e
                 );
             }
         }

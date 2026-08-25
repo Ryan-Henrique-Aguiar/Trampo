@@ -6,11 +6,15 @@ import java.util.List;
 import java.util.Optional;
 
 public interface UsersDao {
-    Users save(Users client);
+    Users save(Users user);
 
     Optional<Users> findById(long id);
 
     Optional<Users> findByEmail(String email);
+
+    Optional<Users> findByCpf(String cpf);
+
+    Optional<Users> findByPhone(String phone);
 
     List<Users> findAll();
 }

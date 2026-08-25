@@ -6,7 +6,7 @@
       "email": "joao@email.com",
       "password": "123456",
       "cpf": "22222222222",
-      "isProvider": false,
+      "provider": false,
       "city": "Santa Rita do Sapucaí",
       "state": "MG"
     },
@@ -17,7 +17,7 @@
       "password": "123456",
       "cpf": "33333333333",
       "phone": "35999998888",
-      "isProvider": true,
+      "provider": true,
       "isAvailableForUrgency": true,
       "categoryIds": [
         1
@@ -32,7 +32,7 @@
       "password": "123456",
       "cpf": "33333333333",
       "phone": "35997337238",
-      "isProvider": true,
+      "provider": true,
       "isAvailableForUrgency": true,
       "categoryIds": [
         1,
@@ -96,7 +96,7 @@
       ],
       "createdAt": "2026-08-02T23:28:50.581Z",
       "status": "IN_PROGRESS",
-      "userId": "1",
+      "userId": "24",
       "proposalsCount": 2,
       "id": "k5HNm0IqyTY"
     },
@@ -207,6 +207,50 @@
       "userId": "1",
       "proposalsCount": 0,
       "id": "UO6ro0Pt9-s"
+    },
+    {
+      "code": "TRP-UYK3V8",
+      "title": "cabrito",
+      "description": "cabrito",
+      "categoryId": 1,
+      "address": {
+        "street": "Rua das Tulipas",
+        "number": "15",
+        "neighborhood": "Conjunto Habitacional Marco Antônio Baracat",
+        "city": "SANTA RITA DE MINAS",
+        "state": "MG",
+        "zipCode": "37539-214",
+        "complement": ""
+      },
+      "priceMax": 600,
+      "paymentMethods": [
+        "PIX"
+      ],
+      "availableDays": [
+        "MONDAY",
+        "SATURDAY",
+        "TUESDAY",
+        "SUNDAY"
+      ],
+      "availableHours": [
+        "07:00",
+        "13:00",
+        "08:00",
+        "14:00",
+        "09:00",
+        "15:00",
+        "10:00",
+        "16:00",
+        "17:00",
+        "11:00",
+        "12:00",
+        "18:00"
+      ],
+      "createdAt": "2026-08-20T23:24:38.284Z",
+      "status": "OPEN",
+      "userId": 26,
+      "proposalsCount": 0,
+      "id": "nmNREb20AHQ"
     }
   ],
   "urgentTickets": [],

@@ -12,15 +12,6 @@
 -- Campos exclusivos de cliente e de profissional convivem aqui,
 -- ficando NULL para quem não se aplica.
 -- ==========================================================
-
-
--- ==========================================================
--- TABELA: USERS
--- Antes: users (base) + client + professional (herança).
--- Agora: uma tabela só, com is_provider dizendo o "tipo".
--- Campos exclusivos de cliente e de profissional convivem aqui,
--- ficando NULL para quem não se aplica.
--- ==========================================================
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
@@ -80,7 +71,7 @@ CREATE TABLE IF NOT EXISTS user_category (
 
 -- ==========================================================
 -- TABELA: ADDRESS
--- Sem mudanças em relação ao script original.
+-- Endereço vinculado diretamente ao usuário.
 -- ==========================================================
 CREATE TABLE IF NOT EXISTS address (
     id SERIAL PRIMARY KEY,
@@ -89,7 +80,7 @@ CREATE TABLE IF NOT EXISTS address (
     neighborhood VARCHAR(100) NOT NULL,
     city VARCHAR(100) NOT NULL,
     state VARCHAR(2) NOT NULL,
-    zip_code VARCHAR(8) NOT NULL,
+    zip_code VARCHAR(10) NOT NULL,
     complement VARCHAR(100),
 
     user_id INT NOT NULL,
@@ -102,7 +93,7 @@ CREATE TABLE IF NOT EXISTS address (
 -- TABELA: TICKET (renomeada de "service" para padronizar com o
 -- restante do sistema, que já chama tudo de "ticket")
 -- Adicionei "code", que existe na interface Ticket mas não
--- existia no DDL original. client_id virou user_id porque
+-- existia no DDL original. A referência do cliente virou user_id porque
 -- não existe mais tabela client separada.
 -- ==========================================================
 CREATE TABLE IF NOT EXISTS ticket (
@@ -202,15 +193,15 @@ CREATE TABLE IF NOT EXISTS notification (
 
 -- ==========================================================
 -- TABELA: REVIEW
--- professional_id e client_id referenciam users(id) direto.
+-- professional_id e user_id referenciam users(id) direto.
 -- ==========================================================
 CREATE TABLE IF NOT EXISTS review (
     id SERIAL PRIMARY KEY,
     score INT NOT NULL CHECK(score BETWEEN 0 AND 5),
     comment TEXT NOT NULL,
     professional_id INT NOT NULL,
-    client_id INT NOT NULL,
+    user_id INT NOT NULL,
     FOREIGN KEY (professional_id) REFERENCES users(id),
-    FOREIGN KEY (client_id) REFERENCES users(id),
-    UNIQUE(professional_id, client_id)
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    UNIQUE(professional_id, user_id)
 );

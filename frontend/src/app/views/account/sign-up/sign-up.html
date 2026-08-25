@@ -1,96 +1,140 @@
 <app-auth-layout>
   <div class="form-container">
 
-    <!-- Steps -->
-    <div class="steps-indicator">
-      <div class="step" [class.active]="currentStep === 1">
-        <div class="step-circle">1</div>
-        <span>Conta</span>
-      </div>
-      <div class="step-line"></div>
-      <div class="step" [class.active]="currentStep === 2">
-        <div class="step-circle">2</div>
-        <span>Dados</span>
-      </div>
-      @if(isProvider){
-      <div class="step-line"></div>
-      <div class="step" [class.active]="currentStep === 3">
-        <div class="step-circle">3</div>
-        <span>Perfil</span>
-      </div>
-      }
-    </div>
-
     <!-- Step 1: Conta -->
     @if(currentStep === 1){
-    <h1>Criar conta</h1>
+    <div class="step-heading">
+      <h1>Criar conta</h1>
+      <span class="step-counter">Etapa 1 de 2</span>
+    </div>
+    <p class="step-description">Preencha seus dados para criar sua conta.</p>
     <a routerLink="/login" class="auth-redirect-link">Já possui conta? entrar →</a>
 
-    <form [formGroup]="registerForm">
+    <form [formGroup]="registerForm" class="register-form">
+      <span class="section-label">Dados pessoais</span>
+
       <div class="input-icon">
         <i class="fa-solid fa-user"></i>
         <input type="text" placeholder="Nome" formControlName="name" required>
       </div>
-      @if(registerForm.get('name')?.hasError('required')){
+      @if(registerForm.get('name')?.touched && registerForm.get('name')?.hasError('required')){
       <small class="error-msg">Informe seu nome.</small>
       }
 
       <div class="input-icon">
         <i class="fa-solid fa-envelope"></i>
-        <input type="email" placeholder="Email" formControlName="email">
+        <input
+          type="email"
+          placeholder="Email"
+          formControlName="email"
+          [class.server-error]="!!fieldErrors.email">
       </div>
-      @if(registerForm.get('email')?.hasError('required')){
+      @if(registerForm.get('email')?.touched && registerForm.get('email')?.hasError('required')){
       <small class="error-msg">Informe seu email.</small>
       }
-      @else if(registerForm.get('email')?.hasError('email')){
+      @else if(registerForm.get('email')?.touched && registerForm.get('email')?.hasError('email')){
       <small class="error-msg">Email inválido.</small>
       }
 
-      <div class="input-icon">
-        <i class="fa-solid fa-lock"></i>
-        <input type="password" placeholder="Senha" formControlName="password">
+      @else if(fieldErrors.email){
+      <small class="error-msg">{{ fieldErrors.email }}</small>
+      }
+
+      <div class="row">
+        <div class="field">
+          <div class="input-icon">
+            <i class="fa-solid fa-phone"></i>
+            <input
+              type="text"
+              placeholder="Telefone"
+              formControlName="phone"
+              [class.server-error]="!!fieldErrors.phone">
+          </div>
+          @if(registerForm.get('phone')?.touched && registerForm.get('phone')?.hasError('required')){
+          <small class="error-msg">Informe seu telefone.</small>
+          }
+          @else if(fieldErrors.phone){
+          <small class="error-msg">{{ fieldErrors.phone }}</small>
+          }
+        </div>
+
+        <div class="field">
+          <div class="input-icon">
+            <i class="fa-solid fa-id-card"></i>
+            <input
+              type="text"
+              placeholder="CPF"
+              formControlName="cpf"
+              [class.server-error]="!!fieldErrors.cpf">
+          </div>
+          @if(registerForm.get('cpf')?.touched && registerForm.get('cpf')?.hasError('required')){
+          <small class="error-msg">Informe seu CPF.</small>
+          }
+          @else if(fieldErrors.cpf){
+          <small class="error-msg">{{ fieldErrors.cpf }}</small>
+          }
+        </div>
       </div>
-      @if(registerForm.get('password')?.hasError('required')){
-      <small class="error-msg">Informe uma senha.</small>
-      }
-      @else if(registerForm.get('password')?.hasError('minlength')){
-      <small class="error-msg">A senha deve ter no mínimo 6 caracteres.</small>
-      }
+
+      <span class="section-label section-label-spaced">Segurança</span>
+
+      <div class="row">
+        <div class="field">
+          <div class="input-icon">
+            <i class="fa-solid fa-lock"></i>
+            <input class="password-input" [type]="showPassword ? 'text' : 'password'" placeholder="Senha" formControlName="password">
+            <button
+              type="button"
+              class="password-toggle"
+              [attr.aria-label]="showPassword ? 'Ocultar senha' : 'Mostrar senha'"
+              (click)="togglePasswordVisibility()">
+              <i [class]="showPassword ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'"></i>
+            </button>
+          </div>
+          @if(registerForm.get('password')?.touched && registerForm.get('password')?.hasError('required')){
+          <small class="error-msg">Informe uma senha.</small>
+          }
+          @else if(registerForm.get('password')?.touched && registerForm.get('password')?.hasError('minlength')){
+          <small class="error-msg">Mínimo de 6 caracteres.</small>
+          }
+        </div>
+
+        <div class="field">
+          <div class="input-icon">
+            <i class="fa-solid fa-lock"></i>
+            <input class="password-input" [type]="showRepeatPassword ? 'text' : 'password'" placeholder="Confirmar senha" formControlName="repeatPassword">
+            <button
+              type="button"
+              class="password-toggle"
+              [attr.aria-label]="showRepeatPassword ? 'Ocultar confirmação de senha' : 'Mostrar confirmação de senha'"
+              (click)="toggleRepeatPasswordVisibility()">
+              <i [class]="showRepeatPassword ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'"></i>
+            </button>
+          </div>
+          @if(registerForm.get('repeatPassword')?.touched && registerForm.get('repeatPassword')?.hasError('required')){
+          <small class="error-msg">Confirme sua senha.</small>
+          }
+          @else if(registerForm.get('repeatPassword')?.touched && registerForm.hasError('passwordsMismatch')){
+          <small class="error-msg">As senhas não coincidem.</small>
+          }
+        </div>
+      </div>
     </form>
 
-    <button class="btn-primary-auth" (click)="nextStep()">
+    <button class="btn-primary-auth next-step-button" (click)="nextStep()">
       Próxima etapa
-    </button>
-    <div class="divider">
-      <span>ou continue com</span>
-    </div>
-    <button class="btn-google">
-      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" height="20" alt="Google">
-      Google
     </button>
     }
 
-    <!-- Step 2: Dados pessoais -->
+    <!-- Step 2: Localização e perfil -->
     @if(currentStep === 2){
-    <h1>Dados pessoais</h1>
+    <div class="step-heading">
+      <h1>Localização e perfil</h1>
+      <span class="step-counter">Etapa 2 de 2</span>
+    </div>
+    <p class="step-description">Defina sua localização e o tipo de perfil.</p>
 
-    <form [formGroup]="registerForm">
-      <div class="input-icon">
-        <i class="fa-solid fa-phone"></i>
-        <input type="text" placeholder="Telefone" formControlName="phone">
-      </div>
-      @if(registerForm.get('phone')?.hasError('required')){
-      <small class="error-msg">Informe seu telefone.</small>
-      }
-
-      <div class="input-icon">
-        <i class="fa-solid fa-id-card"></i>
-        <input type="text" placeholder="CPF" formControlName="cpf">
-      </div>
-      @if(registerForm.get('cpf')?.hasError('required')){
-      <small class="error-msg">Informe seu CPF.</small>
-      }
-
+    <form [formGroup]="registerForm" class="register-form">
       <div class="input-icon">
         <i class="fa-solid fa-map"></i>
 
@@ -109,7 +153,7 @@
         </select>
       </div>
 
-      @if (registerForm.get('state')?.hasError('required')) {
+      @if (registerForm.get('state')?.touched && registerForm.get('state')?.hasError('required')) {
       <small class="error-msg">
         Selecione um estado.
       </small>
@@ -133,7 +177,7 @@
         </select>
       </div>
 
-      @if (registerForm.get('city')?.hasError('required')) {
+      @if (registerForm.get('city')?.touched && registerForm.get('city')?.hasError('required')) {
       <small class="error-msg">
         Selecione uma cidade.
       </small>
@@ -150,63 +194,41 @@
         <input type="checkbox" id="provider" formControlName="provider">
         <label for="provider" class="toggle"></label>
       </div>
+
+      @if(isProvider){
+      <div class="form-group">
+        <label>Categorias</label>
+
+        <ng-select
+          [items]="categories"
+          bindLabel="name"
+          bindValue="id"
+          [multiple]="true"
+          [searchable]="false"
+          [closeOnSelect]="false"
+          placeholder="Selecione as categorias"
+          formControlName="categoryIds">
+        </ng-select>
+
+        @if (
+          registerForm.get('categoryIds')?.invalid &&
+          registerForm.get('categoryIds')?.touched
+        ) {
+          <small class="error-msg">
+            Selecione pelo menos uma categoria.
+          </small>
+        }
+      </div>
+      }
     </form>
 
     <div class="form-actions">
       <button class="btn-secondary-auth" (click)="prevStep()">Voltar</button>
-      @if(isProvider){
-      <button class="btn-primary-auth" [disabled]="!isStepValid(2)" (click)="nextStep()">Próxima etapa</button>
-      } @else {
-      <button class="btn-primary-auth" [disabled]="!isStepValid(2)" (click)="onRegister()">Criar conta</button>
-      }
+      <button class="btn-primary-auth" [disabled]="loading" (click)="onRegister()">
+        {{ loading ? 'Criando conta...' : 'Criar conta' }}
+      </button>
     </div>
     }
-
-<!-- Step 3: Perfil profissional -->
-@if (currentStep === 3) {
-  <h1>Perfil profissional</h1>
-
-  <form [formGroup]="registerForm">
-    <div class="form-group">
-      <label>Categorias</label>
-
-      <ng-select
-        [items]="categories"
-        bindLabel="name"
-        bindValue="id"
-        [multiple]="true"
-        [searchable]="false"
-        [closeOnSelect]="false"
-        placeholder="Selecione as categorias"
-        formControlName="categoryIds">
-      </ng-select>
-
-      @if (
-        registerForm.get('categoryIds')?.invalid &&
-        registerForm.get('categoryIds')?.touched
-      ) {
-        <small class="error-msg">
-          Selecione pelo menos uma categoria.
-        </small>
-      }
-    </div>
-  </form>
-
-  <div class="form-actions">
-    <button
-      class="btn-secondary-auth"
-      (click)="prevStep()">
-      Voltar
-    </button>
-
-    <button
-      class="btn-primary-auth"
-      [disabled]="!isStepValid(3) || loading"
-      (click)="onRegister()">
-      {{ loading ? 'Criando conta...' : 'Criar conta' }}
-    </button>
-  </div>
-}
 
   </div>
 </app-auth-layout>

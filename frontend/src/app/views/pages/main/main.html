@@ -5,7 +5,7 @@
         </div>
 
         <nav class="sidebar-nav">
-            <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+            <a routerLink="/home" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
                 <i class="fa-solid fa-house"></i>
                 <span>Início</span>
             </a>
@@ -58,7 +58,7 @@
             </div>
 
             <div class="navbar-icon">
-                @if (isProvider()) {
+                @if (provider) {
                 <div class="view-mode-switch-wrapper">
                     <button type="button" class="view-mode-switch" [class.view-mode-switch--provider]="isProviderMode"
                         (click)="toggleMode()">
@@ -74,6 +74,10 @@
 
                 <i class="fa-solid fa-bell"></i>
                 <i class="fa-solid fa-gear icon-settings"></i>
+                <button type="button" class="logout-button" (click)="logout()" aria-label="Sair">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Sair</span>
+                </button>
             </div>
         </header>
 
@@ -87,7 +91,7 @@
 
         <!-- Barra inferior: visível apenas no mobile -->
         <nav class="bottom-nav">
-            <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+            <a routerLink="/home" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
                 <i class="fa-solid fa-house"></i>
                 <span>Início</span>
             </a>

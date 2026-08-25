@@ -10,6 +10,7 @@ import {
 } from '@angular/forms';
 
 import {
+  ActivatedRoute,
   Router,
   RouterLink
 } from '@angular/router';
@@ -38,6 +39,7 @@ export class SignIn {
     private fb: FormBuilder,
     private authService: AuthService,
     private router: Router,
+    private route: ActivatedRoute,
     private cdr: ChangeDetectorRef,
     private toastrService: ToastrService
   ) {
@@ -75,12 +77,13 @@ export class SignIn {
 
     this.toastrService.success('Login realizado com sucesso!');
 
-    await this.router.navigate(['/']);
+    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/home';
+    await this.router.navigateByUrl(returnUrl);
 
-  } catch (err) {
-    console.error('Erro no login:', err);
+  } catch (err: any) {
+    const message = err.error.message ?? 'Erro ao realizar login'
 
-    this.toastrService.error('Credenciais inválidas');
+    this.toastrService.error(message);
   } finally {
     this.loading = false;
     this.cdr.detectChanges();

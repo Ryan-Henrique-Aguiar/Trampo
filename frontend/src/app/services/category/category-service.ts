@@ -2,14 +2,14 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom, Observable } from 'rxjs';
 import { Category } from '../../models/category.model';
-import { environment } from '../../../environments/environment.development';
+import { environment } from '../../../environments/environment';
 
 
 @Injectable({ providedIn: 'root' })
 export class CategoryService {
   private http = inject(HttpClient);
 
-  private baseUrl = `http://localhost:8080/api/v1/categories`;
+  private baseUrl = `${environment.apiUrl}/categories`;
 
   async getAll(): Promise<Category[]> {
     return await firstValueFrom (

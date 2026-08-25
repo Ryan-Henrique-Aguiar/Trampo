@@ -1,7 +1,15 @@
 package br.com.trampo.backend.dto;
 
-public record UserDto(String name,
-                      double rating,
-                      int completed_services_count,
-                      boolean is_Provider) {
+import java.time.LocalDate;
+
+public record UserDto(Integer id,
+                      String name,
+                      Double rating,
+                      boolean provider,
+                      boolean availableForUrgency,
+                      Integer createdServicesCount,
+                      LocalDate serviceStartDate,
+                      Integer completedServicesCount,
+                      String city,
+                      String state) {
 }

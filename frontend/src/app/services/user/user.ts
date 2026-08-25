@@ -2,12 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { firstValueFrom, Observable } from 'rxjs';
 import { User } from '../../models/user.model';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UserService {
-  private baseUrl = 'http://localhost:3000/users';
+  private baseUrl = `${environment.devApiUrl}/users`;
 
   constructor(private http: HttpClient) {}
 
@@ -23,7 +24,7 @@ export class UserService {
     city: string
   ): Promise<User[]> {
     const params = new HttpParams()
-      .set('isProvider', 'true')
+      .set('provider', 'true')
       .set('isAvailableForUrgency', 'true')
       .set('state', state)
       .set('city', city);

@@ -41,7 +41,7 @@ public class Users implements UserDetails {
     private List<Category> categories = new ArrayList<>();
 
     // Construtor para o metodo Register
-    public Users(String email, String password, String name, String cpf, String phone, String city, String state, boolean isProvider) {
+    public Users(String email, String password, String name, String cpf, String phone, String city, String state, boolean provider) {
         this.email = email;
         this.password = password;
         this.name = name;
