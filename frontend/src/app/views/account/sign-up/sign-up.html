@@ -48,10 +48,15 @@
               type="text"
               placeholder="Telefone"
               formControlName="phone"
+              inputmode="numeric"
+              maxlength="15"
               [class.server-error]="!!fieldErrors.phone">
           </div>
           @if(registerForm.get('phone')?.touched && registerForm.get('phone')?.hasError('required')){
           <small class="error-msg">Informe seu telefone.</small>
+          }
+          @else if(registerForm.get('phone')?.touched && registerForm.get('phone')?.hasError('digitLength')){
+          <small class="error-msg">O telefone deve conter 11 dígitos.</small>
           }
           @else if(fieldErrors.phone){
           <small class="error-msg">{{ fieldErrors.phone }}</small>
@@ -65,10 +70,15 @@
               type="text"
               placeholder="CPF"
               formControlName="cpf"
+              inputmode="numeric"
+              maxlength="14"
               [class.server-error]="!!fieldErrors.cpf">
           </div>
           @if(registerForm.get('cpf')?.touched && registerForm.get('cpf')?.hasError('required')){
           <small class="error-msg">Informe seu CPF.</small>
+          }
+          @else if(registerForm.get('cpf')?.touched && registerForm.get('cpf')?.hasError('digitLength')){
+          <small class="error-msg">O CPF deve conter 11 dígitos.</small>
           }
           @else if(fieldErrors.cpf){
           <small class="error-msg">{{ fieldErrors.cpf }}</small>

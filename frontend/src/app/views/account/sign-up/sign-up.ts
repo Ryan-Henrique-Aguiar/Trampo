@@ -54,8 +54,8 @@ export class SignUp implements OnInit {
       password: new FormControl('', [Validators.required, Validators.minLength(6)]),
       repeatPassword: new FormControl('', Validators.required),
       email: new FormControl('', [Validators.required, Validators.email]),
-      phone: new FormControl('', Validators.required),
-      cpf: new FormControl('', Validators.required),
+      phone: new FormControl('', [Validators.required, this.exactDigitsValidator(11)]),
+      cpf: new FormControl('', [Validators.required, this.exactDigitsValidator(11)]),
       state: new FormControl('', Validators.required),
       city: new FormControl({ value: '', disabled: true }, Validators.required),
       provider: new FormControl(false),
@@ -99,6 +99,64 @@ export class SignUp implements OnInit {
         this.fieldErrors[field] = '';
       });
     });
+
+    this.setupInputMasks();
+  }
+
+  private exactDigitsValidator(length: number) {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const digits = this.onlyDigits(control.value ?? '');
+
+      if (!digits) return null;
+
+      return digits.length === length ? null : { digitLength: true };
+    };
+  }
+
+  private setupInputMasks(): void {
+    const cpfControl = this.registerForm.get('cpf');
+    const phoneControl = this.registerForm.get('phone');
+
+    cpfControl?.valueChanges.subscribe((value) => {
+      const formattedCpf = this.formatCpf(value ?? '');
+
+      if (value !== formattedCpf) {
+        cpfControl.setValue(formattedCpf, { emitEvent: false });
+      }
+    });
+
+    phoneControl?.valueChanges.subscribe((value) => {
+      const formattedPhone = this.formatPhone(value ?? '');
+
+      if (value !== formattedPhone) {
+        phoneControl.setValue(formattedPhone, { emitEvent: false });
+      }
+    });
+  }
+
+  private formatCpf(value: string): string {
+    const digits = this.onlyDigits(value).slice(0, 11);
+
+    if (digits.length <= 3) return digits;
+    if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
+    if (digits.length <= 9) {
+      return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
+    }
+
+    return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
+  }
+
+  private formatPhone(value: string): string {
+    const digits = this.onlyDigits(value).slice(0, 11);
+
+    if (digits.length <= 2) return digits;
+    if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+  }
+
+  private onlyDigits(value: string): string {
+    return value.replace(/\D/g, '');
   }
 
   private updateProviderValidators(provider: boolean): void {
@@ -212,8 +270,8 @@ async onRegister(): Promise<void> {
     name: this.registerForm.value.name!,
     email: this.registerForm.value.email!,
     password: this.registerForm.value.password!,
-    cpf: this.registerForm.value.cpf!,
-    phone: this.registerForm.value.phone!,
+    cpf: this.onlyDigits(this.registerForm.value.cpf!),
+    phone: this.onlyDigits(this.registerForm.value.phone!),
     provider: this.registerForm.value.provider!,
     city: this.registerForm.value.city!,
     state: this.registerForm.value.state!,
