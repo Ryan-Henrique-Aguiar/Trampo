@@ -106,6 +106,7 @@ export class SignUp implements OnInit {
     if (provider) {
       categoryIds?.setValidators([Validators.required]);
     } else {
+      categoryIds?.setValue([]);
       categoryIds?.clearValidators();
     }
 
@@ -177,7 +178,7 @@ async onStateChange(): Promise<void> {
     this.showRepeatPassword = !this.showRepeatPassword;
   }
 
-  private applyFieldError(message: string): void {
+  private applyFieldError(message: string): boolean {
     const normalizedMessage = message.toLowerCase();
     const field = normalizedMessage.includes('email')
       ? 'email'
@@ -187,17 +188,21 @@ async onStateChange(): Promise<void> {
           ? 'phone'
           : null;
 
-    if (!field) return;
+    if (!field) return false;
 
     this.fieldErrors[field] = message;
     this.registerForm.get(field)?.markAsTouched();
+    return true;
   }
 
 async onRegister(): Promise<void> {
-  if (this.registerForm.invalid || this.loading) {
-    this.registerForm.markAllAsTouched();
+  if (this.loading) {
     return;
   }
+
+  this.markStepAsTouched(2);
+
+  if (this.registerForm.invalid || !this.isStepValid(2)) return;
 
   this.loading = true;
   this.errorMsg = '';
@@ -227,13 +232,14 @@ async onRegister(): Promise<void> {
   } catch (err: any) {
     console.error('Erro ao cadastrar:', err);
 
-    this.currentStep = 1;
-
     const message =
       err.error?.message ?? 'Erro ao cadastrar usuário';
 
     this.errorMsg = message;
-    this.applyFieldError(message);
+
+    if (this.applyFieldError(message)) {
+      this.currentStep = 1;
+    }
 
     this.toastrService.error(message);
 

@@ -11,7 +11,12 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
   const router = inject(Router);
   const token = authService.getToken();
 
-  const authenticatedRequest = token && request.url.startsWith(environment.apiUrl)
+  const isApiRequest = request.url.startsWith(environment.apiUrl);
+  const isPublicAuthRequest = request.url === `${environment.apiUrl}/auth/login`
+    || request.url === `${environment.apiUrl}/auth/register`;
+  const shouldAuthenticate = token !== null && isApiRequest && !isPublicAuthRequest;
+
+  const authenticatedRequest = shouldAuthenticate
     ? request.clone({
         setHeaders: {
           Authorization: `Bearer ${token}`
@@ -21,7 +26,7 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
 
   return next(authenticatedRequest).pipe(
     catchError((error: HttpErrorResponse) => {
-      if (error.status === 401 && token) {
+      if (error.status === 401 && shouldAuthenticate) {
         authService.logout();
         void router.navigate(['/login']);
       }

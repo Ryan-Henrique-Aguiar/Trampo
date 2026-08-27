@@ -54,14 +54,8 @@ input[type="text"]::placeholder {
 
 .auth-options {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
-}
-
-.remember-me {
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
 .forgot-password {

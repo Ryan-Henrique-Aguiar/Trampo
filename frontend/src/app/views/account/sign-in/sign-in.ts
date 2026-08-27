@@ -81,7 +81,7 @@ export class SignIn {
     await this.router.navigateByUrl(returnUrl);
 
   } catch (err: any) {
-    const message = err.error.message ?? 'Erro ao realizar login'
+    const message = err.error?.message ?? 'Erro ao realizar login';
 
     this.toastrService.error(message);
   } finally {

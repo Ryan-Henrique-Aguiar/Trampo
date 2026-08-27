@@ -48,26 +48,15 @@
       }
 
       <div class="auth-options">
-        <div class="remember-me">
-          <input
-            type="checkbox"
-            name="remember"
-            id="remember">
-
-          <label for="remember">
-            Lembrar dados
-          </label>
-        </div>
-
-        <a href="#" class="forgot-password">
+        <span class="forgot-password">
           Esqueceu sua senha?
-        </a>
+        </span>
       </div>
 
       <button
         type="submit"
         class="btn-primary-auth"
-        [disabled]="loginForm.invalid || loading">
+        [disabled]="loading">
 
         {{ loading ? 'Entrando...' : 'Entrar' }}
 
