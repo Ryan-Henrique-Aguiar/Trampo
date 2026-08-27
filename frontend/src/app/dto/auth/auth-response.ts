@@ -9,7 +9,6 @@ export interface UserDto {
   completedServicesCount: number | null;
   city: string;
   state: string;
-  categoryIds?: number[];
 }
 
 export interface AuthResponseDto {

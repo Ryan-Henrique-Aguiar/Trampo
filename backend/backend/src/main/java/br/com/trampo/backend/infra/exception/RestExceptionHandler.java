@@ -16,13 +16,27 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(EmailAlreadyExistsException.class)
     public ResponseEntity<RestErrorMessage> emailAlreadyExistsHandler(EmailAlreadyExistsException exception) {
         RestErrorMessage restErrorMessage = new RestErrorMessage(HttpStatus.CONFLICT, "Email já cadastrado!");
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(restErrorMessage);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(restErrorMessage);
     }
 
     @ExceptionHandler(CategoryNotFoundException.class)
     public ResponseEntity<RestErrorMessage> categoryNotFoundHandler(CategoryNotFoundException exception) {
         RestErrorMessage threatResponse = new RestErrorMessage(HttpStatus.NOT_FOUND, "Categoria não encontrada");
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(threatResponse);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(threatResponse);
+    }
+
+    @ExceptionHandler(InvalidRequestException.class)
+    public ResponseEntity<RestErrorMessage> invalidRequestHandler(
+            InvalidRequestException exception
+    ) {
+        RestErrorMessage error = new RestErrorMessage(
+                HttpStatus.BAD_REQUEST,
+                exception.getMessage()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(error);
     }
 
     @ExceptionHandler(InvalidCategoryException.class)

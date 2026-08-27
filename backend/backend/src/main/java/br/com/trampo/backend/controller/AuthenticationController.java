@@ -6,13 +6,13 @@ import br.com.trampo.backend.dto.LoginResponseDto;
 import br.com.trampo.backend.dto.RegisterDto;
 import br.com.trampo.backend.dto.UserDto;
 import br.com.trampo.backend.infra.security.TokenService;
+import br.com.trampo.backend.infra.validation.AuthValidator;
 import br.com.trampo.backend.mapper.user.UserMapper;
 import br.com.trampo.backend.port.service.auth.AuthService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -38,7 +38,8 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDto> login(@RequestBody @Validated AuthenticationDto data) {
+    public ResponseEntity<LoginResponseDto> login(@RequestBody AuthenticationDto data) {
+        AuthValidator.validateLogin(data);
         // Variável que obtem o valor de uma instância de uma classe do spring security
         var usernamePassword = new UsernamePasswordAuthenticationToken(data.email(), data.password());
         var auth = this.authenticationManager.authenticate(usernamePassword);
@@ -54,7 +55,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<Map<String, String>> register(@RequestBody @Validated RegisterDto data) {
+    public ResponseEntity<Map<String, String>> register(@RequestBody RegisterDto data) {
         authService.register(data);
         return ResponseEntity.ok().body(
                 Map.of("message", "Usuário criado com sucesso!")

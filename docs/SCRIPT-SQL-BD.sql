@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS users (
     name VARCHAR(100) NOT NULL,
     password VARCHAR(255) NOT NULL,
     email VARCHAR(150) UNIQUE NOT NULL,
-    phone VARCHAR(20) NOT NULL,
+    phone VARCHAR(20) UNIQUE NOT NULL,
     nickname VARCHAR(100),
     cpf CHAR(11) UNIQUE NOT NULL,
     rating NUMERIC(3,2),
@@ -34,8 +34,8 @@ CREATE TABLE IF NOT EXISTS users (
     is_available_for_urgency BOOLEAN NOT NULL DEFAULT FALSE,
 
     -- Localização (User.city / User.state)
-    city VARCHAR(100),
-    state VARCHAR(2)
+    city VARCHAR(100) NOT NULL,
+    state VARCHAR(2) NOT NULL
 );
 
 -- ==========================================================

@@ -61,14 +61,14 @@ public class TicketDaoTest {
                 stmt.executeUpdate("DELETE FROM category WHERE id = " + categoryIdSalva);
             }
 
-            // Usuário
-            if (userIdSalvo != null) {
-                stmt.executeUpdate("DELETE FROM users WHERE id = " + userIdSalvo);
-            }
-
             // Endereço
             if (addressIdSalvo != null) {
                 stmt.executeUpdate("DELETE FROM address WHERE id = " + addressIdSalvo);
+            }
+
+            // Usuário
+            if (userIdSalvo != null) {
+                stmt.executeUpdate("DELETE FROM users WHERE id = " + userIdSalvo);
             }
         }
 
@@ -80,25 +80,6 @@ public class TicketDaoTest {
     void deveSalvarTicketComSucesso() throws SQLException {
 
         long timestamp = System.currentTimeMillis();
-
-        //-----------------------------
-        // ENDEREÇO
-        //-----------------------------
-        Address address = new Address();
-
-        address.setStreet("Avenida Paulista");
-        address.setNumber("1000");
-        address.setNeighborhood("Bela Vista");
-        address.setCity("São Paulo");
-        address.setState("SP");
-        address.setZipCode("01310100");
-        address.setComplement("Apartamento 101");
-
-        Address addressSalvo = addressDao.save(address);
-
-        assertNotNull(addressSalvo.getId());
-
-        addressIdSalvo = addressSalvo.getId();
 
         //-----------------------------
         // USUÁRIO
@@ -131,11 +112,31 @@ public class TicketDaoTest {
         userIdSalvo = userSalvo.getId();
 
         //-----------------------------
+        // ENDEREÇO
+        //-----------------------------
+        Address address = new Address();
+
+        address.setStreet("Avenida Paulista");
+        address.setNumber("1000");
+        address.setNeighborhood("Bela Vista");
+        address.setCity("São Paulo");
+        address.setState("SP");
+        address.setZipCode("01310100");
+        address.setComplement("Apartamento 101");
+        address.setUser(userSalvo);
+
+        Address addressSalvo = addressDao.save(address);
+
+        assertNotNull(addressSalvo.getId());
+
+        addressIdSalvo = addressSalvo.getId();
+
+        //-----------------------------
         // CATEGORIA
         //-----------------------------
         Category category = new Category();
 
-        category.setName("Elétrica");
+        category.setName("Elétrica " + timestamp);
         category.setIconUrl("assets/icons/eletrica.svg");
 
         Category categorySalva = categoryDao.save(category);
@@ -163,7 +164,7 @@ public class TicketDaoTest {
 
         ticket.setProposalsCount(0);
 
-        ticket.setClient(userSalvo);
+        ticket.setUser(userSalvo);
 
         ticket.setAddress(addressSalvo);
 

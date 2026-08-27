@@ -3,6 +3,7 @@ package br.com.trampo.backend.implementation.service;
 import br.com.trampo.backend.domain.Users;
 import br.com.trampo.backend.dto.RegisterDto;
 import br.com.trampo.backend.infra.exception.*;
+import br.com.trampo.backend.infra.validation.AuthValidator;
 import br.com.trampo.backend.infra.validation.CpfValidator;
 import br.com.trampo.backend.infra.validation.PhoneValidator;
 import br.com.trampo.backend.port.dao.CategoryDao;
@@ -38,6 +39,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void register(RegisterDto data) {
+        AuthValidator.validateRegister(data);
         String normalizedCpf = CpfValidator.normalize(data.cpf());
         String normalizedPhone = PhoneValidator.normalize(data.phone());
         if (!CpfValidator.isValid(normalizedCpf)) {
@@ -56,6 +58,9 @@ public class AuthServiceImpl implements AuthService {
 
         if (usersDao.findByEmail(data.email()).isPresent()) {
             throw new EmailAlreadyExistsException("Email já cadastrado");
+        }
+        if (data.provider() && (data.categoryIds() == null || data.categoryIds().isEmpty())) {
+            throw new InvalidCategoryException("Prestador deve possuir pelo menos uma categoria");
         }
         if (!data.provider() && data.categoryIds() != null && !data.categoryIds().isEmpty()) {
             throw new InvalidCategoryException("Cliente não possui os categorias");
