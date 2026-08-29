@@ -1,1 +1,46 @@
-<p>faq works!</p>
+<section class="help-page">
+  <div class="section-header">
+    <h1>Perguntas frequentes</h1>
+    <p>Encontre respostas rápidas para as principais dúvidas sobre o Trampo.</p>
+  </div>
+
+  <div class="faq-search">
+    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+    <input type="text" [(ngModel)]="busca" placeholder="Buscar por uma palavra-chave..."
+      aria-label="Buscar nas perguntas frequentes">
+    @if (busca) {
+    <button type="button" class="clear-btn" (click)="limparBusca()" aria-label="Limpar busca">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+    }
+  </div>
+
+  @if (faqsFiltradas.length) {
+  <div class="faq-list">
+    @for (faq of faqsFiltradas; track faq.pergunta) {
+    <div class="faq-item" [class.open]="openIndex === $index">
+      <h3>
+        <button type="button" class="faq-question" [id]="'faq-btn-' + $index"
+          [attr.aria-expanded]="openIndex === $index" [attr.aria-controls]="'faq-panel-' + $index"
+          (click)="toggle($index)">
+          <span>{{ faq.pergunta }}</span>
+          <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+        </button>
+      </h3>
+      <div class="faq-answer-wrapper" [id]="'faq-panel-' + $index" role="region"
+        [attr.aria-labelledby]="'faq-btn-' + $index">
+        <div class="faq-answer">
+          <p>{{ faq.resposta }}</p>
+        </div>
+      </div>
+    </div>
+    }
+  </div>
+  } @else {
+  <div class="empty-state">
+    <i class="fa-regular fa-face-frown" aria-hidden="true"></i>
+    <p>Nenhuma pergunta encontrada para "{{ busca }}".</p>
+    <button type="button" class="clear-btn-text" (click)="limparBusca()">Limpar busca</button>
+  </div>
+  }
+</section>  
