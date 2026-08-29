@@ -44,8 +44,9 @@ public class TicketController {
             @RequestParam(required = false) Integer categoryId,
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice
-            ){
+    ) {
         return ResponseEntity.ok(ticketService.getAvailableTickets(user, categoryId, minPrice, maxPrice));
     }
+
 
 }

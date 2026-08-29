@@ -168,12 +168,10 @@ CREATE TABLE IF NOT EXISTS urgent_ticket (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     user_id INT NOT NULL,
-    provider_id INT NOT NULL,
     category_id INT NOT NULL,
     address_id INT NOT NULL,
 
     FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (provider_id) REFERENCES users(id),
     FOREIGN KEY (category_id) REFERENCES category(id),
     FOREIGN KEY (address_id) REFERENCES address(id),
     CHECK (status IN ('IN_PROGRESS', 'COMPLETED', 'CANCELLED'))

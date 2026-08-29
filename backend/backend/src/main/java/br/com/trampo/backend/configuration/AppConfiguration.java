@@ -8,6 +8,7 @@ import br.com.trampo.backend.implementation.dao.ticket.AvailableHourDaoImpl;
 import br.com.trampo.backend.implementation.dao.ticket.TicketPaymentMethodDaoImpl;
 import br.com.trampo.backend.implementation.dao.users.UsersPostgresDaoImpl;
 import br.com.trampo.backend.implementation.dao.ticket.TicketPostgresDaoImpl;
+import br.com.trampo.backend.implementation.dao.ticket.UrgentTicketPostgresDaoImpl;
 import br.com.trampo.backend.port.dao.AddressDao;
 import br.com.trampo.backend.port.dao.CategoryDao;
 import br.com.trampo.backend.port.dao.UsersCategoryDao;
@@ -16,76 +17,60 @@ import br.com.trampo.backend.port.dao.ticket.AvailableHourDao;
 import br.com.trampo.backend.port.dao.ticket.TicketPaymentMethodDao;
 import br.com.trampo.backend.port.dao.users.UsersDao;
 import br.com.trampo.backend.port.dao.ticket.TicketDao;
-import org.springframework.beans.factory.annotation.Value;
+import br.com.trampo.backend.port.dao.ticket.UrgentTicketDao;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import javax.sql.DataSource;
 
 @Configuration
 public class AppConfiguration {
 
-    @Value("${db.url}")
-    private String dbUrl;
-    @Value("${db.User}")
-    private String dbUser;
-    @Value("${db.password}")
-    private String dbPassword;
-
-    /**
-     * Bean central de conexão JDBC pura.
-     * O Spring gerencia essa instância e a injeta nos DAOs abaixo.
-     */
-
     @Bean
-    public Connection connection() {
-        try {
-            return DriverManager.getConnection(dbUrl, dbUser, dbPassword);
-        } catch (SQLException exception) {
-            throw new RuntimeException("Erro ao conectar ao banco de dados", exception);
-        }
+    public UsersDao usersDao(DataSource dataSource) {
+        return new UsersPostgresDaoImpl(dataSource);
+    }
+
+    // Renomeado de getMedicDao para addressDao para refletir a entidade correta
+    @Bean
+    public AddressDao addressDao(DataSource dataSource) {
+        return new AddressPostgresDaoImpl(dataSource);
+    }
+
+    // Renomeado de getPatientDao para ticketDao
+    @Bean
+    public TicketDao ticketDao(DataSource dataSource, AddressDao addressDao) {
+        return new TicketPostgresDaoImpl(dataSource, addressDao);
+    }
+
+    // Novo Bean para o UrgentTicketDao
+    @Bean
+    public UrgentTicketDao urgentTicketDao(DataSource dataSource) {
+        return new UrgentTicketPostgresDaoImpl(dataSource);
     }
 
     @Bean
-    public UsersDao usersDao(Connection connection) {
-        return new UsersPostgresDaoImpl(connection);
+    public CategoryDao categoryDao(DataSource dataSource) {
+        return new CategoryPostgresDaoImpl(dataSource);
     }
 
     @Bean
-    public TicketDao getPatientDao(final Connection connection, final AddressDao addressDao) {
-        return new TicketPostgresDaoImpl(connection, addressDao);
+    public UsersCategoryDao usersCategoryDao(DataSource dataSource) {
+        return new UsersCategoryPostgresDaoImpl(dataSource);
     }
 
     @Bean
-    public AddressDao getMedicDao(final Connection connection) {
-        return new AddressPostgresDaoImpl(connection);
+    public AvailableDayDao availableDayDao(DataSource dataSource) {
+        return new AvailableDayDaoImpl(dataSource);
     }
 
     @Bean
-    public CategoryDao categoryDao(final Connection connection) {
-        return new CategoryPostgresDaoImpl(connection);
+    public AvailableHourDao availableHourDao(DataSource dataSource) {
+        return new AvailableHourDaoImpl(dataSource);
     }
 
     @Bean
-    public UsersCategoryDao usersCategoryDao(final Connection connection) {
-        return new UsersCategoryPostgresDaoImpl(connection);
+    public TicketPaymentMethodDao ticketPaymentMethodDao(DataSource dataSource) {
+        return new TicketPaymentMethodDaoImpl(dataSource);
     }
-
-    @Bean
-    public AvailableDayDao availableDayDao(final Connection connection) {
-        return new AvailableDayDaoImpl(connection);
-    }
-
-    @Bean
-    public AvailableHourDao availableHourDao(final Connection connection) {
-        return new AvailableHourDaoImpl(connection);
-    }
-
-    @Bean
-    public TicketPaymentMethodDao ticketPaymentMethodDao(final Connection connection) {
-        return new TicketPaymentMethodDaoImpl(connection);
-    }
-
 }

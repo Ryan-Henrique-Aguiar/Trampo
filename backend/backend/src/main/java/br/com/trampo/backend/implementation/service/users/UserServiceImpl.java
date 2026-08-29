@@ -10,6 +10,7 @@ import br.com.trampo.backend.port.dao.users.UsersDao;
 import br.com.trampo.backend.port.service.users.UserService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +24,7 @@ public class UserServiceImpl implements UserService {
         this.usersDao = usersDao;
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<UserDto> findAllUsers() {
 

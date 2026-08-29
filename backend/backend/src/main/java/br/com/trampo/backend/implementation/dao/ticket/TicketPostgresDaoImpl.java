@@ -2,12 +2,15 @@ package br.com.trampo.backend.implementation.dao.ticket;
 
 import br.com.trampo.backend.domain.Address;
 import br.com.trampo.backend.domain.Category;
-import br.com.trampo.backend.domain.ticket.Ticket;
 import br.com.trampo.backend.domain.Users;
 import br.com.trampo.backend.domain.enums.StatusTicket;
+import br.com.trampo.backend.domain.ticket.Ticket;
+import br.com.trampo.backend.infra.exception.DatabaseException;
 import br.com.trampo.backend.port.dao.AddressDao;
 import br.com.trampo.backend.port.dao.ticket.TicketDao;
+import org.springframework.jdbc.datasource.DataSourceUtils;
 
+import javax.sql.DataSource;
 import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
@@ -15,25 +18,19 @@ import java.util.List;
 import java.util.Optional;
 
 public class TicketPostgresDaoImpl implements TicketDao {
-    private final Connection connection;
+
+    private final DataSource dataSource;
     private final AddressDao addressDao;
 
-
-    public TicketPostgresDaoImpl(Connection connection, AddressDao addressDao) {
-        this.connection = connection;
+    public TicketPostgresDaoImpl(DataSource dataSource, AddressDao addressDao) {
+        this.dataSource = dataSource;
         this.addressDao = addressDao;
-
     }
 
-
     @Override
-    public Ticket save(Ticket ticket) throws SQLException {
-        boolean originalAutoCommit = connection.getAutoCommit();
+    public Ticket save(Ticket ticket) {
 
         try {
-            connection.setAutoCommit(false); // Início da transação
-
-            // 1. Salva o endereço se for novo (id == null ou id == 0)
             if (ticket.getAddress() != null &&
                     (ticket.getAddress().getId() == null || ticket.getAddress().getId() == 0)) {
 
@@ -41,12 +38,11 @@ public class TicketPostgresDaoImpl implements TicketDao {
                 ticket.setAddress(savedAddress);
             }
 
-            // 2. Insere o Ticket com a FK address_id vinculada
-            String sql = "INSERT INTO ticket (code ,title, description, price_max, " +
+            String sql = "INSERT INTO ticket (code, title, description, price_max, " +
                     "user_id, address_id, category_id) " +
                     "VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id";
 
-            try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            try (Connection connection = dataSource.getConnection(); PreparedStatement stmt = connection.prepareStatement(sql)) {
                 stmt.setString(1, ticket.getCode());
                 stmt.setString(2, ticket.getTitle());
                 stmt.setString(3, ticket.getDescription());
@@ -62,26 +58,22 @@ public class TicketPostgresDaoImpl implements TicketDao {
                 }
             }
 
-            connection.commit(); // Efetiva no banco
             return ticket;
 
         } catch (SQLException e) {
-            connection.rollback(); // Cancela tudo se falhar
-            throw e;
-        } finally {
-            connection.setAutoCommit(originalAutoCommit);
+            throw new DatabaseException("Erro ao salvar ticket no banco de dados.", e);
         }
     }
 
     @Override
-    public Optional<Ticket> findById(int id) throws SQLException {
-        // Query com INNER JOIN para trazer os dados do Ticket e do Address juntos
+    public Optional<Ticket> findById(int id) {
+
         String sql = "SELECT t.*, a.street, a.number, a.neighborhood, a.city, a.state, a.zip_code, a.complement " +
                 "FROM ticket t " +
                 "INNER JOIN address a ON t.address_id = a.id " +
                 "WHERE t.id = ?";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection(); PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, id);
 
             try (ResultSet rs = stmt.executeQuery()) {
@@ -90,43 +82,44 @@ public class TicketPostgresDaoImpl implements TicketDao {
                     return Optional.of(ticket);
                 }
             }
+            return Optional.empty();
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao buscar ticket por ID.", e);
         }
-        return Optional.empty();
     }
 
     @Override
-    public List<Ticket> findAvailableForProvider(int providerId, String city, String state, Integer categoryId, BigDecimal minPrice, BigDecimal maxPrice) throws SQLException {
+    public List<Ticket> findAvailableForProvider(int providerId, String city, String state, Integer categoryId, BigDecimal minPrice, BigDecimal maxPrice) {
+
         List<Ticket> tickets = new ArrayList<>();
 
         String sql = """
-            SELECT DISTINCT
-                t.*,
-                a.street,
-                a.number,
-                a.neighborhood,
-                a.city,
-                a.state,
-                a.zip_code,
-                a.complement
-            FROM ticket t
-            INNER JOIN address a
-                ON a.id = t.address_id
-            INNER JOIN user_category uc
-                ON uc.category_id = t.category_id
-               AND uc.user_id = ?
-            WHERE t.status = 'OPEN'
-              AND t.user_id <> ?
-              AND LOWER(a.city) = LOWER(?)
-              AND a.state = ?
-              AND (? IS NULL OR t.category_id = ?)
-              AND (? IS NULL OR t.price_max >= ?)
-              AND (? IS NULL OR t.price_max <= ?)
-            ORDER BY t.created_at DESC
-            """;
+                SELECT DISTINCT
+                    t.*,
+                    a.street,
+                    a.number,
+                    a.neighborhood,
+                    a.city,
+                    a.state,
+                    a.zip_code,
+                    a.complement
+                FROM ticket t
+                INNER JOIN address a
+                    ON a.id = t.address_id
+                INNER JOIN user_category uc
+                    ON uc.category_id = t.category_id
+                   AND uc.user_id = ?
+                WHERE t.status = 'OPEN'
+                  AND t.user_id <> ?
+                  AND LOWER(a.city) = LOWER(?)
+                  AND a.state = ?
+                  AND (? IS NULL OR t.category_id = ?)
+                  AND (? IS NULL OR t.price_max >= ?)
+                  AND (? IS NULL OR t.price_max <= ?)
+                ORDER BY t.created_at DESC
+                """;
 
-        try (PreparedStatement stmt =
-                     connection.prepareStatement(sql)) {
-
+        try (Connection connection = dataSource.getConnection(); PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, providerId);
             stmt.setInt(2, providerId);
             stmt.setString(3, city);
@@ -156,60 +149,58 @@ public class TicketPostgresDaoImpl implements TicketDao {
                 stmt.setNull(10, Types.NUMERIC);
             }
 
-            try (ResultSet resultSet =
-                         stmt.executeQuery()) {
-
+            try (ResultSet resultSet = stmt.executeQuery()) {
                 while (resultSet.next()) {
-                    tickets.add(
-                            mapResultSetToTicket(resultSet)
-                    );
+                    tickets.add(mapResultSetToTicket(resultSet));
                 }
             }
+            return tickets;
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao buscar tickets disponíveis.", e);
         }
-
-        return tickets;
     }
 
     @Override
-    public List<Ticket> findAll() throws SQLException {
+    public List<Ticket> findAll() {
+
         List<Ticket> tickets = new ArrayList<>();
         String sql = "SELECT t.*, a.street, a.number, a.neighborhood, a.city, a.state, a.zip_code, a.complement " +
                 "FROM ticket t " +
                 "INNER JOIN address a ON t.address_id = a.id";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql);
+        try (Connection connection = dataSource.getConnection(); PreparedStatement stmt = connection.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
                 tickets.add(mapResultSetToTicket(rs));
             }
+            return tickets;
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao buscar todos os tickets.", e);
         }
-        return tickets;
     }
 
-
-
     @Override
-    public List<Ticket> findByUserId(int userId) throws SQLException {
+    public List<Ticket> findByUserId(int userId) {
         List<Ticket> tickets = new ArrayList<>();
 
         String sql = """
-        SELECT
-            t.*,
-            a.street,
-            a.number,
-            a.neighborhood,
-            a.city,
-            a.state,
-            a.zip_code,
-            a.complement
-        FROM ticket t
-        INNER JOIN address a ON a.id = t.address_id
-        WHERE t.user_id = ?
-        ORDER BY t.created_at DESC
-        """;
+                SELECT
+                    t.*,
+                    a.street,
+                    a.number,
+                    a.neighborhood,
+                    a.city,
+                    a.state,
+                    a.zip_code,
+                    a.complement
+                FROM ticket t
+                INNER JOIN address a ON a.id = t.address_id
+                WHERE t.user_id = ?
+                ORDER BY t.created_at DESC
+                """;
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection(); PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, userId);
 
             try (ResultSet rs = stmt.executeQuery()) {
@@ -217,12 +208,12 @@ public class TicketPostgresDaoImpl implements TicketDao {
                     tickets.add(mapResultSetToTicket(rs));
                 }
             }
+            return tickets;
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao buscar tickets por ID do usuário.", e);
         }
-
-        return tickets;
     }
 
-    // Helper method para mapear o ResultSet para a entidade Java
     private Ticket mapResultSetToTicket(ResultSet rs) throws SQLException {
         Ticket ticket = new Ticket();
         ticket.setId(rs.getInt("id"));
@@ -240,7 +231,6 @@ public class TicketPostgresDaoImpl implements TicketDao {
 
         ticket.setStatus(StatusTicket.valueOf(rs.getString("status")));
 
-
         Users user = new Users();
         user.setId(rs.getInt("user_id"));
         ticket.setUser(user);
@@ -249,7 +239,6 @@ public class TicketPostgresDaoImpl implements TicketDao {
         category.setId(rs.getInt("category_id"));
         ticket.setCategory(category);
 
-        // Monta o objeto Address vindo dos campos do JOIN
         Address address = new Address();
         address.setId(rs.getInt("address_id"));
         address.setStreet(rs.getString("street"));
