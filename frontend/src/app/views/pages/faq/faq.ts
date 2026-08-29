@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 
 interface FaqItem {
   pergunta: string;
@@ -9,7 +10,7 @@ interface FaqItem {
 @Component({
   selector: 'app-faq',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, RouterLink],
   templateUrl: './faq.html',
   styleUrl: './faq.css'
 })
