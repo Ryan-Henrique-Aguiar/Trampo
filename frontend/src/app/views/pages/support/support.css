@@ -127,11 +127,13 @@ textarea {
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 8px
+    gap: 8px;
+    text-decoration: none
 }
 
 .btn-primary:hover {
-    background: var(--primary-dark)
+    background: var(--primary-dark);
+    text-decoration: none
 }
 
 .btn-primary:disabled {
@@ -199,6 +201,13 @@ textarea {
     font-size: var(--font-size-xs);
     font-weight: normal;
     white-space: nowrap
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%
 }
 
 @media(max-width:768px) {

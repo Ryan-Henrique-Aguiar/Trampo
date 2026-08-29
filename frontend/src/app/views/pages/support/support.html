@@ -65,13 +65,17 @@
         </div>
       </label>
 
-      <button class="btn-primary" type="submit" [disabled]="sending">
-        @if (sending) {
-        <i class="fa-solid fa-spinner fa-spin"></i> Enviando...
-        } @else {
-        <i class="fa-solid fa-paper-plane"></i> Enviar solicitação
-        }
-      </button>
+      <div class="actions">
+        <a class="btn-primary" routerLink="/home">Voltar</a>
+
+        <button class="btn-primary" type="submit" [disabled]="sending">
+          @if (sending) {
+          <i class="fa-solid fa-spinner fa-spin"></i> Enviando...
+          } @else {
+          <i class="fa-solid fa-paper-plane"></i> Enviar solicitação
+          }
+        </button>
+      </div>
     </form>
   </div>
 </section>
