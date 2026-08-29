@@ -1,1 +1,57 @@
-<p>contact works!</p>
+<section class="help-page">
+  <div class="section-header">
+    <h1>Contato</h1>
+    <p>Fale com a equipe Trampo pelos nossos canais de atendimento.</p>
+  </div>
+
+  <div class="contact-grid">
+    <div class="contact-card">
+      <div class="contact-icon"><i class="fa-solid fa-envelope" aria-hidden="true"></i></div>
+      <div>
+        <h2>E-mail</h2>
+        <p>Envie sua dúvida ou solicitação.</p>
+        <div class="email-row">
+          <a [href]="'mailto:' + email">{{ email }}</a>
+          <button type="button" class="copy-btn" (click)="copiarEmail()"
+            [attr.aria-label]="emailCopiado ? 'E-mail copiado' : 'Copiar e-mail'">
+            <i class="fa-solid" [class.fa-copy]="!emailCopiado" [class.fa-check]="emailCopiado" aria-hidden="true"></i>
+            {{ emailCopiado ? 'Copiado' : 'Copiar' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="contact-card">
+      <div class="contact-icon"><i class="fa-solid fa-headset" aria-hidden="true"></i></div>
+      <div>
+        <h2>Suporte</h2>
+        <p>Para problemas com a plataforma.</p>
+        <a routerLink="/suporte">Abrir chamado de suporte</a>
+      </div>
+    </div>
+
+    <div class="contact-card">
+      <div class="contact-icon"><i class="fa-regular fa-clock" aria-hidden="true"></i></div>
+      <div>
+        <h2>Atendimento</h2>
+        <p>Segunda a sexta-feira</p>
+        <address>
+          <time>09:00 às 18:00</time>
+        </address>
+        <span class="status-badge" [class.status-open]="atendimentoAberto" [class.status-closed]="!atendimentoAberto">
+          <i class="fa-solid fa-circle" aria-hidden="true"></i>
+          {{ atendimentoAberto ? 'Atendimento online agora' : 'Fora do horário de atendimento' }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-card">
+    <div class="card-icon"><i class="fa-solid fa-comments" aria-hidden="true"></i></div>
+    <h2>Precisa de uma resposta rápida?</h2>
+    <p>Antes de entrar em contato, confira as <a routerLink="/faq">Perguntas frequentes</a>. Talvez sua dúvida já tenha
+      uma resposta por lá.</p>
+    <a class="btn-primary" routerLink="/faq">Ver perguntas frequentes <i class="fa-solid fa-arrow-right"
+        aria-hidden="true"></i></a>
+  </div>
+</section><p></p>

@@ -7,8 +7,12 @@ import { Main } from './views/pages/main/main';
 import { Home } from './views/pages/home/home';
 import { Tickets } from './views/pages/tickets/tickets';
 import { Categories } from './views/pages/categories/categories';
+import { Faq } from './views/pages/faq/faq';
 
 import { authGuard } from './guards/auth-guard';
+import { OfCommitment } from './views/pages/of-commitment/of-commitment';
+import { Support } from './views/pages/support/support';
+import { Contact } from './views/pages/contact/contact';
 
 export const routes: Routes = [
 
@@ -44,8 +48,16 @@ export const routes: Routes = [
       {
         path: 'categories',
         component: Categories
-      }
+      },
+
     ]
+  },
+
+  { path: 'termo-compromisso', component: OfCommitment },
+  { path: 'faq', component: Faq },
+  { path: 'suporte', component: Support },
+  {
+    path: 'contato', component: Contact
   },
 
   // Qualquer rota inexistente
