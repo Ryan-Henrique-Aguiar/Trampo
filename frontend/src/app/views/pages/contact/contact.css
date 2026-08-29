@@ -182,6 +182,14 @@
     background: var(--primary-dark);
 }
 
+/* Botões */
+.actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
 @media (max-width: 800px) {
     .contact-grid {
         grid-template-columns: 1fr;
