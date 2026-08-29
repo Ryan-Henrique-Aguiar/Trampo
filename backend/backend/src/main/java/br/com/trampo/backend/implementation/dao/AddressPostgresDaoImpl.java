@@ -19,8 +19,6 @@ public class AddressPostgresDaoImpl implements AddressDao {
 
     @Override
     public Address save(Address address) throws SQLException {
-        boolean originalAutoCommit = connection.getAutoCommit();
-
         String sql = "INSERT INTO address (street, number, neighborhood, city, state, zip_code, complement, user_id) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id";
 
@@ -38,14 +36,9 @@ public class AddressPostgresDaoImpl implements AddressDao {
                 if (rs.next()) {
                     address.setId(rs.getInt(1));
                 }
-            } catch (SQLException e) {
-                connection.rollback();
-                throw e;
-            } finally {
-                connection.setAutoCommit(originalAutoCommit);
             }
         }
-        return address;
+        return address; // Sem rollback, sem setAutoCommit, sem commit aqui!
     }
 
 
