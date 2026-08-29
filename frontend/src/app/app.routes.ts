@@ -10,9 +10,9 @@ import { Categories } from './views/pages/categories/categories';
 import { Faq } from './views/pages/faq/faq';
 
 import { authGuard } from './guards/auth-guard';
-import { OfCommitment } from './views/pages/of-commitment/of-commitment';
 import { Support } from './views/pages/support/support';
 import { Contact } from './views/pages/contact/contact';
+import { Ofcommitment } from './views/pages/of-commitment/of-commitment';
 
 export const routes: Routes = [
 
@@ -53,12 +53,10 @@ export const routes: Routes = [
     ]
   },
 
-  { path: 'termo-compromisso', component: OfCommitment },
+  { path: 'termo-de-compromisso', component: Ofcommitment },
   { path: 'faq', component: Faq },
   { path: 'suporte', component: Support },
-  {
-    path: 'contato', component: Contact
-  },
+  { path: 'contato', component: Contact},
 
   // Qualquer rota inexistente
   {

@@ -1,9 +1,9 @@
 import { Component } from '@angular/core';
 
 @Component({
-  selector: 'app-of-commitment',
+  selector: 'app-ofcommitment',
   imports: [],
   templateUrl: './of-commitment.html',
   styleUrl: './of-commitment.css',
 })
-export class OfCommitment {}
+export class Ofcommitment { }
