@@ -19,12 +19,12 @@ public class UrgentTicketPostgresDaoImpl implements UrgentTicketDao {
 
     @Override
     public UrgentTicket save(UrgentTicket urgentTicket) {
-        Connection connection = DataSourceUtils.getConnection(dataSource);
+
 
         String sql = "INSERT INTO urgent_ticket (code, title, description, user_id, category_id, address_id) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id, created_at, status";
+                "VALUES (?, ?, ?, ?, ?, ?) RETURNING id, created_at, status";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection(); PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, urgentTicket.getCode());
             stmt.setString(2, urgentTicket.getTitle());
             stmt.setString(3, urgentTicket.getDescription());

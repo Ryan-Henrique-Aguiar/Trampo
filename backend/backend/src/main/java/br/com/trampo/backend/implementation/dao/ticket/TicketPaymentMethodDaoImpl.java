@@ -2,9 +2,11 @@ package br.com.trampo.backend.implementation.dao.ticket;
 
 import br.com.trampo.backend.domain.enums.PaymentMethod;
 import br.com.trampo.backend.domain.ticket.TicketPaymentMethod;
+import br.com.trampo.backend.infra.exception.DatabaseException;
 import br.com.trampo.backend.port.dao.ticket.TicketPaymentMethodDao;
-import org.apache.logging.log4j.internal.annotation.SuppressFBWarnings;
+import org.springframework.jdbc.datasource.DataSourceUtils;
 
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -14,23 +16,19 @@ import java.util.List;
 
 public class TicketPaymentMethodDaoImpl implements TicketPaymentMethodDao {
 
-    private final Connection connection;
+    private final DataSource dataSource;
 
-    @SuppressFBWarnings("EI_EXPOSE_REP2")
-    public TicketPaymentMethodDaoImpl(Connection connection) {
-        this.connection = connection;
+    public TicketPaymentMethodDaoImpl(DataSource dataSource) {
+        this.dataSource = dataSource;
     }
 
     @Override
-    public TicketPaymentMethod save(TicketPaymentMethod ticketPaymentMethod) throws SQLException {
-        boolean originalAutoCommit = connection.getAutoCommit();
+    public TicketPaymentMethod save(TicketPaymentMethod ticketPaymentMethod) {
 
         try {
-            connection.setAutoCommit(false);
-
             String sql = "INSERT INTO ticket_payment_method (ticket_id, payment_method) VALUES (?, ?) RETURNING id";
 
-            try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            try (Connection connection = dataSource.getConnection(); PreparedStatement stmt = connection.prepareStatement(sql)) {
                 stmt.setInt(1, ticketPaymentMethod.getTicket().getId());
                 stmt.setString(2, ticketPaymentMethod.getPaymentMethod().name());
 
@@ -40,23 +38,20 @@ public class TicketPaymentMethodDaoImpl implements TicketPaymentMethodDao {
                     }
                 }
             }
-
-            connection.commit();
             return ticketPaymentMethod;
+
         } catch (SQLException e) {
-            connection.rollback();
-            throw e;
-        } finally {
-            connection.setAutoCommit(originalAutoCommit);
+            throw new DatabaseException("Erro ao salvar método de pagamento do ticket.", e);
         }
     }
-    
+
     @Override
-    public List<PaymentMethod> findByTicketId(Integer ticketId) throws SQLException {
+    public List<PaymentMethod> findByTicketId(Integer ticketId) {
+
         List<PaymentMethod> paymentMethods = new ArrayList<>();
         String sql = "SELECT payment_method FROM ticket_payment_method WHERE ticket_id = ?";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection(); PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, ticketId);
 
             try (ResultSet rs = stmt.executeQuery()) {
@@ -64,7 +59,10 @@ public class TicketPaymentMethodDaoImpl implements TicketPaymentMethodDao {
                     paymentMethods.add(PaymentMethod.valueOf(rs.getString("payment_method")));
                 }
             }
+            return paymentMethods;
+
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao buscar métodos de pagamento por ID do ticket.", e);
         }
-        return paymentMethods;
     }
 }

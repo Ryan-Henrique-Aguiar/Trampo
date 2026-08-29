@@ -29,7 +29,6 @@ public class TicketPostgresDaoImpl implements TicketDao {
 
     @Override
     public Ticket save(Ticket ticket) {
-        Connection connection = DataSourceUtils.getConnection(dataSource);
 
         try {
             if (ticket.getAddress() != null &&
@@ -43,7 +42,7 @@ public class TicketPostgresDaoImpl implements TicketDao {
                     "user_id, address_id, category_id) " +
                     "VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id";
 
-            try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            try (Connection connection = dataSource.getConnection(); PreparedStatement stmt = connection.prepareStatement(sql)) {
                 stmt.setString(1, ticket.getCode());
                 stmt.setString(2, ticket.getTitle());
                 stmt.setString(3, ticket.getDescription());
@@ -68,13 +67,13 @@ public class TicketPostgresDaoImpl implements TicketDao {
 
     @Override
     public Optional<Ticket> findById(int id) {
-        Connection connection = DataSourceUtils.getConnection(dataSource);
+
         String sql = "SELECT t.*, a.street, a.number, a.neighborhood, a.city, a.state, a.zip_code, a.complement " +
                 "FROM ticket t " +
                 "INNER JOIN address a ON t.address_id = a.id " +
                 "WHERE t.id = ?";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection(); PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, id);
 
             try (ResultSet rs = stmt.executeQuery()) {
@@ -91,7 +90,7 @@ public class TicketPostgresDaoImpl implements TicketDao {
 
     @Override
     public List<Ticket> findAvailableForProvider(int providerId, String city, String state, Integer categoryId, BigDecimal minPrice, BigDecimal maxPrice) {
-        Connection connection = DataSourceUtils.getConnection(dataSource);
+
         List<Ticket> tickets = new ArrayList<>();
 
         String sql = """
@@ -120,7 +119,7 @@ public class TicketPostgresDaoImpl implements TicketDao {
                 ORDER BY t.created_at DESC
                 """;
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection(); PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, providerId);
             stmt.setInt(2, providerId);
             stmt.setString(3, city);
@@ -163,13 +162,13 @@ public class TicketPostgresDaoImpl implements TicketDao {
 
     @Override
     public List<Ticket> findAll() {
-        Connection connection = DataSourceUtils.getConnection(dataSource);
+
         List<Ticket> tickets = new ArrayList<>();
         String sql = "SELECT t.*, a.street, a.number, a.neighborhood, a.city, a.state, a.zip_code, a.complement " +
                 "FROM ticket t " +
                 "INNER JOIN address a ON t.address_id = a.id";
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql);
+        try (Connection connection = dataSource.getConnection(); PreparedStatement stmt = connection.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
@@ -183,7 +182,6 @@ public class TicketPostgresDaoImpl implements TicketDao {
 
     @Override
     public List<Ticket> findByUserId(int userId) {
-        Connection connection = DataSourceUtils.getConnection(dataSource);
         List<Ticket> tickets = new ArrayList<>();
 
         String sql = """
@@ -202,7 +200,7 @@ public class TicketPostgresDaoImpl implements TicketDao {
                 ORDER BY t.created_at DESC
                 """;
 
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection(); PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, userId);
 
             try (ResultSet rs = stmt.executeQuery()) {

@@ -6,6 +6,7 @@ import br.com.trampo.backend.infra.exception.CategoryNotFoundException;
 import br.com.trampo.backend.port.dao.CategoryDao;
 import br.com.trampo.backend.port.service.category.CategoryService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +20,7 @@ public class CategoryServiceImpl implements CategoryService {
         this.categoryDao = categoryDao;
     }
 
+    @Transactional(readOnly = true)
     @Override
     public List<CategoryDto> findAllCategories() {
         List<CategoryDto> categoriesDto = new ArrayList<>();
@@ -33,6 +35,7 @@ public class CategoryServiceImpl implements CategoryService {
         return categoriesDto;
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Category findCategoryById(Integer id) {
         return categoryDao.findById(id)
