@@ -1,1 +1,77 @@
-<p>support works!</p>
+<section class="help-page">
+  <div class="section-header">
+    <h1>Suporte</h1>
+    <p>Precisa de ajuda? Envie uma solicitação para nossa equipe.</p>
+  </div>
+
+  <div class="support-grid">
+    <div class="info-card">
+      <div class="card-icon"><i class="fa-solid fa-headset"></i></div>
+      <h2>Como podemos ajudar?</h2>
+      <p>Descreva o problema com o máximo de detalhes possível. Assim conseguimos analisar sua solicitação mais
+        rapidamente.</p>
+      <div class="info-row"><i class="fa-solid fa-circle-check"></i><span>Informe o que aconteceu</span></div>
+      <div class="info-row"><i class="fa-solid fa-circle-check"></i><span>Conte quando o problema ocorreu</span></div>
+      <div class="info-row"><i class="fa-solid fa-circle-check"></i><span>Inclua qualquer informação relevante</span>
+      </div>
+    </div>
+
+    <form class="content-card" [formGroup]="form" (ngSubmit)="submit()">
+      @if (sent) {
+      <div class="success" role="status" aria-live="polite">
+        <i class="fa-solid fa-circle-check"></i>
+        <div>
+          <strong>Solicitação enviada!</strong>
+          <p>Nossa equipe recebeu sua mensagem e entrará em contato.</p>
+        </div>
+      </div>
+      }
+
+      <label>
+        Assunto
+        <input type="text" formControlName="assunto" placeholder="Ex.: Problema com um serviço"
+          [class.input-error]="campoInvalido('assunto')">
+        @if (campoInvalido('assunto')) {
+        <span class="error-msg">Informe um assunto com pelo menos 3 caracteres.</span>
+        }
+      </label>
+
+      <label>
+        Categoria
+        <select formControlName="categoria" [class.input-error]="campoInvalido('categoria')">
+          <option value="">Selecione uma opção</option>
+          <option>Conta e acesso</option>
+          <option>Serviço</option>
+          <option>Pagamento</option>
+          <option>Problema técnico</option>
+          <option>Outro</option>
+        </select>
+        @if (campoInvalido('categoria')) {
+        <span class="error-msg">Selecione uma categoria.</span>
+        }
+      </label>
+
+      <label>
+        Mensagem
+        <textarea rows="6" formControlName="mensagem" placeholder="Descreva como podemos ajudar..."
+          [class.input-error]="campoInvalido('mensagem')"></textarea>
+        <div class="textarea-footer">
+          @if (campoInvalido('mensagem')) {
+          <span class="error-msg">Escreva pelo menos 10 caracteres.</span>
+          } @else {
+          <span></span>
+          }
+          <span class="char-count">{{ mensagemLength }}/500</span>
+        </div>
+      </label>
+
+      <button class="btn-primary" type="submit" [disabled]="sending">
+        @if (sending) {
+        <i class="fa-solid fa-spinner fa-spin"></i> Enviando...
+        } @else {
+        <i class="fa-solid fa-paper-plane"></i> Enviar solicitação
+        }
+      </button>
+    </form>
+  </div>
+</section>
