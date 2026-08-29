@@ -30,7 +30,7 @@ public class UrgentTicket {
 
 
     // Construtor utilizado na criacao do ticket
-    public UrgentTicket(String code, String title, String description, double priceMax, Users user, Address address, Category category) {
+    public UrgentTicket(String code, String title, String description, Users user, Address address, Category category) {
         this.code = code;
         this.title = title;
         this.description = description;

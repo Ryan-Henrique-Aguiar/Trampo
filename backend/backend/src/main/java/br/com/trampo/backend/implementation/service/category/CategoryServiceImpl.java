@@ -2,6 +2,7 @@ package br.com.trampo.backend.implementation.service.category;
 
 import br.com.trampo.backend.domain.Category;
 import br.com.trampo.backend.dto.CategoryDto;
+import br.com.trampo.backend.infra.exception.CategoryNotFoundException;
 import br.com.trampo.backend.port.dao.CategoryDao;
 import br.com.trampo.backend.port.service.category.CategoryService;
 import org.springframework.stereotype.Service;
@@ -35,6 +36,6 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public Category findCategoryById(Integer id) {
         return categoryDao.findById(id)
-                .orElseThrow(() -> new RuntimeException("Categoria não encontrada para o ID: " + id));
+                .orElseThrow(() -> new CategoryNotFoundException("Categoria não encontrada para o ID: " + id));
     }
 }
