@@ -7,14 +7,13 @@ import { TicketService } from '../../../services/ticket/ticket-service';
 import { Category } from '../../../models/category.model';
 import { Ticket } from '../../../models/ticket.model';
 
-import { TicketStatus } from '../../../enums/ticket-status';
 import { TicketCard } from "../../../shared/components/ticket-card/ticket-card";
 import { ActionCards, OpenTicketRequest } from "../../../shared/components/action-cards/action-cards";
 import { TicketModal } from "../../../shared/components/ticket-modal/ticket-modal";
 import { AuthService } from '../../../services/auth/auth';
 import { ViewModeService } from '../../../services/view-mode/view-mode-service';
 import { TicketDetail } from "../../../shared/components/ticket-detail/ticket-detail";
-import { ProposalsModal } from "../../../shared/components/proposal-modal/proposal-modal"; // ajuste o caminho
+import { ProposalsModal } from "../../../shared/components/proposal-modal/proposal-modal";
 
 @Component({
   selector: 'app-home',
@@ -28,8 +27,10 @@ export class Home implements OnInit {
   tickets: Ticket[] = [];
   availableTickets: Ticket[] = [];
 
-  loading = false;
-  error: string | null = null;
+  loadingTickets = false;
+  loadingCategories = false;
+  ticketsError: string | null = null;
+  categoriesError: string | null = null;
 
   isModalOpen = false
   isModalUrgent = false
@@ -38,7 +39,6 @@ export class Home implements OnInit {
   isDetailModalOpen = false
   selectedTicket: Ticket | null = null;
 
-  //modal de propostas
   isProposalsModalOpen = false;
   selectedTicketForProposals: Ticket | null = null;
 
@@ -51,10 +51,6 @@ export class Home implements OnInit {
     private cdr: ChangeDetectorRef
   ) {
 
-  }
-
-  get isProvider() {
-    return this.authService.isProvider();
   }
 
   get currentUser() {
@@ -86,8 +82,8 @@ export class Home implements OnInit {
   }
 
   private async loadTickets(): Promise<void> {
-    this.loading = true;
-    this.error = null;
+    this.loadingTickets = true;
+    this.ticketsError = null;
     try {
       this.tickets =
         await this.ticketService.getMyTickets();
@@ -104,15 +100,18 @@ export class Home implements OnInit {
       );
       this.tickets = [];
       this.availableTickets = [];
-      this.error =
+      this.ticketsError =
         'Não foi possível carregar seus serviços.';
     } finally {
-      this.loading = false;
+      this.loadingTickets = false;
       this.cdr.detectChanges();
     }
   }
 
   private async loadCategories(): Promise<void> {
+    this.loadingCategories = true;
+    this.categoriesError = null;
+
     try {
       this.categories =
         await this.categoryService.getAll();
@@ -122,7 +121,10 @@ export class Home implements OnInit {
         err
       );
       this.categories = [];
+      this.categoriesError =
+        'Não foi possível carregar as categorias.';
     } finally {
+      this.loadingCategories = false;
       this.cdr.detectChanges();
     }
   }
@@ -145,6 +147,11 @@ export class Home implements OnInit {
         ? updatedTicket
         : ticket
     )
+    this.availableTickets = this.availableTickets.map(ticket =>
+      ticket.id === updatedTicket.id
+        ? updatedTicket
+        : ticket
+    );
     this.selectedTicket = updatedTicket;
     this.cdr.detectChanges();
   }
@@ -163,6 +170,11 @@ export class Home implements OnInit {
 
   onProposalsTicketUpdated(updatedTicket: Ticket): void {
     this.tickets = this.tickets.map(ticket =>
+      ticket.id === updatedTicket.id
+        ? updatedTicket
+        : ticket
+    );
+    this.availableTickets = this.availableTickets.map(ticket =>
       ticket.id === updatedTicket.id
         ? updatedTicket
         : ticket
@@ -186,6 +198,10 @@ export class Home implements OnInit {
     this.isModalOpen = true;
   }
 
+  openNormalTicketModal(): void {
+    this.onActionCardsOpenTicket({ urgent: false });
+  }
+
   closeTicketModal(): void {
     this.isModalOpen = false;
   }
@@ -196,13 +212,4 @@ export class Home implements OnInit {
     this.cdr.detectChanges();
   }
 
-  getStatusLabel(status: TicketStatus): string {
-    const labels: Record<TicketStatus, string> = {
-      [TicketStatus.OPEN]: 'Aberto',
-      [TicketStatus.IN_PROGRESS]: 'Em andamento',
-      [TicketStatus.COMPLETED]: 'Finalizado',
-      [TicketStatus.CANCELLED]: 'Cancelado'
-    };
-    return labels[status] || status;
-  }
 }

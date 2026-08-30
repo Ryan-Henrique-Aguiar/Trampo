@@ -2,6 +2,51 @@
     display: block;
 }
 
+.loading-state,
+.error-state,
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 40px 20px;
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+.loading-state i,
+.error-state i {
+    font-size: 32px;
+}
+
+.error-state i {
+    color: #E8525B;
+}
+
+.error-state p {
+    margin: 0;
+}
+
+.empty-state > i {
+    font-size: 40px;
+}
+
+.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+    padding: 12px 20px;
+    border: 0;
+    border-radius: var(--radius-md);
+    background: var(--primary);
+    color: var(--white);
+    font: inherit;
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+}
+
 /* Section headers */
 .section-header {
     display: flex;
@@ -62,6 +107,9 @@
 
 .category-icon img {
     width: 40px;
+    height: 40px;
+    object-fit: contain;
+    display: block;
 }
 
 /* Tickets */
@@ -91,6 +139,19 @@
 }
 .urgency-status{
     font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    padding: 6px 12px;
+    border-radius: 999px;
+}
+
+.urgency-status--active {
+    background: #E8F5E9;
+    color: #2E7D32;
+}
+
+.urgency-status--inactive {
+    background: #F5F5F5;
+    color: var(--text-secondary);
 }
 
 /* Stats Grid */
