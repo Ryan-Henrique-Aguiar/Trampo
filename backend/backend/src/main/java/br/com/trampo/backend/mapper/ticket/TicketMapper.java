@@ -58,12 +58,15 @@ public class TicketMapper {
 
     public UrgentTicketDto toUrgentTicket(UrgentTicket urgentTicket) {
         return new UrgentTicketDto(
+                urgentTicket.getId(),
                 urgentTicket.getCode(),
                 urgentTicket.getTitle(),
                 urgentTicket.getDescription(),
-                urgentTicket.getCategory().getId(),
                 urgentTicket.getCreatedAt(),
                 urgentTicket.getServiceDate(),
+                urgentTicket.getStatus(),
+                urgentTicket.getProvider().getId(),
+                urgentTicket.getCategory().getId(),
                 toAddressDto(urgentTicket.getAddress())
         );
     }

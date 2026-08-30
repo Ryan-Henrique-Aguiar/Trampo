@@ -4,8 +4,9 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 
 import { CategoryService } from '../../../services/category/category-service';
 import { TicketService } from '../../../services/ticket/ticket-service';
+import { UrgentTicketService } from '../../../services/urgent-ticket/urgent-ticket-service';
 import { Category } from '../../../models/category.model';
-import { User } from '../../../models/user.model';
+import { UrgentProviderResponse } from '../../../dto/user/urgent-provider-response';
 import { PaymentMethod } from '../../../enums/payment-method';
 import { UserService } from '../../../services/user/user';
 import { LocationService, State, City } from '../../../services/location/location';
@@ -46,7 +47,7 @@ export class TicketModal implements OnInit {
   public categories: Category[] = [];
   public currentStep = 1;
   public isSubmitting = false;
-  public providers: User[] = [];
+  public providers: UrgentProviderResponse[] = [];
   public states: State[] = []
   public cities: City[] = [];
   public cepLoading = false;
@@ -97,6 +98,7 @@ export class TicketModal implements OnInit {
   constructor(
     private categoryService: CategoryService,
     private ticketService: TicketService,
+    private urgentTicketService: UrgentTicketService,
     private userService: UserService,
     private locationService: LocationService,
     private cdr: ChangeDetectorRef,
@@ -312,7 +314,7 @@ export class TicketModal implements OnInit {
   }
 
   private async saveUrgentTicket(
-    provider: User
+    provider: UrgentProviderResponse
   ): Promise<void> {
 
     const relevantFields =
@@ -343,7 +345,7 @@ export class TicketModal implements OnInit {
       providerId: provider.id
     };
 
-    await this.ticketService.createUrgent(dto);
+    await this.urgentTicketService.create(dto);
   }
 
   // apenas busca prestadores para a categoria/localização, ainda não cria nada —
@@ -447,7 +449,7 @@ export class TicketModal implements OnInit {
   }
 
   public async openWhatsapp(
-    provider: User
+    provider: UrgentProviderResponse
   ): Promise<void> {
 
     this.sendingProviderId = provider.id;
