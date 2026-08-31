@@ -56,6 +56,44 @@ CREATE TABLE IF NOT EXISTS category (
     icon_url TEXT NOT NULL
 );
 
+INSERT INTO category (name, icon_url) VALUES
+    ('Alvenaria', '/images/categories/alvenaria.svg'),
+    ('Ar-Condicionado e Refrigeração', '/images/categories/ar-condicionado-refrigeracao.svg'),
+    ('Barbearia', '/images/categories/barbearia.svg'),
+    ('Bartender', '/images/categories/bartender.svg'),
+    ('Cabelo', '/images/categories/cabelo.svg'),
+    ('Carpintaria', '/images/categories/carpintaria.svg'),
+    ('Chaveiro', '/images/categories/chaveiro.svg'),
+    ('Churrasco', '/images/categories/churrasco.svg'),
+    ('Confeitaria', '/images/categories/confeitaria.svg'),
+    ('Costura e Ajustes', '/images/categories/costura-ajustes.svg'),
+    ('Cuidados de Idosos', '/images/categories/cuidados-idosos.svg'),
+    ('Cuidados Infantis', '/images/categories/cuidados-infantis.svg'),
+    ('Dedetização', '/images/categories/dedetizacao.svg'),
+    ('DJ', '/images/categories/dj.svg'),
+    ('Elétrica', '/images/categories/eletrica.svg'),
+    ('Entrega', '/images/categories/entrega.svg'),
+    ('Fotografia', '/images/categories/fotografia.svg'),
+    ('Garçom e Atendimento', '/images/categories/garcom-atendimento.svg'),
+    ('Gesso e Drywall', '/images/categories/gesso-drywall.svg'),
+    ('Guincho e Reboque', '/images/categories/guincho-reboque.svg'),
+    ('Hidráulica', '/images/categories/hidraulica.svg'),
+    ('Jardinagem', '/images/categories/jardinagem.svg'),
+    ('Lavagem Automotiva', '/images/categories/lavagem-automotiva.svg'),
+    ('Limpeza', '/images/categories/limpeza.svg'),
+    ('Manicure e Pedicure', '/images/categories/manicure-pedicure.svg'),
+    ('Maquiagem', '/images/categories/maquiagem.svg'),
+    ('Marcenaria', '/images/categories/marcenaria.svg'),
+    ('Massagem', '/images/categories/massagem.svg'),
+    ('Mecânica', '/images/categories/mecanica.svg'),
+    ('Montagem de Móveis', '/images/categories/montagem-moveis.svg'),
+    ('Pintura', '/images/categories/pintura.svg'),
+    ('Pneus e Borracharia', '/images/categories/pneus-borracharia.svg'),
+    ('Serralheria', '/images/categories/serralheria.svg'),
+    ('Treinamento Físico', '/images/categories/treinamento-fisico.svg')
+ON CONFLICT (name) DO UPDATE
+SET icon_url = EXCLUDED.icon_url;
+
 -- ==========================================================
 -- TABELA: USER_CATEGORY (antiga professional_category)
 -- Interface: User.categoryIds. Continua N:N, só trocou a FK
