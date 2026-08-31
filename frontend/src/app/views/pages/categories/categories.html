@@ -4,10 +4,28 @@
       <h1>Categorias</h1>
       <p>Encontre o serviço que você precisa e publique sua solicitação.</p>
     </div>
-    @if (!loading && !error) {
-      <span class="categories-count">{{ categories.length }} categorias</span>
-    }
+    <button type="button" class="suggest-category-button" (click)="openSuggestionModal()">
+      <i class="fa-regular fa-lightbulb"></i>
+      Sugerir categoria
+    </button>
   </header>
+
+  <div class="categories-toolbar">
+    <label class="search-box">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input
+        type="search"
+        placeholder="Pesquisar categoria"
+        [value]="searchTerm"
+        (input)="updateSearch($event)" />
+    </label>
+    @if (!loading && !error) {
+      <span class="categories-count">
+        {{ filteredCategories.length }}
+        {{ filteredCategories.length === 1 ? 'categoria' : 'categorias' }}
+      </span>
+    }
+  </div>
 
   @if (loading) {
     <div class="page-state">
@@ -19,9 +37,9 @@
       <i class="fa-solid fa-exclamation-circle"></i>
       <span>{{ error }}</span>
     </div>
-  } @else if (categories.length > 0) {
+  } @else if (filteredCategories.length > 0) {
     <div class="categories-grid">
-      @for (category of categories; track category.id) {
+      @for (category of filteredCategories; track category.id) {
         <button
           type="button"
           class="category-card"
@@ -36,8 +54,8 @@
     </div>
   } @else {
     <div class="page-state">
-      <i class="fa-solid fa-layer-group"></i>
-      <span>Nenhuma categoria disponível.</span>
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <span>Nenhuma categoria encontrada.</span>
     </div>
   }
 
@@ -46,4 +64,53 @@
     [isUrgent]="false"
     [preselectedCategoryId]="preselectedCategoryId"
     (close)="closeTicketModal()" />
+
+  @if (isSuggestionModalOpen) {
+    <div class="suggestion-overlay" (click)="onSuggestionOverlayClick($event)">
+      <div class="suggestion-modal">
+        <header class="suggestion-header">
+          <div>
+            <h2>Sugerir categoria</h2>
+            <p>Conte qual serviço você gostaria de encontrar no Trampo.</p>
+          </div>
+          <button type="button" class="suggestion-close" aria-label="Fechar" (click)="closeSuggestionModal()">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </header>
+
+        <form [formGroup]="suggestionForm" (ngSubmit)="submitSuggestion()">
+          <div class="form-group">
+            <label for="suggestion-category">Qual categoria?</label>
+            <input
+              id="suggestion-category"
+              type="text"
+              maxlength="100"
+              placeholder="Ex: Passeador de cães"
+              formControlName="categoryName" />
+            @if (suggestionForm.get('categoryName')?.invalid && suggestionForm.get('categoryName')?.touched) {
+              <span class="field-error">Informe o nome da categoria.</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="suggestion-description">Descreva a categoria</label>
+            <textarea
+              id="suggestion-description"
+              rows="4"
+              maxlength="500"
+              placeholder="Explique quais serviços fariam parte dessa categoria"
+              formControlName="description"></textarea>
+            @if (suggestionForm.get('description')?.invalid && suggestionForm.get('description')?.touched) {
+              <span class="field-error">Descreva a categoria sugerida.</span>
+            }
+          </div>
+
+          <div class="suggestion-actions">
+            <button type="button" class="button-cancel" (click)="closeSuggestionModal()">Cancelar</button>
+            <button type="submit" class="button-submit">Enviar sugestão</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
 </section>
