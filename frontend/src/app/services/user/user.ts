@@ -4,6 +4,7 @@ import { firstValueFrom } from 'rxjs';
 import { User } from '../../models/user.model';
 import { environment } from '../../../environments/environment';
 import { UrgentProviderResponse } from '../../dto/user/urgent-provider-response';
+import { UrgencyAvailability } from '../../dto/user/urgency-availability';
 
 @Injectable({
   providedIn: 'root'
@@ -39,12 +40,11 @@ export class UserService {
   }
 
   async toggleUrgencyAvailability(
-    userId: number,
     isAvailable: boolean
-  ): Promise<User> {
+  ): Promise<UrgencyAvailability> {
     return await firstValueFrom(
-      this.http.patch<User>(`${this.baseUrl}/${userId}`, {
-        isAvailableForUrgency: isAvailable,
+      this.http.patch<UrgencyAvailability>(`${this.apiUrl}/urgency`, {
+        availableForUrgency: isAvailable,
       })
     );
   }

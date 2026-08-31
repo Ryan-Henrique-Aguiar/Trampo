@@ -16,4 +16,6 @@ public interface UserService {
             String state,
             String city
     );
+
+    boolean updateUrgencyAvailability(Users user, boolean available);
 }

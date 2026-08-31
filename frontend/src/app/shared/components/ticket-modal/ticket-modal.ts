@@ -53,6 +53,7 @@ export class TicketModal implements OnInit {
   public cepLoading = false;
   public cepError: string | null = null;
   public sendingProviderId: number | null = null;
+  public providersError: string | null = null;
 
   public ticketForm!: FormGroup;
   public totalSteps = 3;
@@ -375,6 +376,7 @@ export class TicketModal implements OnInit {
   ): Promise<void> {
 
     try {
+      this.providersError = null;
       this.providers =
         await this.userService.getProvidersWithUrgency(
           categoryId,
@@ -391,6 +393,11 @@ export class TicketModal implements OnInit {
     } catch (err) {
       console.error('Erro ao buscar prestadores:', err);
       this.providers = [];
+      this.providersError = this.getErrorMessage(
+        err,
+        'Não foi possível buscar prestadores disponíveis.'
+      );
+      this.toastrService.error(this.providersError);
 
     } finally {
       this.cdr.detectChanges();
@@ -465,12 +472,16 @@ export class TicketModal implements OnInit {
 
       window.open(url, '_blank');
 
+      this.toastrService.success('Ticket urgente criado com sucesso');
       this.closeModal();
 
     } catch (err) {
       console.error(
         'Erro ao criar ticket urgente:',
         err
+      );
+      this.toastrService.error(
+        this.getErrorMessage(err, 'Não foi possível criar o ticket urgente.')
       );
 
     } finally {
@@ -493,6 +504,7 @@ export class TicketModal implements OnInit {
   private resetForm(): void {
     this.currentStep = 1;
     this.providers = [];
+    this.providersError = null;
     this.cities = [];
     this.isSubmitting = false;
     this.sendingProviderId = null;
@@ -508,5 +520,13 @@ export class TicketModal implements OnInit {
     this.ticketForm.get('address.city')?.disable();
 
     this.cdr.detectChanges();
+  }
+
+  private getErrorMessage(error: unknown, fallback: string): string {
+    if (error instanceof HttpErrorResponse) {
+      return error.error?.message || fallback;
+    }
+
+    return fallback;
   }
 }

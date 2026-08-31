@@ -240,4 +240,18 @@ public class UsersPostgresDaoImpl implements UsersDao {
 
         return providers;
     }
+
+    @Override
+    public void updateUrgencyAvailability(int userId, boolean available) {
+        String sql = "UPDATE users SET is_available_for_urgency = ? WHERE id = ?";
+
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setBoolean(1, available);
+            statement.setInt(2, userId);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao atualizar disponibilidade para urgências.", e);
+        }
+    }
 }

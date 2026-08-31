@@ -82,4 +82,19 @@ public class UserServiceImpl implements UserService {
                 ))
                 .toList();
     }
+
+    @Transactional
+    @Override
+    public boolean updateUrgencyAvailability(Users user, boolean available) {
+        if (user == null || user.getId() == null) {
+            throw new InvalidRequestException("Usuário autenticado é obrigatório.");
+        }
+
+        if (!user.isProvider()) {
+            throw new InvalidRequestException("Apenas prestadores podem alterar a disponibilidade para urgências.");
+        }
+
+        usersDao.updateUrgencyAvailability(user.getId(), available);
+        return available;
+    }
 }

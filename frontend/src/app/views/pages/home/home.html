@@ -6,12 +6,22 @@
           <h3 class="urgency-title">Modo urgente</h3>
           <p class="urgency-text">Receba chamados agora</p>
         </div>
-        <span
-          class="urgency-status"
-          [class.urgency-status--active]="currentUser?.availableForUrgency"
-          [class.urgency-status--inactive]="!currentUser?.availableForUrgency">
-          {{ currentUser?.availableForUrgency ? 'Ativo' : 'Inativo' }}
-        </span>
+        <button
+          type="button"
+          class="urgency-toggle"
+          role="switch"
+          [attr.aria-checked]="currentUser?.availableForUrgency"
+          [disabled]="updatingUrgency"
+          (click)="toggleUrgencyAvailability()">
+          <span
+            class="urgency-toggle-track"
+            [class.urgency-toggle-track--active]="currentUser?.availableForUrgency">
+            <span class="urgency-toggle-thumb"></span>
+          </span>
+          <span class="urgency-toggle-label">
+            {{ updatingUrgency ? 'Atualizando...' : (currentUser?.availableForUrgency ? 'Ativo' : 'Inativo') }}
+          </span>
+        </button>
       </div>
 
       <!-- Stats Cards -->
@@ -54,15 +64,15 @@
         <span class="tickets-count">{{ availableTickets.length }} serviços</span>
       </div>
 
-      @if (loadingTickets) {
+      @if (loadingAvailableTickets) {
         <div class="loading-state">
           <i class="fa-solid fa-spinner fa-spin"></i>
           <span>Carregando serviços...</span>
         </div>
-      } @else if (ticketsError) {
+      } @else if (availableTicketsError) {
         <div class="error-state">
           <i class="fa-solid fa-exclamation-circle"></i>
-          <p>{{ ticketsError }}</p>
+          <p>{{ availableTicketsError }}</p>
         </div>
       } @else if (firstThreeAvailableTickets.length > 0) {
         <div class="tickets">
@@ -121,15 +131,15 @@
         <h2>Últimos serviços publicados</h2>
       </div>
 
-      @if (loadingTickets) {
+      @if (loadingMyTickets) {
         <div class="loading-state">
           <i class="fa-solid fa-spinner fa-spin"></i>
           <span>Carregando serviços...</span>
         </div>
-      } @else if (ticketsError) {
+      } @else if (myTicketsError) {
         <div class="error-state">
           <i class="fa-solid fa-exclamation-circle"></i>
-          <p>{{ ticketsError }}</p>
+          <p>{{ myTicketsError }}</p>
         </div>
       } @else if (firstThreeMyTickets.length > 0) {
         <div class="tickets">

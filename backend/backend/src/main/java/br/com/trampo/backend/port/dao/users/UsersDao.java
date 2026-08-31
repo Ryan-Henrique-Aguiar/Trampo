@@ -24,4 +24,6 @@ public interface UsersDao {
             String state,
             String city
     );
+
+    void updateUrgencyAvailability(int userId, boolean available);
 }

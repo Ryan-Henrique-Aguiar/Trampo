@@ -233,7 +233,9 @@
                     </div>
                     }
 
-                    @if (!providers.length) {
+                    @if (providersError) {
+                    <p class="providers-empty">{{ providersError }}</p>
+                    } @else if (!providers.length) {
                     <p class="providers-empty">Nenhum prestador disponível no momento para esta categoria e cidade.</p>
                     }
                 </div>
@@ -241,14 +243,12 @@
             }
 
             <div class="modal-footer">
-                @if (!(isUrgent && currentStep === 3)) {
                 <button type="button" class="btn-cancel" (click)="closeModal()">
                     Cancelar
                 </button>
-                }
 
                 <div class="footer-right">
-                    @if (currentStep > 1 && !(isUrgent && currentStep === 3)) {
+                    @if (currentStep > 1) {
                     <button type="button" class="btn-back" (click)="prevStep()">
                         Voltar
                     </button>
@@ -258,11 +258,6 @@
                         @if (currentStep < 3) {
                             <button type="button" class="btn-next" [disabled]="isSubmitting" (click)="nextStep()">
                                 {{ currentStep === 2 ? (isSubmitting ? 'Buscando prestadores...' : 'Buscar prestadores') : 'Próximo' }}
-                            </button>
-                        }
-                        @if (currentStep === 3) {
-                            <button type="button" class="btn-submit" (click)="closeModal()">
-                                Concluir
                             </button>
                         }
                     } @else {
