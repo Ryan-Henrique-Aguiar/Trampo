@@ -101,7 +101,7 @@ CREATE TABLE IF NOT EXISTS ticket (
     code VARCHAR(20) UNIQUE NOT NULL,
     title VARCHAR(100) NOT NULL,
     description TEXT NOT NULL,
-    price_max NUMERIC(10,2),
+    price_max NUMERIC(10,2) NOT NULL CHECK (price_max > 0),
     service_date TIMESTAMP,                         
     status VARCHAR(30) NOT NULL DEFAULT 'OPEN',
     proposals_count INT DEFAULT 0,

@@ -9,6 +9,7 @@ import br.com.trampo.backend.domain.ticket.Ticket;
 import br.com.trampo.backend.domain.ticket.TicketPaymentMethod;
 import br.com.trampo.backend.dto.ticket.*;
 import br.com.trampo.backend.infra.exception.DatabaseException;
+import br.com.trampo.backend.infra.exception.InvalidRequestException;
 import br.com.trampo.backend.infra.exception.UnauthorizedUserException;
 import br.com.trampo.backend.mapper.ticket.TicketMapper;
 import br.com.trampo.backend.port.dao.ticket.AvailableDayDao;
@@ -52,7 +53,12 @@ public class TicketServiceImpl implements TicketService {
     public TicketDto createTicket(CreateTicketDto createTicketDto, Users user) {
 
         if (user == null || createTicketDto == null) {
-            throw new IllegalArgumentException("Usuário e dados do ticket são obrigatórios.");
+            throw new InvalidRequestException("Usuário e dados do ticket são obrigatórios.");
+        }
+
+        if (createTicketDto.priceMax() == null
+                || createTicketDto.priceMax().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new InvalidRequestException("O orçamento máximo deve ser maior que zero.");
         }
 
 
