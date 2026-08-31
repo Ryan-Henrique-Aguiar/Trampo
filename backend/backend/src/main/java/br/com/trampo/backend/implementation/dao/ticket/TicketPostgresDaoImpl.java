@@ -8,7 +8,6 @@ import br.com.trampo.backend.domain.ticket.Ticket;
 import br.com.trampo.backend.infra.exception.DatabaseException;
 import br.com.trampo.backend.port.dao.AddressDao;
 import br.com.trampo.backend.port.dao.ticket.TicketDao;
-import org.springframework.jdbc.datasource.DataSourceUtils;
 
 import javax.sql.DataSource;
 import java.math.BigDecimal;
@@ -211,6 +210,33 @@ public class TicketPostgresDaoImpl implements TicketDao {
             return tickets;
         } catch (SQLException e) {
             throw new DatabaseException("Erro ao buscar tickets por ID do usuário.", e);
+        }
+    }
+
+    @Override
+    public void incrementProposalsCount(int ticketId) {
+        String sql = """
+                UPDATE ticket
+                SET proposals_count = COALESCE(proposals_count, 0) + 1
+                WHERE id = ?
+                """;
+        try (Connection connection = dataSource.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, ticketId);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao atualizar quantidade de propostas.", e);
+        }
+    }
+
+    @Override
+    public void updateStatus(int ticketId, StatusTicket status) {
+        String sql = "UPDATE ticket SET status = ? WHERE id = ?";
+        try (Connection connection = dataSource.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, status.name());
+            statement.setInt(2, ticketId);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao atualizar status do ticket.", e);
         }
     }
 

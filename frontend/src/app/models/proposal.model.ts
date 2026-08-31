@@ -5,5 +5,7 @@ export interface Proposal {
   priceRange: number;
   status: ProposalStatus;
   professionalId: number;
-  ticketId: number;         // FK -> Ticket.id
+  professionalName: string;
+  professionalPhone: string;
+  ticketId: number;
 }

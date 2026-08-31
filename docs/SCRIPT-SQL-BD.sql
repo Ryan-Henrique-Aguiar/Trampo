@@ -146,13 +146,14 @@ CREATE TABLE IF NOT EXISTS ticket_available_hour (
 -- ==========================================================
 CREATE TABLE IF NOT EXISTS proposal (
     id SERIAL PRIMARY KEY,
-    price_range NUMERIC(10,2) NOT NULL,
+    price_range NUMERIC(10,2) NOT NULL CHECK (price_range > 0),
     status VARCHAR(30) NOT NULL DEFAULT 'PENDING'
         CHECK (status IN ('PENDING', 'ACCEPTED', 'REJECTED')),
     professional_id INT NOT NULL,
     ticket_id INT NOT NULL,
     FOREIGN KEY (professional_id) REFERENCES users(id),
-    FOREIGN KEY (ticket_id) REFERENCES ticket(id)
+    FOREIGN KEY (ticket_id) REFERENCES ticket(id),
+    UNIQUE (professional_id, ticket_id)
 );
 
 -- ==========================================================

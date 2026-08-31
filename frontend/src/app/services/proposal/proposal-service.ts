@@ -4,9 +4,7 @@ import { firstValueFrom } from 'rxjs';
 
 import { Proposal } from '../../models/proposal.model';
 import { CreateProposalRequest } from '../../dto/proposal/create-proposal-request';
-import { ProposalStatus } from '../../enums/proposal-status';
 import { environment } from '../../../environments/environment';
-import { AuthService } from '../auth/auth';
 
 @Injectable({
   providedIn: 'root'
@@ -14,45 +12,36 @@ import { AuthService } from '../auth/auth';
 export class ProposalService {
 
   private http = inject(HttpClient);
-  private authService = inject(AuthService);
-
-  private baseUrl = `${environment.devApiUrl}/proposals`;
+  private baseUrl = `${environment.apiUrl}/proposals`;
 
   async getByTicketId(ticketId: number): Promise<Proposal[]> {
-    return await firstValueFrom(
+    return firstValueFrom(
       this.http.get<Proposal[]>(
-        `${this.baseUrl}?ticketId=${ticketId}`
+        `${this.baseUrl}/ticket/${ticketId}`
       )
     );
   }
 
   async create(dto: CreateProposalRequest): Promise<Proposal> {
-    const payload = {
-      priceRange: dto.priceRange,
-      ticketId: dto.ticketId,
-      professionalId: this.authService.currentUser?.id,
-      status: ProposalStatus.PENDING,
-    };
-
-    return await firstValueFrom(
-      this.http.post<Proposal>(this.baseUrl, payload)
+    return firstValueFrom(
+      this.http.post<Proposal>(this.baseUrl, dto)
     );
   }
 
-  async reject(proposal: Proposal): Promise<Proposal> {
-    return await firstValueFrom(
+  async reject(proposalId: number): Promise<Proposal> {
+    return firstValueFrom(
       this.http.patch<Proposal>(
-        `${this.baseUrl}/${proposal.id}`,
-        { status: ProposalStatus.REJECTED }
+        `${this.baseUrl}/${proposalId}/reject`,
+        {}
       )
     );
   }
 
-  async accept(proposal: Proposal): Promise<Proposal> {
-    return await firstValueFrom(
+  async accept(proposalId: number): Promise<Proposal> {
+    return firstValueFrom(
       this.http.patch<Proposal>(
-        `${this.baseUrl}/${proposal.id}`,
-        { status: ProposalStatus.ACCEPTED }
+        `${this.baseUrl}/${proposalId}/accept`,
+        {}
       )
     );
   }

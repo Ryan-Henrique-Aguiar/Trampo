@@ -10,14 +10,11 @@ import { CommonModule } from '@angular/common';
 
 import { Ticket } from '../../../models/ticket.model';
 import { Proposal } from '../../../models/proposal.model';
-import { User } from '../../../models/user.model';
 
 import { ProposalStatus } from '../../../enums/proposal-status';
 import { TicketStatus } from '../../../enums/ticket-status';
 
 import { ProposalService } from '../../../services/proposal/proposal-service';
-import { TicketService } from '../../../services/ticket/ticket-service';
-import { UserService } from '../../../services/user/user';
 
 @Component({
   selector: 'app-proposals-modal',
@@ -35,15 +32,12 @@ export class ProposalsModal implements OnChanges {
   @Output() ticketUpdated = new EventEmitter<Ticket>();
 
   public proposals: Proposal[] = [];
-  public professionals = new Map<number, User>();
 
   public isLoading = false;
   public processingProposalId: number | null = null;
 
   constructor(
     private proposalService: ProposalService,
-    private ticketService: TicketService,
-    private userService: UserService,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -52,7 +46,6 @@ export class ProposalsModal implements OnChanges {
       await this.loadProposals(this.ticket.id);
     } else {
       this.proposals = [];
-      this.professionals = new Map();
     }
 
     this.cdr.detectChanges();
@@ -63,58 +56,14 @@ export class ProposalsModal implements OnChanges {
 
     try {
       this.proposals = await this.proposalService.getByTicketId(ticketId);
-
-      await this.loadProfessionals(this.proposals);
     } catch (err) {
       console.error('Erro ao carregar propostas:', err);
 
       this.proposals = [];
-      this.professionals = new Map();
     } finally {
       this.isLoading = false;
       this.cdr.detectChanges();
     }
-  }
-
-  private async loadProfessionals(proposals: Proposal[]): Promise<void> {
-    if (proposals.length === 0) {
-      this.professionals = new Map();
-      return;
-    }
-
-    const uniqueIds = [
-      ...new Set(
-        proposals.map(proposal => proposal.professionalId)
-      )
-    ];
-
-    const results = await Promise.allSettled(
-      uniqueIds.map(id => this.userService.getById(id))
-    );
-
-    const professionalsMap = new Map<number, User>();
-
-    results.forEach((result, index) => {
-      if (result.status === 'fulfilled') {
-        professionalsMap.set(
-          result.value.id,
-          result.value
-        );
-      } else {
-        console.error(
-          `Erro ao carregar prestador ${uniqueIds[index]}:`,
-          result.reason
-        );
-      }
-    });
-
-    this.professionals = professionalsMap;
-  }
-
-  getProfessional(proposal: Proposal): User | undefined {
-    return this.professionals.get(
-      proposal.professionalId
-    );
   }
 
   closeModal(): void {
@@ -134,12 +83,10 @@ export class ProposalsModal implements OnChanges {
   }
 
   getWhatsAppLink(proposal: Proposal): string {
-    const professional = this.getProfessional(proposal);
-
-    const phone = (professional?.phone ?? '')
+    const phone = (proposal.professionalPhone ?? '')
       .replace(/\D/g, '');
 
-    const name = professional?.name ?? 'prestador';
+    const name = proposal.professionalName || 'prestador';
 
     const message =
       `Olá ${name}! Vi sua proposta de ${this.formatCurrency(proposal.priceRange)} ` +
@@ -149,7 +96,7 @@ export class ProposalsModal implements OnChanges {
   }
 
   hasValidPhone(proposal: Proposal): boolean {
-    return !!this.getProfessional(proposal)?.phone;
+    return !!proposal.professionalPhone;
   }
 
   async onAcceptProposal(proposal: Proposal): Promise<void> {
@@ -163,19 +110,13 @@ export class ProposalsModal implements OnChanges {
     this.processingProposalId = proposal.id;
 
     try {
-      await this.proposalService.accept(proposal);
-
-      const updatedTicket = await this.ticketService.updateStatus(
-        this.ticket.id,
-        this.ticket.status,
-        TicketStatus.IN_PROGRESS
-      );
-
-      this.ticket = updatedTicket;
-
-      this.ticketUpdated.emit(updatedTicket);
-
-      await this.rejectRemainingPending(proposal.id);
+      await this.proposalService.accept(proposal.id);
+      this.ticket = {
+        ...this.ticket,
+        status: TicketStatus.IN_PROGRESS
+      };
+      this.ticketUpdated.emit(this.ticket);
+      await this.loadProposals(this.ticket.id);
     } catch (err) {
       console.error(
         'Erro ao aceitar proposta:',
@@ -185,37 +126,6 @@ export class ProposalsModal implements OnChanges {
       this.processingProposalId = null;
       this.cdr.detectChanges();
     }
-  }
-
-  private async rejectRemainingPending(
-    acceptedProposalId: number
-  ): Promise<void> {
-    if (!this.ticket) return;
-
-    const others = this.proposals.filter(
-      proposal =>
-        proposal.id !== acceptedProposalId &&
-        proposal.status === ProposalStatus.PENDING
-    );
-
-    if (others.length > 0) {
-      const results = await Promise.allSettled(
-        others.map(proposal =>
-          this.proposalService.reject(proposal)
-        )
-      );
-
-      results.forEach(result => {
-        if (result.status === 'rejected') {
-          console.error(
-            'Erro ao rejeitar proposta concorrente:',
-            result.reason
-          );
-        }
-      });
-    }
-
-    await this.loadProposals(this.ticket.id);
   }
 
   async onRejectProposal(proposal: Proposal): Promise<void> {
@@ -229,7 +139,7 @@ export class ProposalsModal implements OnChanges {
     this.processingProposalId = proposal.id;
 
     try {
-      await this.proposalService.reject(proposal);
+      await this.proposalService.reject(proposal.id);
 
       await this.loadProposals(this.ticket.id);
     } catch (err) {

@@ -82,7 +82,6 @@ export class TicketDetail implements OnChanges {
   public isLoadingProposals = false;
   public isProposalFormOpen = false;
   public isSubmittingProposal = false;
-  public processingProposalId: number | null = null;
 
   public proposalPriceControl = new FormControl<number | null>(
     null,
@@ -146,7 +145,20 @@ export class TicketDetail implements OnChanges {
 
   async ngOnChanges(): Promise<void> {
     if (this.isOpen && this.ticket) {
-      await this.loadProposals(this.ticket.id);
+      this.proposalPriceControl.setValidators([
+        Validators.required,
+        Validators.min(0.01),
+        ...(this.ticket.priceMax != null
+          ? [Validators.max(this.ticket.priceMax)]
+          : [])
+      ]);
+      this.proposalPriceControl.updateValueAndValidity();
+
+      if (this.isProviderMode) {
+        await this.loadProposals(this.ticket.id);
+      } else {
+        this.proposals = [];
+      }
     } else {
       this.proposals = [];
     }
@@ -354,8 +366,6 @@ export class TicketDetail implements OnChanges {
 
       this.proposals = [...this.proposals, createdProposal];
 
-      await this.bumpProposalsCount();
-
       this.isProposalFormOpen = false;
       this.proposalPriceControl.reset();
 
@@ -364,98 +374,6 @@ export class TicketDetail implements OnChanges {
       console.error('Erro ao enviar proposta:', err);
     } finally {
       this.isSubmittingProposal = false;
-      this.cdr.detectChanges();
-    }
-  }
-
-  private async bumpProposalsCount(): Promise<void> {
-    if (!this.ticket) return;
-
-    const newCount = (this.ticket.proposalsCount ?? 0) + 1;
-
-    try {
-      const updatedTicket = await this.ticketService.update(
-        this.ticket.id,
-        { proposalsCount: newCount }
-      );
-
-      this.ticket = updatedTicket;
-      this.ticketUpdated.emit(updatedTicket);
-    } catch (err) {
-      console.error('Erro ao atualizar contagem de propostas:', err);
-    }
-  }
-
-  async onAcceptProposal(proposal: Proposal): Promise<void> {
-    if (this.processingProposalId !== null || !this.ticket) return;
-
-    this.processingProposalId = proposal.id;
-
-    try {
-      await this.proposalService.accept(proposal);
-
-      const updatedTicket = await this.ticketService.updateStatus(
-        this.ticket.id,
-        this.ticket.status,
-        TicketStatus.IN_PROGRESS
-      );
-
-      this.ticket = updatedTicket;
-      this.ticketUpdated.emit(updatedTicket);
-
-      await this.rejectRemainingPending(proposal.id);
-    } catch (err) {
-      console.error('Erro ao aceitar proposta:', err);
-    } finally {
-      this.processingProposalId = null;
-      this.cdr.detectChanges();
-    }
-  }
-
-  private async rejectRemainingPending(
-    acceptedProposalId: number
-  ): Promise<void> {
-    if (!this.ticket) return;
-
-    const others = this.proposals.filter(
-      proposal =>
-        proposal.id !== acceptedProposalId &&
-        proposal.status === ProposalStatus.PENDING
-    );
-
-    if (others.length > 0) {
-      const results = await Promise.allSettled(
-        others.map(proposal =>
-          this.proposalService.reject(proposal)
-        )
-      );
-
-      results.forEach(result => {
-        if (result.status === 'rejected') {
-          console.error(
-            'Erro ao rejeitar proposta concorrente:',
-            result.reason
-          );
-        }
-      });
-    }
-
-    await this.loadProposals(this.ticket.id);
-  }
-
-  async onRejectProposal(proposal: Proposal): Promise<void> {
-    if (this.processingProposalId !== null || !this.ticket) return;
-
-    this.processingProposalId = proposal.id;
-
-    try {
-      await this.proposalService.reject(proposal);
-
-      await this.loadProposals(this.ticket.id);
-    } catch (err) {
-      console.error('Erro ao rejeitar proposta:', err);
-    } finally {
-      this.processingProposalId = null;
       this.cdr.detectChanges();
     }
   }
