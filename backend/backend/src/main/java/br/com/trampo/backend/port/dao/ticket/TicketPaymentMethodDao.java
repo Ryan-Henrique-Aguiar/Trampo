@@ -9,5 +9,7 @@ import java.util.List;
 public interface TicketPaymentMethodDao {
     TicketPaymentMethod save(TicketPaymentMethod ticketPaymentMethod) throws SQLException;
 
+    void deleteByTicketId(Integer id) throws SQLException;
+
     List<PaymentMethod> findByTicketId(Integer id) throws SQLException;
 }

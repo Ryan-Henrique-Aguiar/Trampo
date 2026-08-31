@@ -3,6 +3,8 @@ package br.com.trampo.backend.controller.ticket;
 import br.com.trampo.backend.domain.Users;
 import br.com.trampo.backend.dto.ticket.CreateTicketDto;
 import br.com.trampo.backend.dto.ticket.TicketDto;
+import br.com.trampo.backend.dto.ticket.UpdateTicketDto;
+import br.com.trampo.backend.dto.ticket.UpdateTicketStatusDto;
 import br.com.trampo.backend.port.service.ticket.TicketService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -48,5 +50,22 @@ public class TicketController {
         return ResponseEntity.ok(ticketService.getAvailableTickets(user, categoryId, minPrice, maxPrice));
     }
 
+    @PatchMapping("/{ticketId}")
+    public ResponseEntity<TicketDto> update(
+            @PathVariable int ticketId,
+            @RequestBody(required = false) UpdateTicketDto updateTicketDto,
+            @AuthenticationPrincipal Users user
+    ) {
+        return ResponseEntity.ok(ticketService.updateTicket(ticketId, updateTicketDto, user));
+    }
+
+    @PatchMapping("/{ticketId}/status")
+    public ResponseEntity<TicketDto> updateStatus(
+            @PathVariable int ticketId,
+            @RequestBody(required = false) UpdateTicketStatusDto updateTicketStatusDto,
+            @AuthenticationPrincipal Users user
+    ) {
+        return ResponseEntity.ok(ticketService.updateStatus(ticketId, updateTicketStatusDto, user));
+    }
 
 }

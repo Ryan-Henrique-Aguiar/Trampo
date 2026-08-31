@@ -66,8 +66,10 @@ export class TicketDetail implements OnChanges {
   ];
 
   public hourOptions = [
-    '07:00', '08:00', '09:00', '10:00', '11:00', '12:00',
-    '13:00', '14:00', '15:00', '16:00', '17:00', '18:00',
+    '06:00', '07:00', '08:00', '09:00', '10:00', '11:00',
+    '12:00', '13:00', '14:00', '15:00', '16:00', '17:00',
+    '18:00', '19:00', '20:00', '21:00', '22:00', '23:00',
+    '00:00'
   ];
 
   public isStatusMenuOpen = false;
@@ -118,8 +120,7 @@ export class TicketDetail implements OnChanges {
     if (!this.ticket) return [];
 
     return this.ticketService
-      .getAvailableStatusTransitions(this.ticket.status)
-      .filter(status => status !== TicketStatus.IN_PROGRESS);
+      .getAvailableStatusTransitions(this.ticket.status);
   }
 
   get isPendingStatusIrreversible(): boolean {
@@ -260,7 +261,7 @@ export class TicketDetail implements OnChanges {
       }),
       priceMax: new FormControl(
         this.ticket.priceMax,
-        [Validators.required]
+        [Validators.required, Validators.min(0.01)]
       ),
       paymentMethods: new FormControl(
         this.ticket.paymentMethods ?? [],

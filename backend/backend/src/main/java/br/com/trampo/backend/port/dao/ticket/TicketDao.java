@@ -12,6 +12,8 @@ import java.util.Optional;
 public interface TicketDao {
     Ticket save(Ticket ticket) throws SQLException;
 
+    Ticket update(Ticket ticket) throws SQLException;
+
     Optional<Ticket> findById(int id) throws SQLException;
 
     List<Ticket> findAll() throws SQLException;

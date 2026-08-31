@@ -10,5 +10,7 @@ import java.util.List;
 public interface AvailableHourDao {
     AvailableHour save(AvailableHour availableHour) throws SQLException;
 
+    void deleteByTicketId(Integer id) throws SQLException;
+
     List<String> findByTicketId(Integer id) throws SQLException;
 }

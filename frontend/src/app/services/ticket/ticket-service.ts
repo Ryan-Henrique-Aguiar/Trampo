@@ -15,7 +15,7 @@ export class TicketService {
   private baseUrl = `${environment.apiUrl}/tickets`;
 
   private static readonly TICKET_TRANSITIONS: Record<TicketStatus, TicketStatus[]> = {
-    [TicketStatus.OPEN]: [TicketStatus.IN_PROGRESS, TicketStatus.CANCELLED],
+    [TicketStatus.OPEN]: [TicketStatus.CANCELLED],
     [TicketStatus.IN_PROGRESS]: [TicketStatus.COMPLETED, TicketStatus.CANCELLED],
     [TicketStatus.COMPLETED]: [],
     [TicketStatus.CANCELLED]: [],
@@ -31,12 +31,6 @@ export class TicketService {
     );
   }
 
-
-  async getById(id: number): Promise<Ticket> {
-    return await firstValueFrom(
-      this.http.get<Ticket>(`${this.baseUrl}/${id}`)
-    )
-  }
 
   async getAvailableTickets(filters?: AvailableTicketFilters): Promise<Ticket[]> {
     let params = new HttpParams();
@@ -78,9 +72,24 @@ export class TicketService {
 
 
   async update(id: number, dto: UpdateTicketRequest): Promise<Ticket> {
-    return await firstValueFrom(
-      this.http.patch<Ticket>(`${this.baseUrl}/${id}`, dto)
+    const payload: UpdateTicketRequest = {
+      title: dto.title,
+      description: dto.description,
+      priceMax: Number(dto.priceMax),
+      address: {
+        ...dto.address,
+        complement: dto.address.complement ?? ''
+      },
+      paymentMethods: dto.paymentMethods,
+      availableDays: dto.availableDays,
+      availableHours: dto.availableHours
+    };
+
+    const updatedTicket = await firstValueFrom(
+      this.http.patch<Ticket>(`${this.baseUrl}/${id}`, payload)
     );
+
+    return updatedTicket;
   }
 
   async updateStatus(
@@ -98,20 +107,12 @@ export class TicketService {
     const payload: UpdateTicketStatusRequest = {
       status: newStatus
     };
-    if (newStatus === TicketStatus.COMPLETED) {
-      payload.serviceDate = new Date().toISOString();
-    }
-    return await firstValueFrom(
+    return firstValueFrom(
       this.http.patch<Ticket>(
-        `${this.baseUrl}/${id}`,
+        `${this.baseUrl}/${id}/status`,
         payload
       )
     );
   }
 
-  async delete(id: number): Promise<void> {
-    return await firstValueFrom(
-      this.http.delete<void>(`${this.baseUrl}/${id}`)
-    );
-  }
 }

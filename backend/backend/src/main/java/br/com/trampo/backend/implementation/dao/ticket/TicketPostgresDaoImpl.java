@@ -65,6 +65,28 @@ public class TicketPostgresDaoImpl implements TicketDao {
     }
 
     @Override
+    public Ticket update(Ticket ticket) {
+        String sql = """
+                UPDATE ticket
+                SET title = ?,
+                    description = ?,
+                    price_max = ?
+                WHERE id = ?
+                """;
+
+        try (Connection connection = dataSource.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, ticket.getTitle());
+            statement.setString(2, ticket.getDescription());
+            statement.setBigDecimal(3, ticket.getPriceMax());
+            statement.setInt(4, ticket.getId());
+            statement.executeUpdate();
+            return ticket;
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao atualizar ticket no banco de dados.", e);
+        }
+    }
+
+    @Override
     public Optional<Ticket> findById(int id) {
 
         String sql = "SELECT t.*, a.street, a.number, a.neighborhood, a.city, a.state, a.zip_code, a.complement " +
@@ -230,10 +252,19 @@ public class TicketPostgresDaoImpl implements TicketDao {
 
     @Override
     public void updateStatus(int ticketId, StatusTicket status) {
-        String sql = "UPDATE ticket SET status = ? WHERE id = ?";
+        String sql = """
+                UPDATE ticket
+                SET status = ?,
+                    service_date = CASE
+                        WHEN ? = 'COMPLETED' THEN CURRENT_TIMESTAMP
+                        ELSE service_date
+                    END
+                WHERE id = ?
+                """;
         try (Connection connection = dataSource.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, status.name());
-            statement.setInt(2, ticketId);
+            statement.setString(2, status.name());
+            statement.setInt(3, ticketId);
             statement.executeUpdate();
         } catch (SQLException e) {
             throw new DatabaseException("Erro ao atualizar status do ticket.", e);

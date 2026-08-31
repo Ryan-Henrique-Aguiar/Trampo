@@ -10,6 +10,7 @@ import java.util.Optional;
 public interface AddressDao {
     Address save(Address address) throws SQLException;
 
+    Address update(Address address) throws SQLException;
 
     Optional<Address> findById(int id) throws SQLException;
 }
