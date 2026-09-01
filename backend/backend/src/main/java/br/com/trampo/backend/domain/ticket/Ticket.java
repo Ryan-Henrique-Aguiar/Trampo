@@ -36,11 +36,11 @@ public class Ticket {
 
 
     // Construtor utilizado na criacao do ticket
-    public Ticket(String code, String title, String description, double priceMax, Users user, Address address, Category category) {
+    public Ticket(String code, String title, String description, BigDecimal priceMax, Users user, Address address, Category category) {
         this.code = code;
         this.title = title;
         this.description = description;
-        this.priceMax = BigDecimal.valueOf(priceMax); // Converte de double para BigDecimal
+        this.priceMax = priceMax;
         this.user = user;
         this.address = address;
 

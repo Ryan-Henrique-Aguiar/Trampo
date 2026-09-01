@@ -17,4 +17,13 @@ public interface UsersDao {
     Optional<Users> findByPhone(String phone);
 
     List<Users> findAll();
+
+    List<Users> findProvidersAvailableForUrgency(
+            int userId,
+            int categoryId,
+            String state,
+            String city
+    );
+
+    void updateUrgencyAvailability(int userId, boolean available);
 }

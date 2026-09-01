@@ -8,7 +8,6 @@ import br.com.trampo.backend.domain.ticket.Ticket;
 import br.com.trampo.backend.infra.exception.DatabaseException;
 import br.com.trampo.backend.port.dao.AddressDao;
 import br.com.trampo.backend.port.dao.ticket.TicketDao;
-import org.springframework.jdbc.datasource.DataSourceUtils;
 
 import javax.sql.DataSource;
 import java.math.BigDecimal;
@@ -62,6 +61,28 @@ public class TicketPostgresDaoImpl implements TicketDao {
 
         } catch (SQLException e) {
             throw new DatabaseException("Erro ao salvar ticket no banco de dados.", e);
+        }
+    }
+
+    @Override
+    public Ticket update(Ticket ticket) {
+        String sql = """
+                UPDATE ticket
+                SET title = ?,
+                    description = ?,
+                    price_max = ?
+                WHERE id = ?
+                """;
+
+        try (Connection connection = dataSource.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, ticket.getTitle());
+            statement.setString(2, ticket.getDescription());
+            statement.setBigDecimal(3, ticket.getPriceMax());
+            statement.setInt(4, ticket.getId());
+            statement.executeUpdate();
+            return ticket;
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao atualizar ticket no banco de dados.", e);
         }
     }
 
@@ -211,6 +232,42 @@ public class TicketPostgresDaoImpl implements TicketDao {
             return tickets;
         } catch (SQLException e) {
             throw new DatabaseException("Erro ao buscar tickets por ID do usuário.", e);
+        }
+    }
+
+    @Override
+    public void incrementProposalsCount(int ticketId) {
+        String sql = """
+                UPDATE ticket
+                SET proposals_count = COALESCE(proposals_count, 0) + 1
+                WHERE id = ?
+                """;
+        try (Connection connection = dataSource.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, ticketId);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao atualizar quantidade de propostas.", e);
+        }
+    }
+
+    @Override
+    public void updateStatus(int ticketId, StatusTicket status) {
+        String sql = """
+                UPDATE ticket
+                SET status = ?,
+                    service_date = CASE
+                        WHEN ? = 'COMPLETED' THEN CURRENT_TIMESTAMP
+                        ELSE service_date
+                    END
+                WHERE id = ?
+                """;
+        try (Connection connection = dataSource.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, status.name());
+            statement.setString(2, status.name());
+            statement.setInt(3, ticketId);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao atualizar status do ticket.", e);
         }
     }
 

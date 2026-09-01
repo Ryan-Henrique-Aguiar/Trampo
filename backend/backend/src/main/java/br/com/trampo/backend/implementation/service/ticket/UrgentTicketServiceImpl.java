@@ -10,6 +10,7 @@ import br.com.trampo.backend.infra.exception.InvalidRequestException;
 import br.com.trampo.backend.mapper.ticket.TicketMapper;
 import br.com.trampo.backend.port.dao.AddressDao;
 import br.com.trampo.backend.port.dao.ticket.UrgentTicketDao;
+import br.com.trampo.backend.port.dao.users.UsersDao;
 import br.com.trampo.backend.port.service.category.CategoryService;
 import br.com.trampo.backend.port.service.ticket.UrgentTicketService;
 import br.com.trampo.backend.utils.TicketCodeGenerate;
@@ -27,23 +28,41 @@ public class UrgentTicketServiceImpl implements UrgentTicketService {
     private final TicketCodeGenerate ticketCodeGenerate;
     private final CategoryService categoryService;
     private final TicketMapper ticketMapper;
+    private final UsersDao usersDao;
 
-    public UrgentTicketServiceImpl(AddressDao addressDao, UrgentTicketDao urgentTicketDao, TicketCodeGenerate ticketCodeGenerate, CategoryService categoryService, TicketMapper ticketMapper) {
+    public UrgentTicketServiceImpl(AddressDao addressDao, UrgentTicketDao urgentTicketDao, TicketCodeGenerate ticketCodeGenerate, CategoryService categoryService, TicketMapper ticketMapper, UsersDao usersDao) {
         this.addressDao = addressDao;
         this.urgentTicketDao = urgentTicketDao;
         this.ticketCodeGenerate = ticketCodeGenerate;
         this.categoryService = categoryService;
         this.ticketMapper = ticketMapper;
+        this.usersDao = usersDao;
     }
 
     @Transactional
     @Override
     public UrgentTicketDto createUrgentTicket(CreateUrgentTicketDto createUrgentTicketDto, Users user) throws SQLException {
 
-        if (user == null || createUrgentTicketDto == null) {
+        if (user == null || user.getId() == null || createUrgentTicketDto == null) {
             throw new InvalidRequestException("Usuário e dados do ticket são obrigatórios.");
         }
 
+        if (createUrgentTicketDto.providerId() == null
+                || createUrgentTicketDto.categoryId() == null
+                || createUrgentTicketDto.addressDto() == null) {
+            throw new InvalidRequestException("Prestador, categoria e endereço são obrigatórios.");
+        }
+
+        Users provider = usersDao.findProvidersAvailableForUrgency(
+                        user.getId(),
+                        createUrgentTicketDto.categoryId(),
+                        createUrgentTicketDto.addressDto().state(),
+                        createUrgentTicketDto.addressDto().city()
+                )
+                .stream()
+                .filter(availableProvider -> availableProvider.getId().equals(createUrgentTicketDto.providerId()))
+                .findFirst()
+                .orElseThrow(() -> new InvalidRequestException("Prestador indisponível para esta urgência."));
 
         int attempt = 0;
         int maxAttempt = 3;
@@ -69,6 +88,7 @@ public class UrgentTicketServiceImpl implements UrgentTicketService {
                         createUrgentTicketDto.title(),
                         createUrgentTicketDto.description(),
                         user,
+                        provider,
                         savedAddressed,
                         categoryService.findCategoryById(createUrgentTicketDto.categoryId())
                 );

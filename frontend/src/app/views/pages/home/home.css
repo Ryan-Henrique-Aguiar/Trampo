@@ -2,6 +2,51 @@
     display: block;
 }
 
+.loading-state,
+.error-state,
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 40px 20px;
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+.loading-state i,
+.error-state i {
+    font-size: 32px;
+}
+
+.error-state i {
+    color: #E8525B;
+}
+
+.error-state p {
+    margin: 0;
+}
+
+.empty-state > i {
+    font-size: 40px;
+}
+
+.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+    padding: 12px 20px;
+    border: 0;
+    border-radius: var(--radius-md);
+    background: var(--primary);
+    color: var(--white);
+    font: inherit;
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+}
+
 /* Section headers */
 .section-header {
     display: flex;
@@ -62,6 +107,9 @@
 
 .category-icon img {
     width: 40px;
+    height: 40px;
+    object-fit: contain;
+    display: block;
 }
 
 /* Tickets */
@@ -89,8 +137,56 @@
 .urgency-text{
     font-size: var(--font-size-sm);
 }
-.urgency-status{
+.urgency-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: none;
+    background: transparent;
+    padding: 4px;
+    cursor: pointer;
+}
+
+.urgency-toggle-track {
+    position: relative;
+    width: 40px;
+    height: 22px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.1);
+    transition: background 0.25s ease;
+    flex-shrink: 0;
+}
+
+.urgency-toggle-track--active {
+    background: var(--primary-dark);
+}
+
+.urgency-toggle-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--white);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    transition: transform 0.25s ease;
+}
+
+.urgency-toggle-track--active .urgency-toggle-thumb {
+    transform: translateX(18px);
+}
+
+.urgency-toggle-label {
     font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--primary-dark);
+    white-space: nowrap;
+}
+
+.urgency-toggle:disabled {
+    cursor: wait;
+    opacity: 0.7;
 }
 
 /* Stats Grid */

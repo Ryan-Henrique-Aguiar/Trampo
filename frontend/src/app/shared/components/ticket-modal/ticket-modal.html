@@ -154,9 +154,12 @@
             <div class="form-section">
                     <div class="form-group">
                         <label>Orçamento máximo (R$)</label>
-                        <input type="number" formControlName="priceMax" placeholder="Digite o orçamento máximo" min="0" />
-                        @if (isInvalid('priceMax')) {
+                        <input type="number" formControlName="priceMax" placeholder="Digite o orçamento máximo"
+                            min="0.01" step="0.01" />
+                        @if (ticketForm.get('priceMax')?.touched && ticketForm.get('priceMax')?.hasError('required')) {
                         <span class="field-error">Orçamento máximo é obrigatório.</span>
+                        } @else if (ticketForm.get('priceMax')?.touched && ticketForm.get('priceMax')?.hasError('min')) {
+                        <span class="field-error">O orçamento máximo deve ser maior que zero.</span>
                         }
                     </div>
                 <div class="form-group">
@@ -164,8 +167,8 @@
                     <div class="chip-group">
                         @for (option of paymentOptions; track option.value) {
                         <button type="button" class="chip"
-                            [class.chip--selected]="isSelected('paymentMethods', option.value)"
-                            (click)="toggleSelection('paymentMethods', option.value)">
+                            [class.chip--selected]="isPaymentSelected(option.value)"
+                            (click)="togglePaymentMethod(option.value)">
                             {{ option.label }}
                         </button>
                         }
@@ -177,14 +180,17 @@
 
                 <div class="form-group">
                     <label>Dias disponíveis</label>
-                    <div class="chip-group">
-                        @for (day of dayOptions; track day.value) {
-                        <button type="button" class="chip" [class.chip--selected]="isSelected('availableDays', day.value)"
-                            (click)="toggleSelection('availableDays', day.value)">
-                            {{ day.label }}
-                        </button>
-                        }
-                    </div>
+                    <ng-select
+                        [items]="dayOptions"
+                        bindLabel="label"
+                        bindValue="value"
+                        [multiple]="true"
+                        [searchable]="false"
+                        [closeOnSelect]="false"
+                        [appendTo]="'body'"
+                        placeholder="Selecione os dias"
+                        formControlName="availableDays">
+                    </ng-select>
                     @if (isInvalid('availableDays')) {
                     <span class="field-error">Selecione pelo menos um dia.</span>
                     }
@@ -192,14 +198,16 @@
 
                 <div class="form-group">
                     <label>Horários disponíveis</label>
-                    <div class="chip-group">
-                        @for (hour of hourOptions; track hour) {
-                        <button type="button" class="chip" [class.chip--selected]="isSelected('availableHours', hour)"
-                            (click)="toggleSelection('availableHours', hour)">
-                            {{ hour }}
-                        </button>
-                        }
-                    </div>
+                    <span class="field-hint">Os horários poderão ser combinados diretamente com o prestador.</span>
+                    <ng-select
+                        [items]="hourOptions"
+                        [multiple]="true"
+                        [searchable]="false"
+                        [closeOnSelect]="false"
+                        [appendTo]="'body'"
+                        placeholder="Selecione os horários"
+                        formControlName="availableHours">
+                    </ng-select>
                     @if (isInvalid('availableHours')) {
                     <span class="field-error">Selecione pelo menos um horário.</span>
                     }
@@ -233,7 +241,9 @@
                     </div>
                     }
 
-                    @if (!providers.length) {
+                    @if (providersError) {
+                    <p class="providers-empty">{{ providersError }}</p>
+                    } @else if (!providers.length) {
                     <p class="providers-empty">Nenhum prestador disponível no momento para esta categoria e cidade.</p>
                     }
                 </div>
@@ -241,14 +251,12 @@
             }
 
             <div class="modal-footer">
-                @if (!(isUrgent && currentStep === 3)) {
                 <button type="button" class="btn-cancel" (click)="closeModal()">
                     Cancelar
                 </button>
-                }
 
                 <div class="footer-right">
-                    @if (currentStep > 1 && !(isUrgent && currentStep === 3)) {
+                    @if (currentStep > 1) {
                     <button type="button" class="btn-back" (click)="prevStep()">
                         Voltar
                     </button>
@@ -258,11 +266,6 @@
                         @if (currentStep < 3) {
                             <button type="button" class="btn-next" [disabled]="isSubmitting" (click)="nextStep()">
                                 {{ currentStep === 2 ? (isSubmitting ? 'Buscando prestadores...' : 'Buscar prestadores') : 'Próximo' }}
-                            </button>
-                        }
-                        @if (currentStep === 3) {
-                            <button type="button" class="btn-submit" (click)="closeModal()">
-                                Concluir
                             </button>
                         }
                     } @else {

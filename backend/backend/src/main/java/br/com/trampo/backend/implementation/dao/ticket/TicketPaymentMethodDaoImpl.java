@@ -46,6 +46,18 @@ public class TicketPaymentMethodDaoImpl implements TicketPaymentMethodDao {
     }
 
     @Override
+    public void deleteByTicketId(Integer ticketId) {
+        String sql = "DELETE FROM ticket_payment_method WHERE ticket_id = ?";
+
+        try (Connection connection = dataSource.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, ticketId);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao remover métodos de pagamento do ticket.", e);
+        }
+    }
+
+    @Override
     public List<PaymentMethod> findByTicketId(Integer ticketId) {
 
         List<PaymentMethod> paymentMethods = new ArrayList<>();

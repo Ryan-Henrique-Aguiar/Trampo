@@ -43,6 +43,18 @@ public class AvailableDayDaoImpl implements AvailableDayDao {
     }
 
     @Override
+    public void deleteByTicketId(Integer ticketId) {
+        String sql = "DELETE FROM ticket_available_day WHERE ticket_id = ?";
+
+        try (Connection connection = dataSource.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, ticketId);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao remover dias disponíveis do ticket.", e);
+        }
+    }
+
+    @Override
     public List<String> findByTicketId(Integer ticketId) {
 
         List<String> days = new ArrayList<>();

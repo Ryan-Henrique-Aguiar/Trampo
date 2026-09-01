@@ -13,6 +13,8 @@ public record CreateUrgentTicketDto(
         String description,
         @NonNull
         Integer categoryId,
+        @NonNull
+        Integer providerId,
         @Validated
         @JsonProperty("address")
         CreateAddressDto addressDto) {

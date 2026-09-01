@@ -25,7 +25,6 @@ export interface UrgentTicket {
     title: string;
     description: string;
     createdAt: string;
-    userId: number;
     status: TicketStatus
     categoryId: number;
     providerId: number;

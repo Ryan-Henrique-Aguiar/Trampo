@@ -7,14 +7,15 @@ import { TicketService } from '../../../services/ticket/ticket-service';
 import { Category } from '../../../models/category.model';
 import { Ticket } from '../../../models/ticket.model';
 
-import { TicketStatus } from '../../../enums/ticket-status';
 import { TicketCard } from "../../../shared/components/ticket-card/ticket-card";
 import { ActionCards, OpenTicketRequest } from "../../../shared/components/action-cards/action-cards";
 import { TicketModal } from "../../../shared/components/ticket-modal/ticket-modal";
 import { AuthService } from '../../../services/auth/auth';
 import { ViewModeService } from '../../../services/view-mode/view-mode-service';
 import { TicketDetail } from "../../../shared/components/ticket-detail/ticket-detail";
-import { ProposalsModal } from "../../../shared/components/proposal-modal/proposal-modal"; // ajuste o caminho
+import { ProposalsModal } from "../../../shared/components/proposal-modal/proposal-modal";
+import { UserService } from '../../../services/user/user';
+import { ToastrService } from '@iqx-limited/ngx-toastr';
 
 @Component({
   selector: 'app-home',
@@ -28,8 +29,12 @@ export class Home implements OnInit {
   tickets: Ticket[] = [];
   availableTickets: Ticket[] = [];
 
-  loading = false;
-  error: string | null = null;
+  loadingMyTickets = false;
+  loadingAvailableTickets = false;
+  loadingCategories = false;
+  myTicketsError: string | null = null;
+  availableTicketsError: string | null = null;
+  categoriesError: string | null = null;
 
   isModalOpen = false
   isModalUrgent = false
@@ -38,9 +43,9 @@ export class Home implements OnInit {
   isDetailModalOpen = false
   selectedTicket: Ticket | null = null;
 
-  //modal de propostas
   isProposalsModalOpen = false;
   selectedTicketForProposals: Ticket | null = null;
+  updatingUrgency = false;
 
 
   constructor(
@@ -48,13 +53,11 @@ export class Home implements OnInit {
     private ticketService: TicketService,
     private authService: AuthService,
     private viewModeService: ViewModeService,
+    private userService: UserService,
+    private toastrService: ToastrService,
     private cdr: ChangeDetectorRef
   ) {
 
-  }
-
-  get isProvider() {
-    return this.authService.isProvider();
   }
 
   get currentUser() {
@@ -81,38 +84,59 @@ export class Home implements OnInit {
     if (this.authService.isProvider()) {
       this.viewModeService.setMode('provider');
     }
-    this.loadTickets();
+    this.loadMyTickets();
+    if (this.authService.isProvider()) {
+      this.loadAvailableTickets();
+    }
     this.loadCategories();
   }
 
-  private async loadTickets(): Promise<void> {
-    this.loading = true;
-    this.error = null;
+  private async loadMyTickets(): Promise<void> {
+    this.loadingMyTickets = true;
+    this.myTicketsError = null;
+
     try {
       this.tickets =
         await this.ticketService.getMyTickets();
-
-      if (this.authService.isProvider()) {
-        this.availableTickets = await this.ticketService.getAvailableTickets();
-      }else{
-        this.availableTickets = []
-      }
     } catch (err) {
       console.error(
-        'Erro ao carregar tickets:',
+        'Erro ao carregar tickets do usuário:',
         err
       );
       this.tickets = [];
-      this.availableTickets = [];
-      this.error =
+      this.myTicketsError =
         'Não foi possível carregar seus serviços.';
     } finally {
-      this.loading = false;
+      this.loadingMyTickets = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  private async loadAvailableTickets(): Promise<void> {
+    this.loadingAvailableTickets = true;
+    this.availableTicketsError = null;
+
+    try {
+      this.availableTickets =
+        await this.ticketService.getAvailableTickets();
+    } catch (err) {
+      console.error(
+        'Erro ao carregar tickets disponíveis:',
+        err
+      );
+      this.availableTickets = [];
+      this.availableTicketsError =
+        'Não foi possível carregar os serviços disponíveis.';
+    } finally {
+      this.loadingAvailableTickets = false;
       this.cdr.detectChanges();
     }
   }
 
   private async loadCategories(): Promise<void> {
+    this.loadingCategories = true;
+    this.categoriesError = null;
+
     try {
       this.categories =
         await this.categoryService.getAll();
@@ -122,7 +146,10 @@ export class Home implements OnInit {
         err
       );
       this.categories = [];
+      this.categoriesError =
+        'Não foi possível carregar as categorias.';
     } finally {
+      this.loadingCategories = false;
       this.cdr.detectChanges();
     }
   }
@@ -145,6 +172,11 @@ export class Home implements OnInit {
         ? updatedTicket
         : ticket
     )
+    this.availableTickets = this.availableTickets.map(ticket =>
+      ticket.id === updatedTicket.id
+        ? updatedTicket
+        : ticket
+    );
     this.selectedTicket = updatedTicket;
     this.cdr.detectChanges();
   }
@@ -163,6 +195,11 @@ export class Home implements OnInit {
 
   onProposalsTicketUpdated(updatedTicket: Ticket): void {
     this.tickets = this.tickets.map(ticket =>
+      ticket.id === updatedTicket.id
+        ? updatedTicket
+        : ticket
+    );
+    this.availableTickets = this.availableTickets.map(ticket =>
       ticket.id === updatedTicket.id
         ? updatedTicket
         : ticket
@@ -186,6 +223,10 @@ export class Home implements OnInit {
     this.isModalOpen = true;
   }
 
+  openNormalTicketModal(): void {
+    this.onActionCardsOpenTicket({ urgent: false });
+  }
+
   closeTicketModal(): void {
     this.isModalOpen = false;
   }
@@ -196,13 +237,27 @@ export class Home implements OnInit {
     this.cdr.detectChanges();
   }
 
-  getStatusLabel(status: TicketStatus): string {
-    const labels: Record<TicketStatus, string> = {
-      [TicketStatus.OPEN]: 'Aberto',
-      [TicketStatus.IN_PROGRESS]: 'Em andamento',
-      [TicketStatus.COMPLETED]: 'Finalizado',
-      [TicketStatus.CANCELLED]: 'Cancelado'
-    };
-    return labels[status] || status;
+  async toggleUrgencyAvailability(): Promise<void> {
+    if (!this.currentUser || this.updatingUrgency) return;
+
+    this.updatingUrgency = true;
+    const available = !this.currentUser.availableForUrgency;
+
+    try {
+      const response =
+        await this.userService.toggleUrgencyAvailability(available);
+      this.currentUser.availableForUrgency = response.availableForUrgency;
+      this.toastrService.success(
+        available
+          ? 'Modo urgente ativado'
+          : 'Modo urgente desativado'
+      );
+    } catch {
+      this.toastrService.error('Não foi possível alterar o modo urgente');
+    } finally {
+      this.updatingUrgency = false;
+      this.cdr.detectChanges();
+    }
   }
+
 }

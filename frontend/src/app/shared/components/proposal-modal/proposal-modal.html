@@ -20,7 +20,7 @@
                 @for (proposal of proposals; track proposal.id) {
                 <div class="proposal-card">
                     <div class="proposal-info">
-                        <span class="proposal-provider">{{ getProfessional(proposal)?.name || 'Prestador #' + proposal.professionalId }}</span>
+                        <span class="proposal-provider">{{ proposal.professionalName || 'Prestador #' + proposal.professionalId }}</span>
                         <span class="proposal-price">{{ formatCurrency(proposal.priceRange) }}</span>
                         <span class="proposal-status" [class]="'proposal-status--' + proposal.status.toLowerCase()">
                             {{ getStatusLabel(proposal.status) }}

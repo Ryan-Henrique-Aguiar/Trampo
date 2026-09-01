@@ -1,11 +1,13 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output, SimpleChanges } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { NgSelectModule } from '@ng-select/ng-select';
 
 import { CategoryService } from '../../../services/category/category-service';
 import { TicketService } from '../../../services/ticket/ticket-service';
+import { UrgentTicketService } from '../../../services/urgent-ticket/urgent-ticket-service';
 import { Category } from '../../../models/category.model';
-import { User } from '../../../models/user.model';
+import { UrgentProviderResponse } from '../../../dto/user/urgent-provider-response';
 import { PaymentMethod } from '../../../enums/payment-method';
 import { UserService } from '../../../services/user/user';
 import { LocationService, State, City } from '../../../services/location/location';
@@ -33,11 +35,11 @@ function normalizeText(value: string | null | undefined): string {
 
 @Component({
   selector: 'app-ticket-modal',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, NgSelectModule],
   templateUrl: './ticket-modal.html',
   styleUrl: './ticket-modal.css',
 })
-export class TicketModal implements OnInit {
+export class TicketModal implements OnInit, OnChanges {
   @Input() isOpen = false;
   @Input() isUrgent = false;
   @Input() preselectedCategoryId: number | null = null;
@@ -46,12 +48,13 @@ export class TicketModal implements OnInit {
   public categories: Category[] = [];
   public currentStep = 1;
   public isSubmitting = false;
-  public providers: User[] = [];
+  public providers: UrgentProviderResponse[] = [];
   public states: State[] = []
   public cities: City[] = [];
   public cepLoading = false;
   public cepError: string | null = null;
   public sendingProviderId: number | null = null;
+  public providersError: string | null = null;
 
   public ticketForm!: FormGroup;
   public totalSteps = 3;
@@ -74,8 +77,10 @@ export class TicketModal implements OnInit {
   ];
 
   public hourOptions = [
-    '07:00', '08:00', '09:00', '10:00', '11:00', '12:00',
-    '13:00', '14:00', '15:00', '16:00', '17:00', '18:00',
+    '06:00', '07:00', '08:00', '09:00', '10:00', '11:00',
+    '12:00', '13:00', '14:00', '15:00', '16:00', '17:00',
+    '18:00', '19:00', '20:00', '21:00', '22:00', '23:00',
+    '00:00',
   ];
 
   // passo 1: título/descrição/categoria, passo 2: endereço, passo 3: existe apenas para o fluxo normal
@@ -97,6 +102,7 @@ export class TicketModal implements OnInit {
   constructor(
     private categoryService: CategoryService,
     private ticketService: TicketService,
+    private urgentTicketService: UrgentTicketService,
     private userService: UserService,
     private locationService: LocationService,
     private cdr: ChangeDetectorRef,
@@ -136,7 +142,7 @@ export class TicketModal implements OnInit {
         zipCode: new FormControl(null),
         complement: new FormControl(null),
       }),
-      priceMax: new FormControl(null, [Validators.required]),
+      priceMax: new FormControl(null, [Validators.required, Validators.min(0.01)]),
       paymentMethods: new FormControl([], [Validators.required]),
       availableDays: new FormControl([], [Validators.required]),
       availableHours: new FormControl([], [Validators.required]),
@@ -312,7 +318,7 @@ export class TicketModal implements OnInit {
   }
 
   private async saveUrgentTicket(
-    provider: User
+    provider: UrgentProviderResponse
   ): Promise<void> {
 
     const relevantFields =
@@ -343,7 +349,7 @@ export class TicketModal implements OnInit {
       providerId: provider.id
     };
 
-    await this.ticketService.createUrgent(dto);
+    await this.urgentTicketService.create(dto);
   }
 
   // apenas busca prestadores para a categoria/localização, ainda não cria nada —
@@ -373,6 +379,7 @@ export class TicketModal implements OnInit {
   ): Promise<void> {
 
     try {
+      this.providersError = null;
       this.providers =
         await this.userService.getProvidersWithUrgency(
           categoryId,
@@ -389,6 +396,11 @@ export class TicketModal implements OnInit {
     } catch (err) {
       console.error('Erro ao buscar prestadores:', err);
       this.providers = [];
+      this.providersError = this.getErrorMessage(
+        err,
+        'Não foi possível buscar prestadores disponíveis.'
+      );
+      this.toastrService.error(this.providersError);
 
     } finally {
       this.cdr.detectChanges();
@@ -432,22 +444,27 @@ export class TicketModal implements OnInit {
     return !!control && control.invalid && control.touched;
   }
 
-  public isSelected(field: string, value: any): boolean {
-    return (this.ticketForm.get(field)?.value || []).includes(value);
+  public isPaymentSelected(paymentMethod: PaymentMethod): boolean {
+    const paymentMethods: PaymentMethod[] =
+      this.ticketForm.get('paymentMethods')?.value ?? [];
+
+    return paymentMethods.includes(paymentMethod);
   }
 
-  public toggleSelection(field: string, value: any): void {
-    const current = this.ticketForm.get(field)?.value || [];
-    const updated = current.includes(value)
-      ? current.filter((item: any) => item !== value)
-      : [...current, value];
+  public togglePaymentMethod(paymentMethod: PaymentMethod): void {
+    const paymentMethods: PaymentMethod[] =
+      this.ticketForm.get('paymentMethods')?.value ?? [];
 
-    this.ticketForm.get(field)?.setValue(updated);
-    this.ticketForm.get(field)?.markAsTouched();
+    const updated = paymentMethods.includes(paymentMethod)
+      ? paymentMethods.filter(item => item !== paymentMethod)
+      : [...paymentMethods, paymentMethod];
+
+    this.ticketForm.get('paymentMethods')?.setValue(updated);
+    this.ticketForm.get('paymentMethods')?.markAsTouched();
   }
 
   public async openWhatsapp(
-    provider: User
+    provider: UrgentProviderResponse
   ): Promise<void> {
 
     this.sendingProviderId = provider.id;
@@ -463,12 +480,16 @@ export class TicketModal implements OnInit {
 
       window.open(url, '_blank');
 
+      this.toastrService.success('Ticket urgente criado com sucesso');
       this.closeModal();
 
     } catch (err) {
       console.error(
         'Erro ao criar ticket urgente:',
         err
+      );
+      this.toastrService.error(
+        this.getErrorMessage(err, 'Não foi possível criar o ticket urgente.')
       );
 
     } finally {
@@ -491,6 +512,7 @@ export class TicketModal implements OnInit {
   private resetForm(): void {
     this.currentStep = 1;
     this.providers = [];
+    this.providersError = null;
     this.cities = [];
     this.isSubmitting = false;
     this.sendingProviderId = null;
@@ -506,5 +528,13 @@ export class TicketModal implements OnInit {
     this.ticketForm.get('address.city')?.disable();
 
     this.cdr.detectChanges();
+  }
+
+  private getErrorMessage(error: unknown, fallback: string): string {
+    if (error instanceof HttpErrorResponse) {
+      return error.error?.message || fallback;
+    }
+
+    return fallback;
   }
 }

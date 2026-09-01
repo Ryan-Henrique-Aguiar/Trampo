@@ -10,5 +10,7 @@ import java.util.List;
 public interface AvailableDayDao {
     AvailableDay save(AvailableDay availableDay) throws SQLException;
 
+    void deleteByTicketId(Integer id) throws SQLException;
+
     List<String> findByTicketId(Integer id) throws SQLException;
 }

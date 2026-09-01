@@ -1,22 +1,22 @@
 package br.com.trampo.backend.dto.ticket;
 
-import br.com.trampo.backend.domain.enums.PaymentMethod;
+import br.com.trampo.backend.domain.enums.StatusTicket;
 import br.com.trampo.backend.dto.address.AddressDto;
-import br.com.trampo.backend.dto.address.CreateAddressDto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.validation.annotation.Validated;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 
 public record UrgentTicketDto(
+        Integer id,
         String code,
         String title,
         String description,
-        Integer categoryId,
         LocalDateTime createdAt,
         LocalDateTime serviceDate,
+        StatusTicket status,
+        Integer providerId,
+        Integer categoryId,
         @Validated
         @JsonProperty("address")
         AddressDto addressDto

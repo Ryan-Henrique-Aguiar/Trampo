@@ -48,6 +48,36 @@ public class AddressPostgresDaoImpl implements AddressDao {
     }
 
     @Override
+    public Address update(Address address) {
+        String sql = """
+                UPDATE address
+                SET street = ?,
+                    number = ?,
+                    neighborhood = ?,
+                    city = ?,
+                    state = ?,
+                    zip_code = ?,
+                    complement = ?
+                WHERE id = ?
+                """;
+
+        try (Connection connection = dataSource.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, address.getStreet());
+            statement.setString(2, address.getNumber());
+            statement.setString(3, address.getNeighborhood());
+            statement.setString(4, address.getCity());
+            statement.setString(5, address.getState());
+            statement.setString(6, address.getZipCode());
+            statement.setString(7, address.getComplement());
+            statement.setInt(8, address.getId());
+            statement.executeUpdate();
+            return address;
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao atualizar endereço no banco de dados.", e);
+        }
+    }
+
+    @Override
     public Optional<Address> findById(int id) {
         Connection connection = DataSourceUtils.getConnection(dataSource);
         // Lógica de busca deve ser implementada aqui futuramente

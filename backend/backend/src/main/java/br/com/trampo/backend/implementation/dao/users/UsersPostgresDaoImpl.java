@@ -200,4 +200,58 @@ public class UsersPostgresDaoImpl implements UsersDao {
         }
         return users;
     }
+
+    @Override
+    public List<Users> findProvidersAvailableForUrgency(
+            int userId,
+            int categoryId,
+            String state,
+            String city
+    ) {
+        List<Users> providers = new ArrayList<>();
+        String sql = """
+                SELECT DISTINCT u.*
+                FROM users u
+                JOIN user_category uc ON uc.user_id = u.id
+                WHERE u.id <> ?
+                  AND u.is_provider = TRUE
+                  AND u.is_available_for_urgency = TRUE
+                  AND uc.category_id = ?
+                  AND UPPER(TRIM(u.state)) = UPPER(TRIM(?))
+                  AND LOWER(TRIM(u.city)) = LOWER(TRIM(?))
+                ORDER BY u.rating DESC NULLS LAST, u.name
+                """;
+
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, userId);
+            statement.setInt(2, categoryId);
+            statement.setString(3, state);
+            statement.setString(4, city);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    providers.add(mapUser(resultSet));
+                }
+            }
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao buscar prestadores disponíveis para urgência.", e);
+        }
+
+        return providers;
+    }
+
+    @Override
+    public void updateUrgencyAvailability(int userId, boolean available) {
+        String sql = "UPDATE users SET is_available_for_urgency = ? WHERE id = ?";
+
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setBoolean(1, available);
+            statement.setInt(2, userId);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao atualizar disponibilidade para urgências.", e);
+        }
+    }
 }

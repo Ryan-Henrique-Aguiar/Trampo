@@ -279,6 +279,11 @@
     margin-top: 4px;
 }
 
+.field-hint {
+    color: var(--text-secondary);
+    font-size: var(--font-size-xs);
+}
+
 @media (max-width: 600px) {
     .modal {
         max-height: 92vh;

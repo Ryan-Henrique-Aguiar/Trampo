@@ -3,6 +3,7 @@ package br.com.trampo.backend.configuration;
 import br.com.trampo.backend.implementation.dao.AddressPostgresDaoImpl;
 import br.com.trampo.backend.implementation.dao.CategoryPostgresDaoImpl;
 import br.com.trampo.backend.implementation.dao.UsersCategoryPostgresDaoImpl;
+import br.com.trampo.backend.implementation.dao.proposal.ProposalPostgresDaoImpl;
 import br.com.trampo.backend.implementation.dao.ticket.AvailableDayDaoImpl;
 import br.com.trampo.backend.implementation.dao.ticket.AvailableHourDaoImpl;
 import br.com.trampo.backend.implementation.dao.ticket.TicketPaymentMethodDaoImpl;
@@ -12,6 +13,7 @@ import br.com.trampo.backend.implementation.dao.ticket.UrgentTicketPostgresDaoIm
 import br.com.trampo.backend.port.dao.AddressDao;
 import br.com.trampo.backend.port.dao.CategoryDao;
 import br.com.trampo.backend.port.dao.UsersCategoryDao;
+import br.com.trampo.backend.port.dao.proposal.ProposalDao;
 import br.com.trampo.backend.port.dao.ticket.AvailableDayDao;
 import br.com.trampo.backend.port.dao.ticket.AvailableHourDao;
 import br.com.trampo.backend.port.dao.ticket.TicketPaymentMethodDao;
@@ -72,5 +74,10 @@ public class AppConfiguration {
     @Bean
     public TicketPaymentMethodDao ticketPaymentMethodDao(DataSource dataSource) {
         return new TicketPaymentMethodDaoImpl(dataSource);
+    }
+
+    @Bean
+    public ProposalDao proposalDao(DataSource dataSource) {
+        return new ProposalPostgresDaoImpl(dataSource);
     }
 }
