@@ -227,6 +227,9 @@ CREATE TABLE IF NOT EXISTS notification (
     message TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     ticket_id INT NOT NULL,
+    user_id INT NOT NULL,
+    is_read BOOLEAN NOT NULL DEFAULT FALSE;
+
     FOREIGN KEY (ticket_id) REFERENCES ticket(id)
 );
 
