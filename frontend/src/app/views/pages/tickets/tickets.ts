@@ -1,15 +1,14 @@
 import { ChangeDetectorRef, Component, inject, OnInit, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { TicketService } from '../../../services/ticket/ticket-service';
 import { TicketCard } from "../../../shared/components/ticket-card/ticket-card";
-import { ActionCards } from "../../../shared/components/action-cards/action-cards";
+import { TicketModal } from '../../../shared/components/ticket-modal/ticket-modal';
 import { AuthService } from '../../../services/auth/auth';
 import { ViewModeService } from '../../../services/view-mode/view-mode-service';
 import { Ticket } from '../../../models/ticket.model';
 
 @Component({
   selector: 'app-tickets',
-  imports: [TicketCard, ActionCards, RouterLink],
+  imports: [TicketCard, TicketModal],
   templateUrl: './tickets.html',
   styleUrl: './tickets.css',
 })
@@ -18,6 +17,8 @@ export class Tickets implements OnInit {
   availableTickets: Ticket[] = [];
   loading = false;
   error: string | null = null;
+  isTicketModalOpen = false;
+  isModalUrgent = false;
 
   constructor(
     private ticketService: TicketService,
@@ -63,6 +64,21 @@ export class Tickets implements OnInit {
       this.loading = false;
       this.cdr.detectChanges();
     }
+  }
+
+  openTicketModal(isUrgent: boolean): void {
+    this.isModalUrgent = isUrgent;
+    this.isTicketModalOpen = true;
+  }
+
+  closeTicketModal(): void {
+    this.isTicketModalOpen = false;
+    this.isModalUrgent = false;
+  }
+
+  onTicketCreated(ticket: Ticket): void {
+    this.tickets = [ticket, ...this.tickets];
+    this.cdr.detectChanges();
   }
 
 }

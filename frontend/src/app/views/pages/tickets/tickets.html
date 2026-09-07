@@ -42,7 +42,23 @@
 
     <!-- ========== MODO CLIENTE ========== -->
     @else {
-      <app-action-cards />
+      <div class="action-cards">
+        <button class="action-card" (click)="openTicketModal(false)">
+          <div class="action-icon action-icon--service">
+            <i class="fa-solid fa-file-pen"></i>
+          </div>
+          <span class="action-title">Solicitar serviço</span>
+          <span class="action-subtitle">Receba propostas</span>
+        </button>
+
+        <button class="action-card" (click)="openTicketModal(true)">
+          <div class="action-icon action-icon--urgent">
+            <i class="fa-solid fa-bolt"></i>
+          </div>
+          <span class="action-title">Serviço urgente</span>
+          <span class="action-subtitle">Prestador agora</span>
+        </button>
+      </div>
 
       <div class="section-header">
         <h2>Meus serviços publicados</h2>
@@ -60,13 +76,20 @@
           <i class="fa-regular fa-face-smile"></i>
           <h3>Nenhum serviço publicado</h3>
           <p>Você ainda não publicou nenhum serviço. Comece agora!</p>
-          <a routerLink="/tickets/create" class="btn-primary">
+          <button type="button" class="btn-primary" (click)="openTicketModal(false)">
             <i class="fa-solid fa-plus"></i>
             Publicar meu primeiro serviço
-          </a>
+          </button>
         </div>
       }
     }
+  }
+
+  @if (isTicketModalOpen) {
+    <app-ticket-modal
+      [isUrgent]="isModalUrgent"
+      (close)="closeTicketModal()"
+      (ticketCreated)="onTicketCreated($event)" />
   }
 
 </section>

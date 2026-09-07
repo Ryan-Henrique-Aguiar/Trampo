@@ -8,7 +8,6 @@ import { Category } from '../../../models/category.model';
 import { Ticket } from '../../../models/ticket.model';
 
 import { TicketCard } from "../../../shared/components/ticket-card/ticket-card";
-import { ActionCards, OpenTicketRequest } from "../../../shared/components/action-cards/action-cards";
 import { TicketModal } from "../../../shared/components/ticket-modal/ticket-modal";
 import { AuthService } from '../../../services/auth/auth';
 import { ViewModeService } from '../../../services/view-mode/view-mode-service';
@@ -19,7 +18,7 @@ import { ToastrService } from '@iqx-limited/ngx-toastr';
 
 @Component({
   selector: 'app-home',
-  imports: [RouterLink, TicketCard, ActionCards, TicketModal, TicketDetail, ProposalsModal],
+  imports: [RouterLink, TicketCard, TicketModal, TicketDetail, ProposalsModal],
   templateUrl: './home.html',
   styleUrl: './home.css',
 })
@@ -36,15 +35,10 @@ export class Home implements OnInit {
   availableTicketsError: string | null = null;
   categoriesError: string | null = null;
 
-  isModalOpen = false
+  activeModal: 'create' | 'details' | 'proposals' | null = null;
   isModalUrgent = false
   preselectedCategoryId: number | null = null;
-
-  isDetailModalOpen = false
   selectedTicket: Ticket | null = null;
-
-  isProposalsModalOpen = false;
-  selectedTicketForProposals: Ticket | null = null;
   updatingUrgency = false;
 
 
@@ -66,18 +60,6 @@ export class Home implements OnInit {
 
   get isProviderMode() {
     return this.viewModeService.isProviderMode;
-  }
-
-  get firstThreeMyTickets(): Ticket[] {
-    return this.tickets.slice(0, 3);
-  }
-
-  get firstThreeCategories(): Category[] {
-    return this.categories.slice(0, 3);
-  }
-
-  get firstThreeAvailableTickets(): Ticket[] {
-    return this.availableTickets.slice(0, 3);
   }
 
   ngOnInit(): void {
@@ -158,12 +140,7 @@ export class Home implements OnInit {
 
   openTicketDetail(ticket: Ticket): void {
     this.selectedTicket = ticket;
-    this.isDetailModalOpen = true;
-  }
-
-  closeTicketDetail(): void {
-    this.isDetailModalOpen = false
-    this.selectedTicket = null;
+    this.activeModal = 'details';
   }
 
   onTicketUpdated(updatedTicket: Ticket): void {
@@ -184,51 +161,23 @@ export class Home implements OnInit {
   // ===== MODAL DE PROPOSTAS (novo) =====
 
   openProposalsModal(ticket: Ticket): void {
-    this.selectedTicketForProposals = ticket;
-    this.isProposalsModalOpen = true;
-  }
-
-  closeProposalsModal(): void {
-    this.isProposalsModalOpen = false;
-    this.selectedTicketForProposals = null;
-  }
-
-  onProposalsTicketUpdated(updatedTicket: Ticket): void {
-    this.tickets = this.tickets.map(ticket =>
-      ticket.id === updatedTicket.id
-        ? updatedTicket
-        : ticket
-    );
-    this.availableTickets = this.availableTickets.map(ticket =>
-      ticket.id === updatedTicket.id
-        ? updatedTicket
-        : ticket
-    );
-
-    this.selectedTicketForProposals = updatedTicket;
-    this.cdr.detectChanges();
+    this.selectedTicket = ticket;
+    this.activeModal = 'proposals';
   }
 
   // ===== MODAL DE CRIAÇÃO =====
 
-  onActionCardsOpenTicket(request: OpenTicketRequest): void {
-    this.isModalUrgent = request.urgent;
-    this.preselectedCategoryId = null;
-    this.isModalOpen = true;
+  openTicketModal(isUrgent: boolean, categoryId: number | null = null): void {
+    this.isModalUrgent = isUrgent;
+    this.preselectedCategoryId = categoryId;
+    this.activeModal = 'create';
   }
 
-  onCategoryClick(category: Category): void {
+  closeModal(): void {
+    this.activeModal = null;
+    this.selectedTicket = null;
     this.isModalUrgent = false;
-    this.preselectedCategoryId = category.id;
-    this.isModalOpen = true;
-  }
-
-  openNormalTicketModal(): void {
-    this.onActionCardsOpenTicket({ urgent: false });
-  }
-
-  closeTicketModal(): void {
-    this.isModalOpen = false;
+    this.preselectedCategoryId = null;
   }
 
 

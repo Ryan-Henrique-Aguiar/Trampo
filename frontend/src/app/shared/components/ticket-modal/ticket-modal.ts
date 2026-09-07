@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgSelectModule } from '@ng-select/ng-select';
 
@@ -39,8 +39,7 @@ function normalizeText(value: string | null | undefined): string {
   templateUrl: './ticket-modal.html',
   styleUrl: './ticket-modal.css',
 })
-export class TicketModal implements OnInit, OnChanges {
-  @Input() isOpen = false;
+export class TicketModal implements OnInit {
   @Input() isUrgent = false;
   @Input() preselectedCategoryId: number | null = null;
   @Output() close = new EventEmitter<void>();
@@ -117,15 +116,11 @@ export class TicketModal implements OnInit, OnChanges {
       this.loadStates()
     ]);
 
-    this.cdr.detectChanges();
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['isOpen'] && this.isOpen && this.ticketForm) {
-      if (this.preselectedCategoryId != null) {
-        this.ticketForm.get('categoryId')?.setValue(this.preselectedCategoryId);
-      }
+    if (this.preselectedCategoryId != null) {
+      this.ticketForm.get('categoryId')?.setValue(this.preselectedCategoryId);
     }
+
+    this.cdr.detectChanges();
   }
 
   private initializeForm(): void {

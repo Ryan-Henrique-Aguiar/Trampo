@@ -3,7 +3,7 @@ import {
   Component,
   EventEmitter,
   Input,
-  OnChanges,
+  OnInit,
   Output
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -23,9 +23,8 @@ import { ProposalService } from '../../../services/proposal/proposal-service';
   templateUrl: './proposal-modal.html',
   styleUrl: './proposal-modal.css',
 })
-export class ProposalsModal implements OnChanges {
+export class ProposalsModal implements OnInit {
 
-  @Input() isOpen = false;
   @Input() ticket: Ticket | null = null;
 
   @Output() close = new EventEmitter<void>();
@@ -41,11 +40,9 @@ export class ProposalsModal implements OnChanges {
     private cdr: ChangeDetectorRef
   ) {}
 
-  async ngOnChanges(): Promise<void> {
-    if (this.isOpen && this.ticket) {
+  async ngOnInit(): Promise<void> {
+    if (this.ticket) {
       await this.loadProposals(this.ticket.id);
-    } else {
-      this.proposals = [];
     }
 
     this.cdr.detectChanges();

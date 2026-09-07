@@ -3,16 +3,18 @@ import {
   Component,
   EventEmitter,
   Input,
-  OnChanges,
+  OnInit,
   Output
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import {
   FormControl,
   FormGroup,
   ReactiveFormsModule,
   Validators
 } from '@angular/forms';
+import { ToastrService } from '@iqx-limited/ngx-toastr';
 
 import { Ticket } from '../../../models/ticket.model';
 import { Proposal } from '../../../models/proposal.model';
@@ -34,13 +36,11 @@ import { ProposalService } from '../../../services/proposal/proposal-service';
   templateUrl: './ticket-detail.html',
   styleUrl: './ticket-detail.css'
 })
-export class TicketDetail implements OnChanges {
+export class TicketDetail implements OnInit {
 
-  @Input() isOpen = false;
   @Input() ticket: Ticket | null = null;
 
   @Output() close = new EventEmitter<void>();
-  @Output() statusChanged = new EventEmitter<Ticket>();
   @Output() ticketUpdated = new EventEmitter<Ticket>();
 
   private static readonly TERMINAL_STATUSES = [
@@ -95,6 +95,7 @@ export class TicketDetail implements OnChanges {
     private viewModeService: ViewModeService,
     private ticketService: TicketService,
     private proposalService: ProposalService,
+    private toastrService: ToastrService,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -144,8 +145,8 @@ export class TicketDetail implements OnChanges {
       this.myProposal === null;
   }
 
-  async ngOnChanges(): Promise<void> {
-    if (this.isOpen && this.ticket) {
+  async ngOnInit(): Promise<void> {
+    if (this.ticket) {
       this.proposalPriceControl.setValidators([
         Validators.required,
         Validators.min(0.01),
@@ -160,8 +161,6 @@ export class TicketDetail implements OnChanges {
       } else {
         this.proposals = [];
       }
-    } else {
-      this.proposals = [];
     }
 
     this.cdr.detectChanges();
@@ -213,7 +212,6 @@ export class TicketDetail implements OnChanges {
       this.ticket = updatedTicket;
       this.pendingStatus = null;
 
-      this.statusChanged.emit(updatedTicket);
       this.ticketUpdated.emit(updatedTicket);
     } catch (err) {
       console.error('Erro ao alterar status do ticket:', err);
@@ -332,8 +330,14 @@ export class TicketDetail implements OnChanges {
       this.isEditing = false;
 
       this.ticketUpdated.emit(updatedTicket);
+      this.toastrService.success('Ticket atualizado com sucesso');
     } catch (err) {
       console.error('Erro ao atualizar ticket:', err);
+      this.toastrService.error(
+        err instanceof HttpErrorResponse
+          ? err.error?.message || 'Não foi possível atualizar o ticket'
+          : 'Não foi possível atualizar o ticket'
+      );
     } finally {
       this.isSaving = false;
       this.cdr.detectChanges();

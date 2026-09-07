@@ -59,11 +59,12 @@
     </div>
   }
 
-  <app-ticket-modal
-    [isOpen]="isModalOpen"
-    [isUrgent]="false"
-    [preselectedCategoryId]="preselectedCategoryId"
-    (close)="closeTicketModal()" />
+  @if (isModalOpen) {
+    <app-ticket-modal
+      [isUrgent]="false"
+      [preselectedCategoryId]="preselectedCategoryId"
+      (close)="closeTicketModal()" />
+  }
 
   @if (isSuggestionModalOpen) {
     <div class="suggestion-overlay" (click)="onSuggestionOverlayClick($event)">
