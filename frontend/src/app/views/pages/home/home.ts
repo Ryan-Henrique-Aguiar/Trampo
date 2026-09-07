@@ -27,6 +27,7 @@ export class Home implements OnInit {
   categories: Category[] = [];
   tickets: Ticket[] = [];
   availableTickets: Ticket[] = [];
+  availableUrgentProviders = 4;
 
   loadingMyTickets = false;
   loadingAvailableTickets = false;

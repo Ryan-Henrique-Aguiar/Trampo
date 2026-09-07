@@ -2,9 +2,12 @@
 <div class="ticket-card">
   <div class="ticket-top">
     <span class="ticket-code">{{ ticket.code }}</span>
-    <span class="ticket-status" [class]="'ticket-status--' + ticket.status">
-      {{ getStatusLabel(ticket.status) }}
-    </span>
+    <div class="ticket-status-group">
+      <span class="ticket-status-label">Status:</span>
+      <span class="ticket-status" [class]="'ticket-status--' + ticket.status.toLowerCase()">
+        {{ getStatusLabel(ticket.status) }}
+      </span>
+    </div>
   </div>
 
   <p class="ticket-title">{{ ticket.title }}</p>
@@ -36,9 +39,19 @@
       }
     </div>
     <div class="group-btn-detail">
-      <button class="btn-detail-proposal" (click)="onViewDetails()">Detalhes</button>
+      <button
+        type="button"
+        class="ticket-button ticket-button--details"
+        (click)="onViewDetails()">
+        Detalhes
+      </button>
       @if (!isProviderMode && (ticket.proposalsCount ?? 0) > 0) {
-        <button class="btn-detail-proposal" (click)="onViewProposals()">Propostas | {{ ticket.proposalsCount }}</button>
+        <button
+          type="button"
+          class="ticket-button ticket-button--proposals"
+          (click)="onViewProposals()">
+          Propostas | {{ ticket.proposalsCount }}
+        </button>
       }
     </div>
   </div>

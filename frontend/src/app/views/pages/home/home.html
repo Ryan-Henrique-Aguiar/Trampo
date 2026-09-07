@@ -114,6 +114,28 @@
         </button>
       </div>
 
+      <div class="urgent-providers-banner">
+        <div class="urgent-providers-icon">
+          <i class="fa-solid fa-bolt"></i>
+        </div>
+
+        <div class="urgent-providers-info">
+          <strong>
+            {{ availableUrgentProviders }} prestadores disponíveis para urgências
+          </strong>
+          <span>
+            Na sua cidade · disponibilidade atualizada a cada 5 minutos
+          </span>
+        </div>
+
+        <button
+          type="button"
+          class="urgent-providers-button"
+          (click)="openTicketModal(true)">
+          Solicitar agora
+        </button>
+      </div>
+
       <div class="section-header">
         <h2>Categorias</h2>
         <a class="link-see-all" routerLink="/categories">Ver todas ></a>

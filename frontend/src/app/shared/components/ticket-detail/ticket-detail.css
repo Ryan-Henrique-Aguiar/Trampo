@@ -138,27 +138,32 @@
     letter-spacing: 0.5px;
     width: 100%;
     min-height: 36px;
+    border: 1px solid transparent;
 }
 
 /* Status Cores */
 .status-open {
-    background: #e3f2fd;
-    color: #1565c0;
+    border-color: var(--status-open-border);
+    background: var(--status-open-background);
+    color: var(--status-open-text);
 }
 
 .status-progress {
-    background: #e8f5e9;
-    color: #2e7d32;
+    border-color: var(--status-progress-border);
+    background: var(--status-progress-background);
+    color: var(--status-progress-text);
 }
 
 .status-completed {
-    background: #e8f5e9;
-    color: #2e7d32;
+    border-color: var(--status-completed-border);
+    background: var(--status-completed-background);
+    color: var(--status-completed-text);
 }
 
 .status-cancelled {
-    background: #fce4ec;
-    color: #c62828;
+    border-color: var(--status-cancelled-border);
+    background: var(--status-cancelled-background);
+    color: var(--status-cancelled-text);
 }
 
 .status-default {
@@ -602,11 +607,12 @@
     border-radius: 999px;
     text-transform: uppercase;
     font-weight: 600;
+    border: 1px solid transparent;
 }
 
-.proposal-status--pending { background: #fff3e0; color: #e65100; }
-.proposal-status--accepted { background: #e8f5e9; color: #2e7d32; }
-.proposal-status--rejected { background: #fce4ec; color: #c62828; }
+.proposal-status--pending { border-color: var(--status-pending-border); background: var(--status-pending-background); color: var(--status-pending-text); }
+.proposal-status--accepted { border-color: var(--status-accepted-border); background: var(--status-accepted-background); color: var(--status-accepted-text); }
+.proposal-status--rejected { border-color: var(--status-rejected-border); background: var(--status-rejected-background); color: var(--status-rejected-text); }
 
 .proposal-actions {
     display: flex;

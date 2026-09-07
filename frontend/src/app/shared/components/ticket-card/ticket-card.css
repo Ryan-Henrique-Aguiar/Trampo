@@ -3,6 +3,13 @@
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     padding: 16px 18px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.ticket-card:hover {
+    border-color: rgba(24, 95, 165, 0.4);
+    box-shadow: var(--shadow-sm);
+    transform: translateY(-2px);
 }
 
 .ticket-top {
@@ -17,36 +24,48 @@
     color: var(--text-secondary);
 }
 
+.ticket-status-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.ticket-status-label {
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+}
+
 .ticket-status {
+    border: 1px solid transparent;
     font-size: var(--font-size-xs);
     font-weight: var(--font-weight-semibold);
     padding: 4px 10px;
     border-radius: 999px;
 }
 
-.ticket-status--open {
-    background: rgba(24, 95, 165, 0.1);
-    color: var(--primary);
-}
-
+.ticket-status--open,
 .ticket-status--with_proposals {
-    background: rgba(24, 95, 165, 0.1);
-    color: var(--primary);
+    border-color: var(--status-open-border);
+    background: var(--status-open-background);
+    color: var(--status-open-text);
 }
 
 .ticket-status--in_progress {
-    background: rgba(46, 160, 90, 0.12);
-    color: #2EA05A;
+    border-color: var(--status-progress-border);
+    background: var(--status-progress-background);
+    color: var(--status-progress-text);
 }
 
 .ticket-status--completed {
-    background: rgba(108, 117, 125, 0.12);
-    color: var(--text-secondary);
+    border-color: var(--status-completed-border);
+    background: var(--status-completed-background);
+    color: var(--status-completed-text);
 }
 
 .ticket-status--cancelled {
-    background: rgba(232, 82, 91, 0.1);
-    color: #E8525B;
+    border-color: var(--status-cancelled-border);
+    background: var(--status-cancelled-background);
+    color: var(--status-cancelled-text);
 }
 
 .ticket-title {
@@ -68,36 +87,70 @@
     margin-right: 4px;
 }
 
-.btn-detail-proposal {
-    width: 100px;
-    font-size: var(--font-size-xs);
-    font-weight: var(--font-weight-semibold);
-    padding: 4px 10px;
-    cursor: pointer;
-    border: 1px solid gray;
-    border-radius: 12px;
-    background: none;
-}
-
 .ticket-footer {
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
+    gap: 16px;
 }
+
 .group-btn-detail {
     display: flex;
     gap: 8px;
 }
 
+.ticket-button {
+    min-width: 100px;
+    padding: 7px 12px;
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.ticket-button:hover {
+    transform: translateY(-1px);
+}
+
+.ticket-button--details {
+    border: 1px solid var(--primary);
+    background: transparent;
+    color: var(--primary);
+}
+
+.ticket-button--details:hover {
+    background: rgba(24, 95, 165, 0.1);
+}
+
+.ticket-button--proposals {
+    border: 1px solid var(--primary);
+    background: var(--primary);
+    color: var(--white);
+}
+
+.ticket-button--proposals:hover {
+    border-color: var(--primary-dark);
+    background: var(--primary-dark);
+}
+
 @media (max-width: 600px) {
-    .btn-detail-proposal {
-        max-width: 90px;
+    .ticket-footer {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .group-btn-detail {
+        justify-content: flex-end;
     }
 }
 
 @media (max-width: 490px) {
     .group-btn-detail {
-        display: flex;
         flex-direction: column;
+    }
+
+    .ticket-button {
+        width: 100%;
     }
 }

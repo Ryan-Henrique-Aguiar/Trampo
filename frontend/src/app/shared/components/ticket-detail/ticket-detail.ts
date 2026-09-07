@@ -128,13 +128,9 @@ export class TicketDetail implements OnInit {
   }
 
   get myProposal(): Proposal | null {
-    const userId = this.authService.currentUser?.id;
+    if (!this.isProviderMode) return null;
 
-    if (userId === undefined) return null;
-
-    return this.proposals.find(
-      proposal => proposal.professionalId === userId
-    ) ?? null;
+    return this.proposals[0] ?? null;
   }
 
   get canSendProposal(): boolean {
@@ -341,6 +337,8 @@ export class TicketDetail implements OnInit {
   }
 
   openProposalForm(): void {
+    if (!this.canSendProposal) return;
+
     this.isProposalFormOpen = true;
   }
 
@@ -350,7 +348,9 @@ export class TicketDetail implements OnInit {
   }
 
   async submitProposal(): Promise<void> {
-    if (!this.ticket || this.proposalPriceControl.invalid) {
+    if (!this.canSendProposal || !this.ticket) return;
+
+    if (this.proposalPriceControl.invalid) {
       this.proposalPriceControl.markAsTouched();
       return;
     }

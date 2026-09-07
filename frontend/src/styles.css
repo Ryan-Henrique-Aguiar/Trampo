@@ -20,6 +20,36 @@
 
   --border-color: #DEE2E6;
 
+  /* Status de tickets */
+  --status-open-text: #185FA5;
+  --status-open-background: #EAF3FB;
+  --status-open-border: #9FC5E8;
+
+  --status-progress-text: #A85A00;
+  --status-progress-background: #FFF4E5;
+  --status-progress-border: #F2BF75;
+
+  --status-completed-text: #237A48;
+  --status-completed-background: #EAF7EF;
+  --status-completed-border: #91D4AC;
+
+  --status-cancelled-text: #B83A43;
+  --status-cancelled-background: #FDECEE;
+  --status-cancelled-border: #EFA3A8;
+
+  /* Status de propostas */
+  --status-pending-text: var(--status-progress-text);
+  --status-pending-background: var(--status-progress-background);
+  --status-pending-border: var(--status-progress-border);
+
+  --status-accepted-text: var(--status-completed-text);
+  --status-accepted-background: var(--status-completed-background);
+  --status-accepted-border: var(--status-completed-border);
+
+  --status-rejected-text: var(--status-cancelled-text);
+  --status-rejected-background: var(--status-cancelled-background);
+  --status-rejected-border: var(--status-cancelled-border);
+
   /* =========================
      FONTES
   ========================= */

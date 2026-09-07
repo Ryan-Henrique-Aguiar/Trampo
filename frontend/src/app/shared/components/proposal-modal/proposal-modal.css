@@ -113,22 +113,26 @@
     font-size: var(--font-size-xs);
     font-weight: var(--font-weight-semibold);
     padding: 2px 10px;
+    border: 1px solid transparent;
     border-radius: 999px;
 }
 
 .proposal-status--pending {
-    background: #FFF3E0;
-    color: #FF9800;
+    border-color: var(--status-pending-border);
+    background: var(--status-pending-background);
+    color: var(--status-pending-text);
 }
 
 .proposal-status--accepted {
-    background: #E8F5E9;
-    color: #4CAF50;
+    border-color: var(--status-accepted-border);
+    background: var(--status-accepted-background);
+    color: var(--status-accepted-text);
 }
 
 .proposal-status--rejected {
-    background: #FFEBEE;
-    color: #F44336;
+    border-color: var(--status-rejected-border);
+    background: var(--status-rejected-background);
+    color: var(--status-rejected-text);
 }
 
 .proposal-actions {

@@ -315,7 +315,7 @@
             }
 
             <!-- Formulário de nova proposta -->
-            @if (isProposalFormOpen) {
+            @if (isProposalFormOpen && canSendProposal) {
             <div class="status-confirm">
                 <div class="form-group">
                     <label>Seu valor para este serviço (R$)</label>
