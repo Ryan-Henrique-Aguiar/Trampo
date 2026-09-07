@@ -56,7 +56,7 @@ public class NotificationPostgresDaoImpl implements NotificationDao {
     public List<Notification> findAllNotificationsByUserId(Integer userId) {
         try {
             List<Notification> notifications = new ArrayList<>();
-            
+
             String sql = "SELECT * FROM notification WHERE user_id = ? AND is_read = false ORDER BY created_at DESC";
 
             try (Connection connection = dataSource.getConnection(); PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
@@ -72,6 +72,48 @@ public class NotificationPostgresDaoImpl implements NotificationDao {
             }
         } catch (SQLException e) {
             throw new DatabaseException("Erro ao buscar as Notificações.", e);
+        }
+    }
+
+    @Override
+    public Void markAsRead(Notification notification) {
+        String sql = "UPDATE notification SET is_read = true WHERE id = ?";
+
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+
+            preparedStatement.setInt(1, notification.getId());
+            preparedStatement.executeUpdate();
+
+            // Atualiza o estado do objeto em memória por garantia
+            notification.setIsRead(true);
+
+            return null; // Retorna null pois a assinatura do metodo exige o wrapper Void
+
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao marcar a notificação como lida.", e);
+        }
+    }
+
+    @Override
+    public Notification findById(Integer notificationId) {
+        String sql = "SELECT * FROM notification WHERE id = ?";
+
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+
+            preparedStatement.setInt(1, notificationId);
+
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    // Reaproveita o seu metodo que mapeia o ResultSet para o objeto Notification
+                    return mapResultSetToNotification(resultSet);
+                }
+            }
+            return null; // Retorna null se não encontrar nenhuma notificação com este ID
+
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao buscar a notificação por ID.", e);
         }
     }
 

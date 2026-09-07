@@ -13,6 +13,7 @@ import br.com.trampo.backend.infra.exception.UnauthorizedUserException;
 import br.com.trampo.backend.mapper.proposal.ProposalMapper;
 import br.com.trampo.backend.port.dao.proposal.ProposalDao;
 import br.com.trampo.backend.port.dao.ticket.TicketDao;
+import br.com.trampo.backend.port.service.notification.NotificationService;
 import br.com.trampo.backend.port.service.proposal.ProposalService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,15 +28,17 @@ public class ProposalServiceImpl implements ProposalService {
     private final ProposalDao proposalDao;
     private final TicketDao ticketDao;
     private final ProposalMapper proposalMapper;
+    private final NotificationService notificationService;
 
     public ProposalServiceImpl(
             ProposalDao proposalDao,
             TicketDao ticketDao,
-            ProposalMapper proposalMapper
+            ProposalMapper proposalMapper, NotificationService notificationService
     ) {
         this.proposalDao = proposalDao;
         this.ticketDao = ticketDao;
         this.proposalMapper = proposalMapper;
+        this.notificationService = notificationService;
     }
 
     @Transactional
@@ -77,6 +80,9 @@ public class ProposalServiceImpl implements ProposalService {
                 new Proposal(dto.priceRange(), user, ticket)
         );
         ticketDao.incrementProposalsCount(ticket.getId());
+
+        String messageNotification = "O prestador " + user.getName() + " enviou uma proposta para o serviço " + ticket.getTitle();
+        notificationService.create(messageNotification, ticket.getId(), ticket.getUser());
 
         return proposalMapper.toDto(proposal);
     }
