@@ -15,6 +15,8 @@
         <div class="modal-body">
             @if (isLoading) {
             <p class="proposals-empty">Carregando propostas...</p>
+            } @else if (proposalsError) {
+            <p class="proposals-empty">{{ proposalsError }}</p>
             } @else if (proposals.length > 0) {
             <div class="proposal-list">
                 @for (proposal of proposals; track proposal.id) {
@@ -42,7 +44,7 @@
                         </button>
                         <button type="button" class="btn-accept" [disabled]="processingProposalId !== null"
                             (click)="onAcceptProposal(proposal)">
-                            {{ processingProposalId === proposal.id ? 'Aceitando...' : 'Aceitar' }}
+                            Aceitar
                         </button>
                         }
                     </div>

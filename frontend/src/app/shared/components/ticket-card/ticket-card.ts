@@ -1,23 +1,21 @@
-import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { TicketStatus } from '../../../enums/ticket-status';
 import { Ticket } from '../../../models/ticket.model';
 import { ViewModeService } from '../../../services/view-mode/view-mode-service';
 
 @Component({
   selector: 'app-ticket-card',
-  standalone: true,
-  imports: [CommonModule],
   templateUrl: './ticket-card.html',
   styleUrl: './ticket-card.css',
 })
 export class TicketCard {
 
-  private viewModeService = inject(ViewModeService);
 
   @Input() ticket!: Ticket;
   @Output() viewDetails = new EventEmitter<Ticket>();
   @Output() viewProposals = new EventEmitter<Ticket>();
+
+  constructor(private viewModeService: ViewModeService) {}
 
   get isProviderMode() {
     return this.viewModeService.isProviderMode;
@@ -55,7 +53,7 @@ export class TicketCard {
   onViewDetails(): void {
     this.viewDetails.emit(this.ticket);
   }
-  onViewProposals(): void { // novo
+  onViewProposals(): void {
     this.viewProposals.emit(this.ticket);
   }
 }

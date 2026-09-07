@@ -6,8 +6,6 @@ import {
   OnInit,
   Output
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { HttpErrorResponse } from '@angular/common/http';
 import {
   FormControl,
   FormGroup,
@@ -31,8 +29,7 @@ import { ProposalService } from '../../../services/proposal/proposal-service';
 
 @Component({
   selector: 'app-ticket-detail',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [ReactiveFormsModule],
   templateUrl: './ticket-detail.html',
   styleUrl: './ticket-detail.css'
 })
@@ -48,14 +45,14 @@ export class TicketDetail implements OnInit {
     TicketStatus.CANCELLED
   ];
 
-  public paymentOptions = [
+  paymentOptions = [
     { label: 'Pix', value: PaymentMethod.PIX },
     { label: 'Crédito', value: PaymentMethod.CREDIT },
     { label: 'Débito', value: PaymentMethod.DEBIT },
     { label: 'Dinheiro', value: PaymentMethod.CASH },
   ];
 
-  public dayOptions = [
+  dayOptions = [
     { label: 'Segunda', value: WeekDay.MONDAY },
     { label: 'Terça', value: WeekDay.TUESDAY },
     { label: 'Quarta', value: WeekDay.WEDNESDAY },
@@ -65,27 +62,28 @@ export class TicketDetail implements OnInit {
     { label: 'Domingo', value: WeekDay.SUNDAY },
   ];
 
-  public hourOptions = [
+  hourOptions = [
     '06:00', '07:00', '08:00', '09:00', '10:00', '11:00',
     '12:00', '13:00', '14:00', '15:00', '16:00', '17:00',
     '18:00', '19:00', '20:00', '21:00', '22:00', '23:00',
     '00:00'
   ];
 
-  public isStatusMenuOpen = false;
-  public pendingStatus: TicketStatus | null = null;
-  public isChangingStatus = false;
+  isStatusMenuOpen = false;
+  pendingStatus: TicketStatus | null = null;
+  isChangingStatus = false;
 
-  public isEditing = false;
-  public isSaving = false;
-  public editForm!: FormGroup;
+  isEditing = false;
+  isSaving = false;
+  editForm!: FormGroup;
 
-  public proposals: Proposal[] = [];
-  public isLoadingProposals = false;
-  public isProposalFormOpen = false;
-  public isSubmittingProposal = false;
+  proposals: Proposal[] = [];
+  loadingProposals = false;
+  proposalsError: string | null = null;
+  isProposalFormOpen = false;
+  isSubmittingProposal = false;
 
-  public proposalPriceControl = new FormControl<number | null>(
+  proposalPriceControl = new FormControl<number | null>(
     null,
     [Validators.required, Validators.min(1)]
   );
@@ -141,41 +139,41 @@ export class TicketDetail implements OnInit {
 
   get canSendProposal(): boolean {
     return this.isProviderMode &&
+      !this.loadingProposals &&
+      !this.proposalsError &&
       this.ticket?.status === TicketStatus.OPEN &&
       this.myProposal === null;
   }
 
-  async ngOnInit(): Promise<void> {
-    if (this.ticket) {
-      this.proposalPriceControl.setValidators([
-        Validators.required,
-        Validators.min(0.01),
-        ...(this.ticket.priceMax != null
-          ? [Validators.max(this.ticket.priceMax)]
-          : [])
-      ]);
-      this.proposalPriceControl.updateValueAndValidity();
+  ngOnInit(): void {
+    if (!this.ticket) return;
 
-      if (this.isProviderMode) {
-        await this.loadProposals(this.ticket.id);
-      } else {
-        this.proposals = [];
-      }
+    this.proposalPriceControl.setValidators([
+      Validators.required,
+      Validators.min(0.01),
+      ...(this.ticket.priceMax != null
+        ? [Validators.max(this.ticket.priceMax)]
+        : [])
+    ]);
+    this.proposalPriceControl.updateValueAndValidity();
+
+    if (this.isProviderMode) {
+      this.loadProposals(this.ticket.id);
     }
-
-    this.cdr.detectChanges();
   }
 
   private async loadProposals(ticketId: number): Promise<void> {
-    this.isLoadingProposals = true;
+    this.loadingProposals = true;
+    this.proposalsError = null;
 
     try {
       this.proposals = await this.proposalService.getByTicketId(ticketId);
     } catch (err) {
       console.error('Erro ao carregar propostas:', err);
       this.proposals = [];
+      this.proposalsError = 'Não foi possível carregar sua proposta.';
     } finally {
-      this.isLoadingProposals = false;
+      this.loadingProposals = false;
       this.cdr.detectChanges();
     }
   }
@@ -213,8 +211,10 @@ export class TicketDetail implements OnInit {
       this.pendingStatus = null;
 
       this.ticketUpdated.emit(updatedTicket);
+      this.toastrService.success('Status atualizado com sucesso');
     } catch (err) {
       console.error('Erro ao alterar status do ticket:', err);
+      this.toastrService.error('Não foi possível atualizar o status');
     } finally {
       this.isChangingStatus = false;
       this.cdr.detectChanges();
@@ -333,11 +333,7 @@ export class TicketDetail implements OnInit {
       this.toastrService.success('Ticket atualizado com sucesso');
     } catch (err) {
       console.error('Erro ao atualizar ticket:', err);
-      this.toastrService.error(
-        err instanceof HttpErrorResponse
-          ? err.error?.message || 'Não foi possível atualizar o ticket'
-          : 'Não foi possível atualizar o ticket'
-      );
+      this.toastrService.error('Não foi possível atualizar o ticket');
     } finally {
       this.isSaving = false;
       this.cdr.detectChanges();
@@ -373,10 +369,11 @@ export class TicketDetail implements OnInit {
 
       this.isProposalFormOpen = false;
       this.proposalPriceControl.reset();
-
+      this.toastrService.success('Proposta enviada com sucesso');
       this.closeModal();
     } catch (err) {
       console.error('Erro ao enviar proposta:', err);
+      this.toastrService.error('Não foi possível enviar a proposta');
     } finally {
       this.isSubmittingProposal = false;
       this.cdr.detectChanges();
@@ -457,13 +454,6 @@ export class TicketDetail implements OnInit {
     });
   }
 
-  formatList(list: string[] | undefined): string {
-    if (!list || list.length === 0) {
-      return 'Não informado';
-    }
-
-    return list.join(' • ');
-  }
 
   formatCurrency(value: number | undefined): string {
     if (value === undefined || value === null) {

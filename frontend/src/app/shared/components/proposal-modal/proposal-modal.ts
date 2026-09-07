@@ -6,7 +6,6 @@ import {
   OnInit,
   Output
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
 
 import { Ticket } from '../../../models/ticket.model';
 import { Proposal } from '../../../models/proposal.model';
@@ -18,8 +17,6 @@ import { ProposalService } from '../../../services/proposal/proposal-service';
 
 @Component({
   selector: 'app-proposals-modal',
-  standalone: true,
-  imports: [CommonModule],
   templateUrl: './proposal-modal.html',
   styleUrl: './proposal-modal.css',
 })
@@ -30,26 +27,25 @@ export class ProposalsModal implements OnInit {
   @Output() close = new EventEmitter<void>();
   @Output() ticketUpdated = new EventEmitter<Ticket>();
 
-  public proposals: Proposal[] = [];
+  proposals: Proposal[] = [];
+  proposalsError: string | null = null;
 
-  public isLoading = false;
-  public processingProposalId: number | null = null;
+  isLoading = false;
+  processingProposalId: number | null = null;
 
   constructor(
     private proposalService: ProposalService,
     private cdr: ChangeDetectorRef
   ) {}
 
-  async ngOnInit(): Promise<void> {
+  ngOnInit(): void {
     if (this.ticket) {
-      await this.loadProposals(this.ticket.id);
+      this.loadProposals(this.ticket.id);
     }
-
-    this.cdr.detectChanges();
   }
-
   private async loadProposals(ticketId: number): Promise<void> {
     this.isLoading = true;
+    this.proposalsError = null;
 
     try {
       this.proposals = await this.proposalService.getByTicketId(ticketId);
@@ -57,6 +53,7 @@ export class ProposalsModal implements OnInit {
       console.error('Erro ao carregar propostas:', err);
 
       this.proposals = [];
+      this.proposalsError = 'Não foi possível carregar as propostas.';
     } finally {
       this.isLoading = false;
       this.cdr.detectChanges();
@@ -65,7 +62,7 @@ export class ProposalsModal implements OnInit {
 
   closeModal(): void {
     this.processingProposalId = null;
-
+    this.proposalsError = null;
     this.close.emit();
   }
 
@@ -89,11 +86,16 @@ export class ProposalsModal implements OnInit {
       `Olá ${name}! Vi sua proposta de ${this.formatCurrency(proposal.priceRange)} ` +
       `para o serviço "${this.ticket?.title}" e gostaria de conversar.`;
 
-    return `https://wa.me/55${phone}?text=${encodeURIComponent(message)}`;
+    const whatsappPhone = phone.length <= 11
+      ? `55${phone}`
+      : phone;
+
+    return `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(message)}`;
   }
 
   hasValidPhone(proposal: Proposal): boolean {
-    return !!proposal.professionalPhone;
+    const phone = proposal.professionalPhone?.replace(/\D/g, '') ?? '';
+    return phone.length >= 10;
   }
 
   async onAcceptProposal(proposal: Proposal): Promise<void> {
@@ -105,6 +107,7 @@ export class ProposalsModal implements OnInit {
     }
 
     this.processingProposalId = proposal.id;
+    this.proposalsError = null;
 
     try {
       await this.proposalService.accept(proposal.id);
@@ -115,10 +118,8 @@ export class ProposalsModal implements OnInit {
       this.ticketUpdated.emit(this.ticket);
       await this.loadProposals(this.ticket.id);
     } catch (err) {
-      console.error(
-        'Erro ao aceitar proposta:',
-        err
-      );
+      console.error('Erro ao aceitar proposta:', err);
+      this.proposalsError = 'Não foi possível aceitar a proposta.';
     } finally {
       this.processingProposalId = null;
       this.cdr.detectChanges();
@@ -134,16 +135,15 @@ export class ProposalsModal implements OnInit {
     }
 
     this.processingProposalId = proposal.id;
+    this.proposalsError = null;
 
     try {
       await this.proposalService.reject(proposal.id);
 
       await this.loadProposals(this.ticket.id);
     } catch (err) {
-      console.error(
-        'Erro ao rejeitar proposta:',
-        err
-      );
+      console.error('Erro ao rejeitar proposta:', err);
+      this.proposalsError = 'Não foi possível recusar a proposta.';
     } finally {
       this.processingProposalId = null;
       this.cdr.detectChanges();

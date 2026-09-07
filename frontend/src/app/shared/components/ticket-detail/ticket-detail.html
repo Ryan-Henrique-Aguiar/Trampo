@@ -41,7 +41,7 @@
                     }
                 </div>
 
-                @if (canEdit && !isEditing && !isProviderMode) {
+                @if (canEdit && !isEditing) {
                 <button type="button" class="btn-edit" (click)="startEditing()">
                     <i class="fa-solid fa-pen"></i>
                     Editar
@@ -168,7 +168,7 @@
             }
 
             <!-- ===== MODO EDIÇÃO ===== -->
-            @if (isEditing && !isProviderMode) {
+            @if (isEditing) {
             <form [formGroup]="editForm" class="edit-form">
                 <div class="form-group">
                     <label>Título</label>
@@ -293,6 +293,17 @@
             </form>
             }
 
+            @if (isProviderMode && loadingProposals) {
+            <div class="status-confirm">
+                <p class="status-confirm-message">Carregando sua proposta...</p>
+            </div>
+            }
+
+            @if (isProviderMode && proposalsError) {
+            <div class="status-confirm">
+                <p class="field-error">{{ proposalsError }}</p>
+            </div>
+            }
             <!-- Proposta já enviada pelo prestador -->
             @if (isProviderMode && myProposal) {
             <div class="status-confirm">

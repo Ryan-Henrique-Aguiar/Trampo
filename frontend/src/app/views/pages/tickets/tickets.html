@@ -28,7 +28,7 @@
       @if (availableTickets.length > 0) {
         <div class="tickets">
           @for (ticket of availableTickets; track ticket.code) {
-            <app-ticket-card [ticket]="ticket" />
+            <app-ticket-card [ticket]="ticket" (viewDetails)="openTicketDetail($event)" />
           }
         </div>
       } @else {
@@ -68,8 +68,12 @@
       @if (tickets.length > 0) {
         <div class="tickets">
           @for (ticket of tickets; track ticket.code) {
-            <app-ticket-card [ticket]="ticket" />
+            <app-ticket-card
+              [ticket]="ticket"
+              (viewDetails)="openTicketDetail($event)"
+              (viewProposals)="openProposalsModal($event)" />
           }
+
         </div>
       } @else {
         <div class="empty-state">
@@ -85,11 +89,24 @@
     }
   }
 
-  @if (isTicketModalOpen) {
+  @if (activeModal === 'create') {
     <app-ticket-modal
       [isUrgent]="isModalUrgent"
-      (close)="closeTicketModal()"
+      (close)="closeModal()"
       (ticketCreated)="onTicketCreated($event)" />
   }
 
+  @if (activeModal === 'details' && selectedTicket) {
+    <app-ticket-detail
+      [ticket]="selectedTicket"
+      (close)="closeModal()"
+      (ticketUpdated)="onTicketUpdated($event)" />
+  }
+
+  @if (activeModal === 'proposals' && selectedTicket) {
+    <app-proposals-modal
+      [ticket]="selectedTicket"
+      (close)="closeModal()"
+      (ticketUpdated)="onTicketUpdated($event)" />
+  }
 </section>
