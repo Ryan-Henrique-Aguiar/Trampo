@@ -372,6 +372,12 @@
     opacity: 0.9;
 }
 
+.btn-next:disabled,
+.btn-submit:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
 .btn-back {
     padding: 10px 20px;
     border: 1px solid var(--border-color);

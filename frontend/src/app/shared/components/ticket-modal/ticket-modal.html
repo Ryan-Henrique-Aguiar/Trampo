@@ -256,7 +256,7 @@
                                         type="button"
                                         class="btn-whatsapp"
                                         [disabled]="sendingProviderId !== null"
-                                        (click)="openWhatsapp(provider)">
+                                        (click)="createUrgentTicket(provider)">
                                         @if (sendingProviderId === provider.id) {
                                             Criando chamado...
                                         } @else {
@@ -301,8 +301,16 @@
                     }
 
                     @if (!isUrgent && currentStep === totalSteps) {
-                        <button type="button" class="btn-submit" (click)="saveTicket()">
-                            Solicitar serviço
+                        <button
+                            type="button"
+                            class="btn-submit"
+                            [disabled]="isSubmitting"
+                            (click)="saveTicket()">
+                            @if (isSubmitting) {
+                                Criando...
+                            } @else {
+                                Solicitar serviço
+                            }
                         </button>
                     }
                 </div>

@@ -130,10 +130,12 @@ export class TicketModal implements OnInit {
   private async loadStates(): Promise<void> {
     try {
       this.states = await this.locationService.getStates();
-    } catch {
-      console.error("Erro ao buscar estados")
+    } catch (err) {
+      console.error('Erro ao buscar estados:', err);
+      this.states = [];
+    } finally {
+      this.cdr.detectChanges();
     }
-
   }
 
   public async onStateChange(): Promise<void> {
@@ -255,6 +257,8 @@ export class TicketModal implements OnInit {
   }
 
   public async saveTicket(): Promise<void> {
+    if (this.isSubmitting) return;
+
     if (this.ticketForm.invalid) {
       this.ticketForm.markAllAsTouched();
       return;
@@ -377,8 +381,7 @@ export class TicketModal implements OnInit {
     this.ticketForm.get('paymentMethods')?.markAsTouched();
   }
 
-
-  public async openWhatsapp(
+  public async createUrgentTicket(
     provider: UrgentProviderResponse
   ): Promise<void> {
 
@@ -400,8 +403,13 @@ export class TicketModal implements OnInit {
       const message =
         `Olá ${provider.name}, vi seu perfil e preciso de um atendimento urgente.`;
 
+      const phone = provider.phone.replace(/\D/g, '');
+      const whatsappPhone = phone.startsWith('55')
+        ? phone
+        : `55${phone}`;
+
       const url =
-        `https://wa.me/${provider.phone}?text=${encodeURIComponent(message)}`;
+        `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(message)}`;
 
       window.open(url, '_blank');
 
