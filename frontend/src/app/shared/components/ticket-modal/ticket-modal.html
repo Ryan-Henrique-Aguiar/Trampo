@@ -216,39 +216,60 @@
 
             <!-- Passo 3 (urgente): Prestadores disponíveis -->
             @if (currentStep === 3 && isUrgent) {
-            <div class="form-section">
-                <p class="providers-intro">
-                    Encontramos prestadores atendendo em modo urgente perto de você.
-                    Envie uma mensagem no WhatsApp para negociar diretamente.
-                </p>
-
-                <div class="provider-list">
-                    @for (provider of providers; track provider.id) {
-                    <div class="provider-card">
-                        <div class="provider-info">
-                            <span class="provider-name">{{ provider.name }}</span>
-                            <span class="provider-meta">
-                                {{ provider.rating ? provider.rating : 'Novo' }}
-                                <i class="fa-solid fa-star"></i>
-                            </span>
-                        </div>
-                        <button type="button" class="btn-whatsapp" [disabled]="sendingProviderId !== null"
-                            (click)="openWhatsapp(provider)">
-                            <i class="fa-brands fa-whatsapp"></i>
-                            {{ sendingProviderId === provider.id ? 'Criando chamado...' : 'Chamar no WhatsApp' }}
-                        </button>
-                    </div>
-                    }
+                <div class="form-section">
+                    <p class="providers-intro">
+                        Escolha um prestador disponível para atendimento urgente.
+                    </p>
 
                     @if (providersError) {
-                    <p class="providers-empty">{{ providersError }}</p>
-                    } @else if (!providers.length) {
-                    <p class="providers-empty">Nenhum prestador disponível no momento para esta categoria e cidade.</p>
+                        <p class="providers-empty">{{ providersError }}</p>
+                    } @else if (providers.length === 0) {
+                        <p class="providers-empty">
+                            Nenhum prestador disponível para esta categoria e cidade.
+                        </p>
+                    } @else {
+                        <div class="provider-list">
+                            @for (provider of providers; track provider.id) {
+                                <div class="provider-card">
+                                    <div class="provider-profile">
+                                        <details class="provider-photo">
+                                            <summary class="provider-avatar" aria-label="Ampliar foto do prestador">
+                                                <i class="fa-solid fa-user"></i>
+                                            </summary>
+                                        </details>
+
+                                        <div class="provider-info">
+                                            <span class="provider-name">{{ provider.name }}</span>
+
+                                            <span class="provider-meta">
+                                                @if (provider.rating !== null) {
+                                                    <i class="fa-solid fa-star"></i>
+                                                    {{ provider.rating }}
+                                                } @else {
+                                                    Sem avaliações ainda
+                                                }
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        class="btn-whatsapp"
+                                        [disabled]="sendingProviderId !== null"
+                                        (click)="openWhatsapp(provider)">
+                                        @if (sendingProviderId === provider.id) {
+                                            Criando chamado...
+                                        } @else {
+                                            <i class="fa-brands fa-whatsapp"></i>
+                                            Chamar no WhatsApp
+                                        }
+                                    </button>
+                                </div>
+                            }
+                        </div>
                     }
                 </div>
-            </div>
             }
-
             <div class="modal-footer">
                 <button type="button" class="btn-cancel" (click)="closeModal()">
                     Cancelar
@@ -256,32 +277,36 @@
 
                 <div class="footer-right">
                     @if (currentStep > 1) {
-                    <button type="button" class="btn-back" (click)="prevStep()">
-                        Voltar
-                    </button>
+                        <button type="button" class="btn-back" (click)="prevStep()">
+                            Voltar
+                        </button>
                     }
 
-                    @if (isUrgent) {
-                        @if (currentStep < 3) {
-                            <button type="button" class="btn-next" [disabled]="isSubmitting" (click)="nextStep()">
-                                {{ currentStep === 2 ? (isSubmitting ? 'Buscando prestadores...' : 'Buscar prestadores') : 'Próximo' }}
-                            </button>
-                        }
-                    } @else {
-                        @if (currentStep < 3) {
-                            <button type="button" class="btn-next" (click)="nextStep()">
+                    @if (currentStep < totalSteps) {
+                        <button
+                            type="button"
+                            class="btn-next"
+                            [disabled]="isSubmitting"
+                            (click)="nextStep()">
+                            @if (isUrgent && currentStep === 2) {
+                                @if (isSubmitting) {
+                                    Buscando prestadores...
+                                } @else {
+                                    Buscar prestadores
+                                }
+                            } @else {
                                 Próximo
-                            </button>
-                        }
-                        @if (currentStep === 3) {
-                            <button type="button" class="btn-submit" (click)="saveTicket()">
-                                Solicitar serviço
-                            </button>
-                        }
+                            }
+                        </button>
+                    }
+
+                    @if (!isUrgent && currentStep === totalSteps) {
+                        <button type="button" class="btn-submit" (click)="saveTicket()">
+                            Solicitar serviço
+                        </button>
                     }
                 </div>
             </div>
-
         </form>
     </div>
 </div>

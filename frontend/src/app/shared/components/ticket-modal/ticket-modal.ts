@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgSelectModule } from '@ng-select/ng-select';
@@ -82,21 +81,10 @@ export class TicketModal implements OnInit {
     '00:00',
   ];
 
-  // passo 1: título/descrição/categoria, passo 2: endereço, passo 3: existe apenas para o fluxo normal
-  private normalStepFields: Record<number, string[]> = {
-    1: ['title', 'description', 'categoryId'],
-    2: ['address.state', 'address.city', 'address.street', 'address.number', 'address.neighborhood'],
-    3: ['priceMax', 'paymentMethods', 'availableDays', 'availableHours'],
-  };
-
-  private urgentStepFields: Record<number, string[]> = {
+  private stepFields: Record<number, string[]> = {
     1: ['title', 'description', 'categoryId'],
     2: ['address.state', 'address.city', 'address.street', 'address.number', 'address.neighborhood'],
   };
-
-  private get stepFields(): Record<number, string[]> {
-    return this.isUrgent ? this.urgentStepFields : this.normalStepFields;
-  }
 
   constructor(
     private categoryService: CategoryService,
@@ -108,19 +96,14 @@ export class TicketModal implements OnInit {
     private toastrService: ToastrService
   ) { }
 
-  async ngOnInit(): Promise<void> {
+  ngOnInit(): void {
     this.initializeForm();
-
-    await Promise.all([
-      this.getCategories(),
-      this.loadStates()
-    ]);
+    this.getCategories();
+    this.loadStates();
 
     if (this.preselectedCategoryId != null) {
       this.ticketForm.get('categoryId')?.setValue(this.preselectedCategoryId);
     }
-
-    this.cdr.detectChanges();
   }
 
   private initializeForm(): void {
@@ -312,92 +295,28 @@ export class TicketModal implements OnInit {
     }
   }
 
-  private async saveUrgentTicket(
-    provider: UrgentProviderResponse
-  ): Promise<void> {
-
-    const relevantFields =
-      Object.values(this.urgentStepFields).flat();
-
-    const isValid = relevantFields.every(
-      field => this.ticketForm.get(field)?.valid
-    );
-
-    if (!isValid) {
-      relevantFields.forEach(
-        field =>
-          this.ticketForm
-            .get(field)
-            ?.markAsTouched()
-      );
-
-      return;
-    }
-
-    const value = this.ticketForm.getRawValue();
-
-    const dto = {
-      title: value.title,
-      description: value.description,
-      categoryId: Number(value.categoryId),
-      address: value.address,
-      providerId: provider.id
-    };
-
-    await this.urgentTicketService.create(dto);
-  }
-
-  // apenas busca prestadores para a categoria/localização, ainda não cria nada —
-  // o ticket urgente só é criado quando o usuário realmente escolher alguém no WhatsApp
-  private async searchProvidersForUrgentTicket(): Promise<void> {
+  private async loadProviders(): Promise<void> {
     if (this.isSubmitting) return;
+
     this.isSubmitting = true;
+    this.providersError = null;
 
     const value = this.ticketForm.getRawValue();
-    const categoryId = Number(value.categoryId);
-    const state = value.address.state;
-    const city = value.address.city;
 
     try {
-      await this.loadProviders(categoryId, state, city)
-      this.currentStep = 3;
-    } finally {
-      this.isSubmitting = false;
-      this.cdr.detectChanges();
-    }
-  }
-
-  private async loadProviders(
-    categoryId: number,
-    state: string,
-    city: string
-  ): Promise<void> {
-
-    try {
-      this.providersError = null;
-      this.providers =
-        await this.userService.getProvidersWithUrgency(
-          categoryId,
-          state,
-          city
-        );
-
-      if (this.providers.length === 0) {
-        console.warn(
-          'Nenhum prestador encontrado para os critérios informados.'
-        );
-      }
-
+      this.providers = await this.userService.getProvidersWithUrgency(
+        Number(value.categoryId),
+        value.address.state,
+        value.address.city
+      );
     } catch (err) {
       console.error('Erro ao buscar prestadores:', err);
       this.providers = [];
-      this.providersError = this.getErrorMessage(
-        err,
-        'Não foi possível buscar prestadores disponíveis.'
-      );
+      this.providersError = 'Não foi possível buscar prestadores disponíveis.';
       this.toastrService.error(this.providersError);
-
     } finally {
+      this.currentStep = 3;
+      this.isSubmitting = false;
       this.cdr.detectChanges();
     }
   }
@@ -409,7 +328,7 @@ export class TicketModal implements OnInit {
     }
 
     if (this.isUrgent && this.currentStep === 2) {
-      this.searchProvidersForUrgentTicket();
+      this.loadProviders();
       return;
     }
 
@@ -458,6 +377,7 @@ export class TicketModal implements OnInit {
     this.ticketForm.get('paymentMethods')?.markAsTouched();
   }
 
+
   public async openWhatsapp(
     provider: UrgentProviderResponse
   ): Promise<void> {
@@ -465,7 +385,17 @@ export class TicketModal implements OnInit {
     this.sendingProviderId = provider.id;
 
     try {
-      await this.saveUrgentTicket(provider);
+      const value = this.ticketForm.getRawValue();
+
+      const dto = {
+        title: value.title,
+        description: value.description,
+        categoryId: Number(value.categoryId),
+        address: value.address,
+        providerId: provider.id
+      };
+
+      await this.urgentTicketService.create(dto);
 
       const message =
         `Olá ${provider.name}, vi seu perfil e preciso de um atendimento urgente.`;
@@ -483,9 +413,7 @@ export class TicketModal implements OnInit {
         'Erro ao criar ticket urgente:',
         err
       );
-      this.toastrService.error(
-        this.getErrorMessage(err, 'Não foi possível criar o ticket urgente.')
-      );
+      this.toastrService.error('Não foi possível criar o ticket urgente.');
 
     } finally {
       this.sendingProviderId = null;
@@ -525,11 +453,4 @@ export class TicketModal implements OnInit {
     this.cdr.detectChanges();
   }
 
-  private getErrorMessage(error: unknown, fallback: string): string {
-    if (error instanceof HttpErrorResponse) {
-      return error.error?.message || fallback;
-    }
-
-    return fallback;
-  }
 }
