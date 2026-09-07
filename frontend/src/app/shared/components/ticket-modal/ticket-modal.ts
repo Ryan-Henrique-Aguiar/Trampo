@@ -384,6 +384,21 @@ export class TicketModal implements OnInit {
   public async createUrgentTicket(
     provider: UrgentProviderResponse
   ): Promise<void> {
+    if (this.sendingProviderId !== null) return;
+
+    const phone = provider.phone.replace(/\D/g, '');
+
+    if (!phone) {
+      this.toastrService.error('O prestador não possui um telefone válido.');
+      return;
+    }
+
+    const whatsappWindow = window.open('', '_blank');
+
+    if (!whatsappWindow) {
+      this.toastrService.error('Permita a abertura de pop-ups para acessar o WhatsApp.');
+      return;
+    }
 
     this.sendingProviderId = provider.id;
 
@@ -403,32 +418,26 @@ export class TicketModal implements OnInit {
       const message =
         `Olá ${provider.name}, vi seu perfil e preciso de um atendimento urgente.`;
 
-      const phone = provider.phone.replace(/\D/g, '');
-      const whatsappPhone = phone.startsWith('55')
-        ? phone
-        : `55${phone}`;
+      const whatsappPhone = phone.length <= 11
+        ? `55${phone}`
+        : phone;
 
       const url =
         `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(message)}`;
 
-      window.open(url, '_blank');
+      whatsappWindow.location.href = url;
 
       this.toastrService.success('Ticket urgente criado com sucesso');
       this.closeModal();
-
     } catch (err) {
-      console.error(
-        'Erro ao criar ticket urgente:',
-        err
-      );
+      whatsappWindow.close();
+      console.error('Erro ao criar ticket urgente:', err);
       this.toastrService.error('Não foi possível criar o ticket urgente.');
-
     } finally {
       this.sendingProviderId = null;
       this.cdr.detectChanges();
     }
   }
-
   public closeModal(): void {
     this.resetForm();
     this.close.emit();
