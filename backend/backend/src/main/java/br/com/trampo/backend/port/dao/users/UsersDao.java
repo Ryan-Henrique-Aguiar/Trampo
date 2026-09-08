@@ -25,5 +25,11 @@ public interface UsersDao {
             String city
     );
 
+    int countProvidersAvailableForUrgency(
+            int userId,
+            String state,
+            String city
+    );
+
     void updateUrgencyAvailability(int userId, boolean available);
 }

@@ -83,6 +83,25 @@ public class UserServiceImpl implements UserService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    @Override
+    public int countProvidersAvailableForUrgency(Users user) {
+        if (user == null || user.getId() == null) {
+            throw new InvalidRequestException("Usuário autenticado é obrigatório.");
+        }
+
+        if (user.getState() == null || user.getState().isBlank()
+                || user.getCity() == null || user.getCity().isBlank()) {
+            throw new InvalidRequestException("Cidade e estado do usuário são obrigatórios.");
+        }
+
+        return usersDao.countProvidersAvailableForUrgency(
+                user.getId(),
+                user.getState(),
+                user.getCity()
+        );
+    }
+
     @Transactional
     @Override
     public boolean updateUrgencyAvailability(Users user, boolean available) {

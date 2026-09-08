@@ -17,5 +17,7 @@ public interface UserService {
             String city
     );
 
+    int countProvidersAvailableForUrgency(Users user);
+
     boolean updateUrgencyAvailability(Users user, boolean available);
 }

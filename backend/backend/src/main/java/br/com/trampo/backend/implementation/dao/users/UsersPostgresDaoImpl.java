@@ -242,6 +242,40 @@ public class UsersPostgresDaoImpl implements UsersDao {
     }
 
     @Override
+    public int countProvidersAvailableForUrgency(
+            int userId,
+            String state,
+            String city
+    ) {
+        String sql = """
+                SELECT COUNT(*) AS total
+                FROM users
+                WHERE id <> ?
+                  AND is_provider = TRUE
+                  AND is_available_for_urgency = TRUE
+                  AND UPPER(TRIM(state)) = UPPER(TRIM(?))
+                  AND LOWER(TRIM(city)) = LOWER(TRIM(?))
+                """;
+
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, userId);
+            statement.setString(2, state);
+            statement.setString(3, city);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return resultSet.getInt("total");
+                }
+            }
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao contar prestadores disponíveis para urgência.", e);
+        }
+
+        return 0;
+    }
+
+    @Override
     public void updateUrgencyAvailability(int userId, boolean available) {
         String sql = "UPDATE users SET is_available_for_urgency = ? WHERE id = ?";
 

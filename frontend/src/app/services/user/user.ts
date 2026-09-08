@@ -32,6 +32,12 @@ export class UserService {
     );
   }
 
+  async getAvailableUrgentProvidersCount(): Promise<number> {
+    return await firstValueFrom(
+      this.http.get<number>(`${this.apiUrl}/providers/urgent/count`)
+    );
+  }
+
   async toggleUrgencyAvailability(
     isAvailable: boolean
   ): Promise<UrgencyAvailability> {

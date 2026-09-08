@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectorRef } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { CategoryService } from '../../../services/category/category-service';
@@ -22,12 +22,12 @@ import { ToastrService } from '@iqx-limited/ngx-toastr';
   templateUrl: './home.html',
   styleUrl: './home.css',
 })
-export class Home implements OnInit {
+export class Home implements OnInit, OnDestroy {
 
   categories: Category[] = [];
   tickets: Ticket[] = [];
   availableTickets: Ticket[] = [];
-  availableUrgentProviders = 4;
+  availableUrgentProviders = 0;
 
   loadingMyTickets = false;
   loadingAvailableTickets = false;
@@ -41,6 +41,7 @@ export class Home implements OnInit {
   preselectedCategoryId: number | null = null;
   selectedTicket: Ticket | null = null;
   updatingUrgency = false;
+  private urgentProvidersInterval: ReturnType<typeof setInterval> | null = null;
 
 
   constructor(
@@ -72,6 +73,29 @@ export class Home implements OnInit {
       this.loadAvailableTickets();
     }
     this.loadCategories();
+    this.loadAvailableUrgentProvidersCount();
+    this.urgentProvidersInterval = setInterval(
+      () => this.loadAvailableUrgentProvidersCount(),
+      5 * 60 * 1000
+    );
+  }
+
+  ngOnDestroy(): void {
+    if (this.urgentProvidersInterval) {
+      clearInterval(this.urgentProvidersInterval);
+    }
+  }
+
+  private async loadAvailableUrgentProvidersCount(): Promise<void> {
+    try {
+      this.availableUrgentProviders =
+        await this.userService.getAvailableUrgentProvidersCount();
+    } catch (err) {
+      console.error('Erro ao carregar prestadores disponíveis:', err);
+      this.availableUrgentProviders = 0;
+    } finally {
+      this.cdr.detectChanges();
+    }
   }
 
   private async loadMyTickets(): Promise<void> {

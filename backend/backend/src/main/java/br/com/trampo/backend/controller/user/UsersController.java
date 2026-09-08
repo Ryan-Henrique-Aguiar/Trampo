@@ -41,6 +41,15 @@ public class UsersController {
         );
     }
 
+    @GetMapping("/providers/urgent/count")
+    public ResponseEntity<Integer> countProvidersAvailableForUrgency(
+            @AuthenticationPrincipal Users user
+    ) {
+        return ResponseEntity.ok(
+                usersService.countProvidersAvailableForUrgency(user)
+        );
+    }
+
     @PatchMapping("/urgency")
     public ResponseEntity<UrgencyAvailabilityDto> updateUrgencyAvailability(
             @AuthenticationPrincipal Users user,
