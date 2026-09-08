@@ -96,6 +96,26 @@ public class NotificationPostgresDaoImpl implements NotificationDao {
     }
 
     @Override
+    public void markAllAsRead(Integer userId){
+        String sql = """
+            UPDATE notification
+            SET is_read = true
+            WHERE user_id = ? AND is_read = false;
+        """;
+        try(Connection connection = dataSource.getConnection();
+            PreparedStatement preparedStatement = connection.prepareStatement(sql))
+        {    
+            preparedStatement.setInt(1, userId);
+            preparedStatement.executeUpdate();
+        }catch(SQLException e){
+            throw new DatabaseException(
+                "Erro ao marcar as notificacoes como lidas.", e
+            );
+        }
+    }
+
+
+    @Override
     public Notification findById(Integer notificationId) {
         String sql = "SELECT * FROM notification WHERE id = ?";
 

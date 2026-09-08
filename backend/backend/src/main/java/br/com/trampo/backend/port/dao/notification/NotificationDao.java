@@ -12,5 +12,7 @@ public interface NotificationDao {
 
     Void markAsRead(Notification notification);
 
+    void markAllAsRead(Integer userId);
+
     Notification findById(Integer notificationId);
 }

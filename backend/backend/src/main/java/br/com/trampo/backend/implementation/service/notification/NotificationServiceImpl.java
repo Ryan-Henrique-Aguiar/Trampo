@@ -65,4 +65,9 @@ public class NotificationServiceImpl implements NotificationService {
 
         notificationDao.markAsRead(notification);
     }
+
+    @Override
+    public void markAllAsRead(Integer userId){
+        notificationDao.markAllAsRead(userId);
+    }
 }

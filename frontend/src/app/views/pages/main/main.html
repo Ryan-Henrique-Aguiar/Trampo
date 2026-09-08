@@ -76,7 +76,67 @@
                 </div>
                 }
 
-                <i class="fa-solid fa-bell"></i>
+                <div class="notification-wrapper">
+                    <button
+                        type="button"
+                        class="notification-button"
+                        aria-label="Notificações"
+                        [attr.aria-expanded]="isNotificationsOpen"
+                        (click)="toggleNotifications()">
+                        <i class="fa-solid fa-bell"></i>
+                        @if (notifications.length > 0) {
+                        <span class="notification-count">
+                            {{ notifications.length > 99 ? '99+' : notifications.length }}
+                        </span>
+                        }
+                    </button>
+
+                    @if (isNotificationsOpen) {
+                    <button
+                        type="button"
+                        class="notification-backdrop"
+                        aria-label="Fechar notificações"
+                        (click)="isNotificationsOpen = false">
+                    </button>
+
+                    <div class="notification-panel">
+                        <div class="notification-header">
+                            <strong>Notificações</strong>
+                            <span>{{ notifications.length }} não lidas</span>
+                            @if (notifications.length > 0) {
+                            <button
+                                type="button"
+                                class="clear-notifications-button"
+                                (click)="clearAllNotifications()">
+                                Limpar todas
+                            </button>
+                            }
+                        </div>
+
+                        @if (loadingNotifications) {
+                        <p class="notification-state">Carregando...</p>
+                        } @else if (notificationsError) {
+                        <p class="notification-state notification-state--error">
+                            {{ notificationsError }}
+                        </p>
+                        } @else if (notifications.length === 0) {
+                        <p class="notification-state">Nenhuma notificação nova.</p>
+                        } @else {
+                        <div class="notification-list">
+                            @for (notification of notifications; track notification.id) {
+                            <button
+                                type="button"
+                                class="notification-item"
+                                (click)="openNotification(notification)">
+                                <span>{{ notification.message }}</span>
+                                <small>{{ formatNotificationDate(notification.createdAt) }}</small>
+                            </button>
+                            }
+                        </div>
+                        }
+                    </div>
+                    }
+                </div>
                 <button type="button" class="logout-button" (click)="logout()" aria-label="Sair">
                     <i class="fa-solid fa-right-from-bracket"></i>
                     <span>Sair</span>

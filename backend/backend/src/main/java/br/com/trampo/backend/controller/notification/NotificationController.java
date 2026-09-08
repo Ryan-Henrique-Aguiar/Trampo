@@ -35,6 +35,7 @@ public class NotificationController {
 
         List<ResponseNotificationDto> responseList = unreadNotifications.stream()
                 .map(notif -> new ResponseNotificationDto(
+                        notif.getId(),
                         notif.getMessage(),
                         notif.getCreatedAt(),
                         notif.getTicket().getId()
@@ -54,6 +55,12 @@ public class NotificationController {
         notificationService.markAsRead(id, (int) loggedUser.getId());
 
         // Retorna 204 No Content (Sucesso, sem corpo na resposta)
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/read-all")
+    public ResponseEntity<Void> markAllAsRead(@AuthenticationPrincipal Users loggedUser){
+        notificationService.markAllAsRead((int) loggedUser.getId());
         return ResponseEntity.noContent().build();
     }
 

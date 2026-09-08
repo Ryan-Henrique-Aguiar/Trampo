@@ -16,4 +16,6 @@ public interface NotificationService {
 
     void markAsRead(Integer notificationId, Integer userId);
 
+    void markAllAsRead(Integer userId);
+
 }
