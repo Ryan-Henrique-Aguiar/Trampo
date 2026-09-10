@@ -31,3 +31,8 @@ export interface UrgentTicket {
     address: Address;
     serviceDate?: string;
 }
+export interface GroupedTickets {
+  categoryName: string;
+  categoryId?: number;
+  tickets: Ticket[];
+}

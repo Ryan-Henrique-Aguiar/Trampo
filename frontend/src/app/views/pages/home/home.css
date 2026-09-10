@@ -392,3 +392,115 @@
         width: 100%;
     }
 }
+
+    /* Container principal das fileiras */
+.ticket-swimlanes {
+  display: flex;
+  flex-direction: column;
+  gap: 32px; /* Espaço entre uma categoria e outra */
+}
+
+
+
+/* Container que segura o carrossel e as setas */
+.carousel-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* O Carrossel Horizontal */
+.ticket-carousel {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 16px; 
+  scroll-snap-type: x mandatory; 
+  -webkit-overflow-scrolling: touch; 
+  scrollbar-width: none; /* Oculta scroll no Firefox */
+  cursor: grab; /* Mãozinha aberta */
+}
+
+/* Oculta a barra de rolagem no Chrome/Safari/Edge para um visual mais limpo */
+.ticket-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+/* O item dentro do carrossel */
+.carousel-item {
+  scroll-snap-align: start; /* Onde o "imã" vai travar */
+  flex-shrink: 0; /* Impede que o card seja esmagado */
+  
+  /* Largura fixa do card: 
+     Em telas pequenas ocupa quase a tela toda (85%), 
+     em telas grandes tem tamanho fixo */
+  width: 85vw; 
+  max-width: 320px; 
+}
+
+/* Quando o usuário clica e segura */
+.ticket-carousel.is-dragging {
+  cursor: grabbing; /* Mãozinha fechada segurando */
+  scroll-snap-type: none; /* Desativa o imã temporariamente para arrastar suave */
+  user-select: none; /* Evita ficar selecionando textos acidentalmente */
+}
+
+/* Os itens não podem disparar eventos de drag nativos de imagem/links que bugariam nosso JS */
+.ticket-carousel.is-dragging .carousel-item {
+  pointer-events: none; 
+}
+
+/* Estilo das Setas de Navegação */
+.nav-arrow {
+  position: absolute;
+  top: calc(50% - 8px); /* Centraliza desconsiderando o padding inferior do scroll */
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--white);
+  border: 1px solid var(--border-color);
+  color: var(--primary);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.nav-arrow:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-50%) scale(1.05);
+}
+
+.left-arrow {
+  left: -20px;
+}
+
+.right-arrow {
+  right: -20px;
+}
+
+/* Mostrar as setas apenas quando passar o mouse no container (estilo Netflix) */
+.carousel-container:hover .nav-arrow {
+  opacity: 1;
+}
+
+/* Ocultar as setas completamente em telas menores (Mobile/Tablets), 
+   pois o touch já funciona e não temos espaço para setas */
+@media (max-width: 1024px) {
+  .nav-arrow {
+    display: none;
+  }
+}
+
+/* Ajuste no section-header para as novas categorias */
+.swimlane-section .section-header {
+  margin-bottom: 12px;
+}
+.swimlane-section .section-header h2 {
+  font-size: var(--font-size-lg); /* Levemente menor que o H2 principal */
+}

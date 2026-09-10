@@ -5,7 +5,7 @@ import { CategoryService } from '../../../services/category/category-service';
 import { TicketService } from '../../../services/ticket/ticket-service';
 
 import { Category } from '../../../models/category.model';
-import { Ticket } from '../../../models/ticket.model';
+import { GroupedTickets, Ticket } from '../../../models/ticket.model';
 
 import { TicketCard } from "../../../shared/components/ticket-card/ticket-card";
 import { TicketModal } from "../../../shared/components/ticket-modal/ticket-modal";
@@ -22,12 +22,15 @@ import { ToastrService } from '@iqx-limited/ngx-toastr';
   templateUrl: './home.html',
   styleUrl: './home.css',
 })
+
 export class Home implements OnInit, OnDestroy {
 
   categories: Category[] = [];
   tickets: Ticket[] = [];
   availableTickets: Ticket[] = [];
   availableUrgentProviders = 0;
+
+  groupedTickets: GroupedTickets[] = [];
 
   loadingMyTickets = false;
   loadingAvailableTickets = false;
@@ -41,6 +44,13 @@ export class Home implements OnInit, OnDestroy {
   preselectedCategoryId: number | null = null;
   selectedTicket: Ticket | null = null;
   updatingUrgency = false;
+
+  // Variáveis para o drag-to-scroll
+  isDragging = false;
+  startX = 0;
+  scrollLeft = 0;
+
+
   private urgentProvidersInterval: ReturnType<typeof setInterval> | null = null;
 
 
@@ -86,6 +96,34 @@ export class Home implements OnInit, OnDestroy {
     }
   }
 
+  private buildGroupedTickets(): void {
+  // Evita processar se os tickets ainda não chegaram
+  if (!this.availableTickets || this.availableTickets.length === 0) {
+    this.groupedTickets = [];
+    return;
+  }
+
+  const groups = new Map<string, GroupedTickets>();
+
+  this.availableTickets.forEach(ticket => {
+    // Cruza o categoryId do ticket com o array de categorias já carregado
+    const categoryMatch = this.categories.find(c => c.id === ticket.categoryId);
+    const catName = categoryMatch ? categoryMatch.name : 'Outros Serviços';
+    
+    if (!groups.has(catName)) {
+      groups.set(catName, { 
+        categoryName: catName, 
+        categoryId: ticket.categoryId,
+        tickets: [] 
+      });
+    }
+    
+    groups.get(catName)!.tickets.push(ticket);
+  });
+
+  this.groupedTickets = Array.from(groups.values());
+}
+
   private async loadAvailableUrgentProvidersCount(): Promise<void> {
     try {
       this.availableUrgentProviders =
@@ -122,10 +160,12 @@ export class Home implements OnInit, OnDestroy {
   private async loadAvailableTickets(): Promise<void> {
     this.loadingAvailableTickets = true;
     this.availableTicketsError = null;
+    
 
     try {
       this.availableTickets =
         await this.ticketService.getAvailableTickets();
+        this.buildGroupedTickets();
     } catch (err) {
       console.error(
         'Erro ao carregar tickets disponíveis:',
@@ -147,6 +187,7 @@ export class Home implements OnInit, OnDestroy {
     try {
       this.categories =
         await this.categoryService.getAll();
+        this.buildGroupedTickets();
     } catch (err) {
       console.error(
         'Erro ao carregar categorias:',
@@ -180,6 +221,7 @@ export class Home implements OnInit, OnDestroy {
         : ticket
     );
     this.selectedTicket = updatedTicket;
+    this.buildGroupedTickets();
     this.cdr.detectChanges();
   }
 
@@ -210,6 +252,7 @@ export class Home implements OnInit, OnDestroy {
     this.tickets = [ticket, ...this.tickets];
     this.cdr.detectChanges();
   }
+  
 
   async toggleUrgencyAvailability(): Promise<void> {
     if (!this.currentUser || this.updatingUrgency) return;
@@ -233,5 +276,42 @@ export class Home implements OnInit, OnDestroy {
       this.cdr.detectChanges();
     }
   }
+
+  // Função para as setas de navegação
+  scrollCarousel(carousel: HTMLElement, direction: number): void {
+    // Rola cerca de 320px (tamanho aproximado de um card)
+    const scrollAmount = 320; 
+    carousel.scrollBy({ left: scrollAmount * direction, behavior: 'smooth' });
+  }
+
+  // ===== EVENTOS DE MOUSE PARA ARRASTAR =====
+  onMouseDown(event: MouseEvent, carousel: HTMLElement): void {
+    this.isDragging = true;
+    // Captura a posição inicial do clique e o quanto o carrossel já estava rolado
+    this.startX = event.pageX - carousel.offsetLeft;
+    this.scrollLeft = carousel.scrollLeft;
+  }
+
+  onMouseLeave(): void {
+    this.isDragging = false;
+  }
+
+  onMouseUp(): void {
+    this.isDragging = false;
+  }
+
+  onMouseMove(event: MouseEvent, carousel: HTMLElement): void {
+    if (!this.isDragging) return;
+    
+    event.preventDefault(); // Evita selecionar texto sem querer ao arrastar
+    const x = event.pageX - carousel.offsetLeft;
+    
+    // Multiplicamos por 1.5 para o arraste ficar um pouco mais rápido/responsivo
+    const walk = (x - this.startX) * 1.5; 
+    carousel.scrollLeft = this.scrollLeft - walk;
+  }
+  
+
+  
 
 }

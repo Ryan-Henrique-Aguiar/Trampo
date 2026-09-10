@@ -69,23 +69,53 @@
           <i class="fa-solid fa-spinner fa-spin"></i>
           <span>Carregando serviços...</span>
         </div>
-      } @else if (availableTicketsError) {
-        <div class="error-state">
-          <i class="fa-solid fa-exclamation-circle"></i>
-          <p>{{ availableTicketsError }}</p>
-        </div>
-      } @else if (availableTickets.length > 0) {
-        <div class="tickets">
-          @for (ticket of availableTickets.slice(0, 3); track ticket.id) {
-            <app-ticket-card 
-              [ticket]="ticket" 
-              (viewDetails)="openTicketDetail($event)" />
-          }
-        </div>
+      } @else if (groupedTickets.length > 0) {
+        @for (group of groupedTickets; track group.categoryName) {
+          
+          <div class="swimlane-section">
+            <!-- Cabeçalho da Categoria -->
+            <div class="section-header">
+              <h2>{{ group.categoryName }}</h2>
+              <a routerLink="/tickets" [queryParams]="{ category: group.categoryName }" class="link-see-all">
+                Ver todos →
+              </a>
+            </div>
 
-        <a routerLink="/tickets" class="link-see-all">
-          Ver todos os serviços disponíveis →
-        </a>
+            <!-- Container Relativo para posicionar as setas -->
+            <div class="carousel-container">
+              
+              <!-- Seta Esquerda -->
+              <button class="nav-arrow left-arrow" (click)="scrollCarousel(carouselElement, -1)">
+                <i class="fa-solid fa-chevron-left"></i>
+              </button>
+
+              <!-- Carrossel com a variável de template #carouselElement e os eventos do mouse -->
+              <div class="ticket-carousel" 
+                  #carouselElement
+                  [class.is-dragging]="isDragging"
+                  (mousedown)="onMouseDown($event, carouselElement)"
+                  (mouseleave)="onMouseLeave()"
+                  (mouseup)="onMouseUp()"
+                  (mousemove)="onMouseMove($event, carouselElement)">
+                
+                @for (ticket of group.tickets; track ticket.id) {
+                  <div class="carousel-item">
+                    <app-ticket-card 
+                      [ticket]="ticket" 
+                      (viewDetails)="openTicketDetail($event)" />
+                  </div>
+                }
+              </div>
+
+              <!-- Seta Direita -->
+              <button class="nav-arrow right-arrow" (click)="scrollCarousel(carouselElement, 1)">
+                <i class="fa-solid fa-chevron-right"></i>
+              </button>
+              
+            </div>
+          </div>
+        }
+
       } @else {
         <div class="empty-state">
           <i class="fa-regular fa-face-smile"></i>
