@@ -445,10 +445,6 @@
   user-select: none; /* Evita ficar selecionando textos acidentalmente */
 }
 
-/* Os itens não podem disparar eventos de drag nativos de imagem/links que bugariam nosso JS */
-.ticket-carousel.is-dragging .carousel-item {
-  pointer-events: none; 
-}
 
 /* Estilo das Setas de Navegação */
 .nav-arrow {

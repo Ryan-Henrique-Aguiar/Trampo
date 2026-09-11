@@ -89,7 +89,7 @@
                 <i class="fa-solid fa-chevron-left"></i>
               </button>
 
-              <!-- Carrossel com a variável de template #carouselElement e os eventos do mouse -->
+              <!-- Carrossel -->
               <div class="ticket-carousel" 
                   #carouselElement
                   [class.is-dragging]="isDragging"
@@ -115,7 +115,6 @@
             </div>
           </div>
         }
-
       } @else {
         <div class="empty-state">
           <i class="fa-regular fa-face-smile"></i>
@@ -194,8 +193,12 @@
         </div>
       }
 
+      <!-- ========================================== -->
+      <!-- NOVO CARROSSEL DO CLIENTE                  -->
+      <!-- ========================================== -->
       <div class="section-header">
-        <h2>Últimos serviços publicados</h2>
+        <h2>Meus serviços ativos</h2>
+        <span class="tickets-count">{{ activeTickets.length }} serviços</span>
       </div>
 
       @if (loadingMyTickets) {
@@ -208,38 +211,62 @@
           <i class="fa-solid fa-exclamation-circle"></i>
           <p>{{ myTicketsError }}</p>
         </div>
-      } @else if (tickets.length > 0) {
-        <div class="tickets">
-          @for (ticket of tickets.slice(0, 3); track ticket.id) {
-            <app-ticket-card 
-              [ticket]="ticket" 
-              (viewDetails)="openTicketDetail($event)"
-              (viewProposals)="openProposalsModal($event)" />
-          }
+      } @else if (activeTickets.length > 0) {
+        
+        <div class="carousel-container">
+          <!-- Seta Esquerda -->
+          <button class="nav-arrow left-arrow" (click)="scrollCarousel(clientCarousel, -1)">
+            <i class="fa-solid fa-chevron-left"></i>
+          </button>
+
+          <!-- Carrossel -->
+          <div class="ticket-carousel" 
+              #clientCarousel
+              [class.is-dragging]="isDragging"
+              (mousedown)="onMouseDown($event, clientCarousel)"
+              (mouseleave)="onMouseLeave()"
+              (mouseup)="onMouseUp()"
+              (mousemove)="onMouseMove($event, clientCarousel)">
+            
+            @for (ticket of activeTickets; track ticket.id) {
+              <div class="carousel-item">
+                <app-ticket-card 
+                  [ticket]="ticket" 
+                  (viewDetails)="openTicketDetail($event)"
+                  (viewProposals)="openProposalsModal($event)" />
+              </div>
+            }
+          </div>
+
+          <!-- Seta Direita -->
+          <button class="nav-arrow right-arrow" (click)="scrollCarousel(clientCarousel, 1)">
+            <i class="fa-solid fa-chevron-right"></i>
+          </button>
         </div>
 
         <a routerLink="/tickets" class="link-see-all">
-          Ver todos os meus serviços →
+          Ver histórico completo de serviços →
         </a>
+
       } @else {
         <div class="empty-state">
           <i class="fa-regular fa-face-smile"></i>
-          <h3>Nenhum serviço publicado</h3>
-          <p>Você ainda não publicou nenhum serviço. Comece agora!</p>
+          <h3>Nenhum serviço ativo</h3>
+          <p>Você não possui serviços abertos no momento. Comece agora!</p>
           <button type="button" class="btn-primary" (click)="openTicketModal(false)">
             <i class="fa-solid fa-plus"></i>
             Publicar meu primeiro serviço
           </button>
         </div>
       }
+  }
 
-      @if (activeModal === 'create') {
-        <app-ticket-modal
-          [isUrgent]="isModalUrgent"
-          [preselectedCategoryId]="preselectedCategoryId"
-          (close)="closeModal()"
-          (ticketCreated)="onTicketCreated($event)" />
-      }
+  @if (activeModal === 'create') {
+    <app-ticket-modal
+      [isUrgent]="isModalUrgent"
+      [preselectedCategoryId]="preselectedCategoryId"
+      (close)="closeModal()"
+      (ticketCreated)="onTicketCreated($event)" />
   }
 
   @if (activeModal === 'details' && selectedTicket) {
