@@ -1,0 +1,40 @@
+TRAMPO
+
+-  Anotação no documento
+
+Diagrama de pacotes: 
+
+- dependências inadequadas entre os pacotes: usar <<import>> e <<access>> o <<use>> não é mais usado
+- mistura de idiomas: Tem elementos em português e inglês, padronizar qual idioma será usado
+- Organização por domínio ex. Pacote Usuario contém:  user, review, address, o Review pertence ao domínio avaliação
+
+Diagrama de Classe
+
+- Classe UrgentTicket:  tem todos os atributos repetidos do Ticket, deveria usar herança nesse caso
+
+- Associação "Contains" o termo não faz parte da UML
+- Cardinalidade Ticket - Notification:  uma notificação não existe sem um Ticket
+-  Ticket e Category: uma categoria pode ser compartilhada por vários tickets. Adicionar a multiplicidade
+-  Ticket e Address:  associação simples não composição
+- Classe User: 
+	- isprovider:boolean: aconselho usar especialização
+- classe Review:  está ligada ao user por writes receives, aconselho usar Review score, comment.
+User 1 ----- 0..*Review
+User 1 ----- 0..*Review
+
+Chaves estrangeiras: geralmente não aparecem na modelagem UML representar por associações
+- Verificar a multiplicidades entre as classes
+-  Proposal está ligado ao user, mas também está ligado ao ticket, sugestão:  Provider ---- Proposal ---- Ticket
+
+Diagrama de Sequencia: 
+-  Uso inadequado de entidades como participantes:  Categoria, ticket, endereço, AvailabedayHour. Padrão UML recomenta:  Actor, boundary, control e Entity
+- Falta esteriótipos <<boundary>> <<control>> <<entity> 
+-  Fragmentos incorretos:  alta:  not found
+sugiro:  alt Dados invalidos 
+- Mensagem de retorno estão representadas de forma inconsistente
+- Verificar a criação de objetos
+
+
+OBS.: substituir atributos de chave estrangeira por associações, corrigir a herança de UrgentTicket, usar composição/agregação adequadamente, e reestruturar o diagrama de sequência utilizando Boundary, Control e Entity
+
+
