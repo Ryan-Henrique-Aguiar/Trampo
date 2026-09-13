@@ -19,6 +19,11 @@ export interface Ticket {
     availableHours?: string[];
 }
 
+export interface TicketPage {
+    content: Ticket[];
+    hasNext: boolean;
+}
+
 export interface UrgentTicket {
     id: number;
     code: string;

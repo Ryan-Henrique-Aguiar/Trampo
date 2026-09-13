@@ -9,6 +9,7 @@ import br.com.trampo.backend.domain.ticket.AvailableHour;
 import br.com.trampo.backend.domain.ticket.Ticket;
 import br.com.trampo.backend.domain.ticket.TicketPaymentMethod;
 import br.com.trampo.backend.dto.ticket.*;
+import br.com.trampo.backend.dto.common.PageDto;
 import br.com.trampo.backend.infra.exception.DatabaseException;
 import br.com.trampo.backend.infra.exception.InvalidRequestException;
 import br.com.trampo.backend.infra.exception.UnauthorizedUserException;
@@ -168,15 +169,31 @@ public class TicketServiceImpl implements TicketService {
 
 
     @Override
-    public List<TicketDto> getMyTickets(Users user) {
+    public PageDto<TicketDto> getMyTickets(
+            Users user,
+            List<StatusTicket> statuses,
+            int page,
+            int size
+    ) {
         if (user == null || user.getId() == null) {
             throw new UnauthorizedUserException("Usuário não autenticado ou inválido.");
         }
 
-        try {
-            List<Ticket> tickets = ticketDao.findByUserId(user.getId());
+        validatePagination(page, size);
 
-            return tickets.stream().map(ticket -> {
+        try {
+            List<Ticket> tickets = ticketDao.findByUserId(
+                    user.getId(),
+                    statuses,
+                    page,
+                    size
+            );
+            boolean hasNext = tickets.size() > size;
+            if (hasNext) {
+                tickets = tickets.subList(0, size);
+            }
+
+            List<TicketDto> content = tickets.stream().map(ticket -> {
                 try {
                     List<PaymentMethod> paymentMethods = ticketPaymentMethodDao.findByTicketId(ticket.getId());
                     List<String> availableDays = availableDayDao.findByTicketId(ticket.getId());
@@ -188,13 +205,21 @@ public class TicketServiceImpl implements TicketService {
                 }
             }).toList();
 
+            return new PageDto<>(content, hasNext);
+
         } catch (SQLException e) {
             throw new DatabaseException("Erro ao consultar tickets do usuário no banco de dados.", e);
         }
     }
 
     @Override
-    public List<TicketDto> getAvailableTickets(Users user, Integer categoryId, BigDecimal minPrice, BigDecimal maxPrice
+    public PageDto<TicketDto> getAvailableTickets(
+            Users user,
+            Integer categoryId,
+            BigDecimal minPrice,
+            BigDecimal maxPrice,
+            int page,
+            int size
     ) {
         if (user == null || user.getId() == null) {
             throw new IllegalArgumentException("Usuário autenticado é obrigatório");
@@ -204,21 +229,39 @@ public class TicketServiceImpl implements TicketService {
             throw new IllegalArgumentException("Apenas prestadores podem consultar tickets disponíveis");
         }
 
+        validatePagination(page, size);
+
         try {
-            return ticketDao.findAvailableForProvider(
-                            user.getId(),
-                            user.getCity(),
-                            user.getState(),
-                            categoryId,
-                            minPrice,
-                            maxPrice
-                    )
-                    .stream()
-                    .map(ticketMapper::toDto)
-                    .toList();
+            List<Ticket> tickets = ticketDao.findAvailableForProvider(
+                    user.getId(),
+                    user.getCity(),
+                    user.getState(),
+                    categoryId,
+                    minPrice,
+                    maxPrice,
+                    page,
+                    size
+            );
+
+            boolean hasNext = tickets.size() > size;
+            if (hasNext) {
+                tickets = tickets.subList(0, size);
+            }
+
+            return new PageDto<>(tickets.stream().map(ticketMapper::toDto).toList(), hasNext);
 
         } catch (SQLException exception) {
             throw new RuntimeException("Erro ao consultar tickets disponíveis", exception);
+        }
+    }
+
+    private void validatePagination(int page, int size) {
+        if (page < 0) {
+            throw new InvalidRequestException("A página não pode ser negativa.");
+        }
+
+        if (size < 1 || size > 50) {
+            throw new InvalidRequestException("O tamanho da página deve estar entre 1 e 50.");
         }
     }
 

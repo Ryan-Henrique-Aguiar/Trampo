@@ -8,6 +8,7 @@ import { UpdateTicketStatusRequest } from '../../dto/ticket/update-ticket-status
 import { TicketStatus } from '../../enums/ticket-status';
 import { UpdateTicketRequest } from '../../dto/ticket/update-ticket-request';
 import { AvailableTicketFilters } from '../../dto/ticket/available-ticket-filters';
+import { TicketPage } from '../../models/ticket.model';
 @Injectable({ providedIn: 'root' })
 export class TicketService {
 
@@ -25,14 +26,31 @@ export class TicketService {
     return TicketService.TICKET_TRANSITIONS[currentStatus] ?? [];
   }
 
-  async getMyTickets(): Promise<Ticket[]> {
+  async getMyTickets(
+    statuses: TicketStatus[] = [],
+    page = 0,
+    size = 5
+  ): Promise<TicketPage> {
+    let params = new HttpParams();
+
+    for (const status of statuses) {
+      params = params.append('status', status);
+    }
+
+    params = params.set('page', page.toString());
+    params = params.set('size', size.toString());
+
     return firstValueFrom(
-      this.http.get<Ticket[]>(this.baseUrl)
+      this.http.get<TicketPage>(this.baseUrl, { params })
     );
   }
 
 
-  async getAvailableTickets(filters?: AvailableTicketFilters): Promise<Ticket[]> {
+  async getAvailableTickets(
+    filters?: AvailableTicketFilters,
+    page = 0,
+    size = 10
+  ): Promise<TicketPage> {
     let params = new HttpParams();
 
     if (filters?.categoryId != null) {
@@ -45,8 +63,11 @@ export class TicketService {
     if (filters?.maxPrice != null) {params = params.set('maxPrice',filters.maxPrice.toString());
     }
 
+    params = params.set('page', page.toString());
+    params = params.set('size', size.toString());
+
     return firstValueFrom(
-      this.http.get<Ticket[]>(`${this.baseUrl}/available`,{ params })
+      this.http.get<TicketPage>(`${this.baseUrl}/available`,{ params })
     );
   }
 

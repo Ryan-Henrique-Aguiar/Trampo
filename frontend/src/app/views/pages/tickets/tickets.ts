@@ -10,6 +10,7 @@ import { Ticket, UrgentTicket } from '../../../models/ticket.model';
 import { UrgentTicketService } from '../../../services/urgent-ticket/urgent-ticket-service';
 import { UrgentTicketCard } from '../../../shared/components/urgent-ticket-card/urgent-ticket-card';
 import { UrgentTicketDetail } from '../../../shared/components/urgent-ticket-detail/urgent-ticket-detail';
+import { TicketStatus } from '../../../enums/ticket-status';
 
 @Component({
   selector: 'app-tickets',
@@ -21,17 +22,33 @@ export class Tickets implements OnInit {
   tickets: Ticket[] = [];
   availableTickets: Ticket[] = [];
   urgentTickets: UrgentTicket[] = [];
-  ticketView: 'normal' | 'urgent' = 'normal';
+  selectedStatuses: TicketStatus[] = [];
+
+  currentPage = 0;
+  readonly pageSize = 5;
+  hasNextPage = false;
+  availableCurrentPage = 0;
+  readonly availablePageSize = 10;
+  availableHasNextPage = false;
+
   loadingMyTickets = false;
   loadingAvailableTickets = false;
   loadingMyUrgentTickets = false;
   myTicketsError: string | null = null;
   availableTicketsError: string | null = null;
   myUrgentTicketsError: string | null = null;
+
+  ticketView: 'normal' | 'urgent' = 'normal';
   activeModal: 'create' | 'details' | 'urgent-details' | 'proposals' | null = null;
   isModalUrgent = false;
   selectedTicket: Ticket | null = null;
   selectedUrgentTicket: UrgentTicket | null = null;
+  readonly statusOptions = [
+    { value: TicketStatus.OPEN, label: 'Abertos' },
+    { value: TicketStatus.IN_PROGRESS, label: 'Em andamento' },
+    { value: TicketStatus.COMPLETED, label: 'Concluídos' },
+    { value: TicketStatus.CANCELLED, label: 'Cancelados' }
+  ];
 
   constructor(
     private ticketService: TicketService,
@@ -73,8 +90,14 @@ export class Tickets implements OnInit {
     this.myTicketsError = null;
 
     try {
-      this.tickets =
-        await this.ticketService.getMyTickets();
+      const response = await this.ticketService.getMyTickets(
+        this.selectedStatuses,
+        this.currentPage,
+        this.pageSize
+      );
+
+      this.tickets = response.content;
+      this.hasNextPage = response.hasNext;
 
     } catch (err) {
       console.error(
@@ -84,6 +107,7 @@ export class Tickets implements OnInit {
 
       this.myTicketsError = 'Não foi possível carregar seus serviços.';
       this.tickets = [];
+      this.hasNextPage = false;
 
     } finally {
       this.loadingMyTickets = false;
@@ -91,14 +115,58 @@ export class Tickets implements OnInit {
     }
   }
 
+  toggleStatus(status: TicketStatus): void {
+    this.selectedStatuses = this.selectedStatuses.includes(status)
+      ? this.selectedStatuses.filter(item => item !== status)
+      : [...this.selectedStatuses, status];
+
+    this.currentPage = 0;
+    this.loadMyTickets();
+  }
+
+  clearFilters(): void {
+    this.selectedStatuses = [];
+    this.currentPage = 0;
+    this.loadMyTickets();
+  }
+
+  changePage(page: number): void {
+    if (page < 0 || page === this.currentPage || (page > this.currentPage && !this.hasNextPage)) {
+      return;
+    }
+
+    this.currentPage = page;
+    this.loadMyTickets();
+  }
+
+  changeAvailablePage(page: number): void {
+    if (page < 0 || page === this.availableCurrentPage || (page > this.availableCurrentPage && !this.availableHasNextPage)) {
+      return;
+    }
+
+    this.availableCurrentPage = page;
+    this.loadAvailableTickets();
+  }
+
+  get hasActiveFilters(): boolean {
+    return this.selectedStatuses.length > 0;
+  }
+
   private async loadAvailableTickets(): Promise<void> {
     this.loadingAvailableTickets = true;
     this.availableTicketsError = null;
     try {
-      this.availableTickets = await this.ticketService.getAvailableTickets();
+      const response = await this.ticketService.getAvailableTickets(
+        undefined,
+        this.availableCurrentPage,
+        this.availablePageSize
+      );
+      this.availableTickets = response.content;
+      this.availableHasNextPage = response.hasNext;
     } catch (err) {
       console.error('Erro ao carregar tickets disponíveis:', err);
       this.availableTickets = [];
+      this.availableHasNextPage = false;
       this.availableTicketsError = 'Não foi possível carregar os serviços disponíveis.';
     } finally {
       this.loadingAvailableTickets = false;
@@ -138,18 +206,16 @@ export class Tickets implements OnInit {
   }
 
   onTicketUpdated(updatedTicket: Ticket): void {
-    this.tickets = this.tickets.map(ticket =>
-      ticket.id === updatedTicket.id ? updatedTicket : ticket
-    );
     this.availableTickets = this.availableTickets.map(ticket =>
       ticket.id === updatedTicket.id ? updatedTicket : ticket
     );
     this.selectedTicket = updatedTicket;
+    this.loadMyTickets();
     this.cdr.detectChanges();
   }
   onTicketCreated(ticket: Ticket): void {
-    this.tickets = [ticket, ...this.tickets];
-    this.cdr.detectChanges();
+    this.currentPage = 0;
+    this.loadMyTickets();
   }
 
 }

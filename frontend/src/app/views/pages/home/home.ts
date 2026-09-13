@@ -6,6 +6,7 @@ import { TicketService } from '../../../services/ticket/ticket-service';
 
 import { Category } from '../../../models/category.model';
 import { GroupedTickets, Ticket } from '../../../models/ticket.model';
+import { TicketStatus } from '../../../enums/ticket-status';
 
 import { TicketCard } from "../../../shared/components/ticket-card/ticket-card";
 import { TicketModal } from "../../../shared/components/ticket-modal/ticket-modal";
@@ -157,8 +158,12 @@ private filterAndSortMyTickets(): void {
     this.myTicketsError = null;
 
     try {
-      this.tickets =
-        await this.ticketService.getMyTickets();
+      const response = await this.ticketService.getMyTickets(
+        [TicketStatus.OPEN, TicketStatus.IN_PROGRESS],
+        0,
+        3
+      );
+      this.tickets = response.content;
         this.filterAndSortMyTickets();
     } catch (err) {
       console.error(
@@ -181,8 +186,8 @@ private filterAndSortMyTickets(): void {
     
 
     try {
-      this.availableTickets =
-        await this.ticketService.getAvailableTickets();
+      const response = await this.ticketService.getAvailableTickets(undefined, 0, 10);
+      this.availableTickets = response.content;
         this.buildGroupedTickets();
     } catch (err) {
       console.error(

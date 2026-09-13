@@ -22,6 +22,18 @@
             <app-ticket-card [ticket]="ticket" (viewDetails)="openTicketDetail($event)" />
           }
         </div>
+
+        @if (availableCurrentPage > 0 || availableHasNextPage) {
+          <div class="pagination" aria-label="Paginação de serviços disponíveis">
+            <button type="button" (click)="changeAvailablePage(availableCurrentPage - 1)" [disabled]="availableCurrentPage === 0">
+              Anterior
+            </button>
+            <span>Página {{ availableCurrentPage + 1 }}</span>
+            <button type="button" (click)="changeAvailablePage(availableCurrentPage + 1)" [disabled]="!availableHasNextPage">
+              Próxima
+            </button>
+          </div>
+        }
       } @else {
         <div class="empty-state">
           <i class="fa-regular fa-face-smile"></i>
@@ -68,6 +80,25 @@
         <span class="tickets-count">{{ tickets.length }} serviços</span>
       </div>
 
+      <div class="ticket-filters" aria-label="Filtros de serviços">
+        <div class="filter-group filter-group--status">
+          <span class="filter-label">Status</span>
+          <div class="status-filters">
+            @for (status of statusOptions; track status.value) {
+              <button type="button" [class.active]="selectedStatuses.includes(status.value)"
+                [attr.aria-pressed]="selectedStatuses.includes(status.value)"
+                (click)="toggleStatus(status.value)">
+                {{ status.label }}
+              </button>
+            }
+          </div>
+        </div>
+
+        @if (hasActiveFilters) {
+          <button type="button" class="clear-filters" (click)="clearFilters()">Limpar filtros</button>
+        }
+      </div>
+
       @if (loadingMyTickets) {
         <div class="loading-state" role="status">
           <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
@@ -88,15 +119,29 @@
           }
 
         </div>
+
+        @if (currentPage > 0 || hasNextPage) {
+          <div class="pagination" aria-label="Paginação de serviços">
+            <button type="button" (click)="changePage(currentPage - 1)" [disabled]="currentPage === 0">
+              Anterior
+            </button>
+            <span>Página {{ currentPage + 1 }}</span>
+            <button type="button" (click)="changePage(currentPage + 1)" [disabled]="!hasNextPage">
+              Próxima
+            </button>
+          </div>
+        }
       } @else {
         <div class="empty-state">
           <i class="fa-regular fa-face-smile"></i>
-          <h3>Nenhum serviço publicado</h3>
-          <p>Você ainda não publicou nenhum serviço. Comece agora!</p>
-          <button type="button" class="btn-primary" (click)="openTicketModal(false)">
-            <i class="fa-solid fa-plus"></i>
-            Publicar meu primeiro serviço
-          </button>
+          <h3>{{ hasActiveFilters ? 'Nenhum serviço encontrado' : 'Nenhum serviço publicado' }}</h3>
+          <p>{{ hasActiveFilters ? 'Tente alterar ou limpar os filtros selecionados.' : 'Você ainda não publicou nenhum serviço. Comece agora!' }}</p>
+          @if (!hasActiveFilters) {
+            <button type="button" class="btn-primary" (click)="openTicketModal(false)">
+              <i class="fa-solid fa-plus"></i>
+              Publicar meu primeiro serviço
+            </button>
+          }
         </div>
       }
       } @else {

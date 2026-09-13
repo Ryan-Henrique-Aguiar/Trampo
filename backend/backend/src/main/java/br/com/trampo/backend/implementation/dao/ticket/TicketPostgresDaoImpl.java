@@ -111,7 +111,16 @@ public class TicketPostgresDaoImpl implements TicketDao {
     }
 
     @Override
-    public List<Ticket> findAvailableForProvider(int providerId, String city, String state, Integer categoryId, BigDecimal minPrice, BigDecimal maxPrice) {
+    public List<Ticket> findAvailableForProvider(
+            int providerId,
+            String city,
+            String state,
+            Integer categoryId,
+            BigDecimal minPrice,
+            BigDecimal maxPrice,
+            int page,
+            int size
+    ) {
 
         List<Ticket> tickets = new ArrayList<>();
 
@@ -139,6 +148,7 @@ public class TicketPostgresDaoImpl implements TicketDao {
                   AND (? IS NULL OR t.price_max >= ?)
                   AND (? IS NULL OR t.price_max <= ?)
                 ORDER BY t.created_at DESC
+                LIMIT ? OFFSET ?
                 """;
 
         try (Connection connection = dataSource.getConnection(); PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -170,6 +180,9 @@ public class TicketPostgresDaoImpl implements TicketDao {
                 stmt.setNull(9, Types.NUMERIC);
                 stmt.setNull(10, Types.NUMERIC);
             }
+
+            stmt.setInt(11, size + 1);
+            stmt.setInt(12, page * size);
 
             try (ResultSet resultSet = stmt.executeQuery()) {
                 while (resultSet.next()) {
@@ -203,10 +216,15 @@ public class TicketPostgresDaoImpl implements TicketDao {
     }
 
     @Override
-    public List<Ticket> findByUserId(int userId) {
+    public List<Ticket> findByUserId(
+            int userId,
+            List<StatusTicket> statuses,
+            int page,
+            int size
+    ) {
         List<Ticket> tickets = new ArrayList<>();
 
-        String sql = """
+        StringBuilder sql = new StringBuilder("""
                 SELECT
                     t.*,
                     a.street,
@@ -219,11 +237,30 @@ public class TicketPostgresDaoImpl implements TicketDao {
                 FROM ticket t
                 INNER JOIN address a ON a.id = t.address_id
                 WHERE t.user_id = ?
-                ORDER BY t.created_at DESC
-                """;
+                """);
 
-        try (Connection connection = dataSource.getConnection(); PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, userId);
+        if (statuses != null && !statuses.isEmpty()) {
+            sql.append(" AND t.status IN (");
+            for (int index = 0; index < statuses.size(); index++) {
+                sql.append(index == 0 ? "?" : ", ?");
+            }
+            sql.append(")");
+        }
+
+        sql.append(" ORDER BY t.created_at DESC LIMIT ? OFFSET ?");
+
+        try (Connection connection = dataSource.getConnection(); PreparedStatement stmt = connection.prepareStatement(sql.toString())) {
+            int parameterIndex = 1;
+            stmt.setInt(parameterIndex++, userId);
+
+            if (statuses != null) {
+                for (StatusTicket status : statuses) {
+                    stmt.setString(parameterIndex++, status.name());
+                }
+            }
+
+            stmt.setInt(parameterIndex++, size + 1);
+            stmt.setInt(parameterIndex, page * size);
 
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
