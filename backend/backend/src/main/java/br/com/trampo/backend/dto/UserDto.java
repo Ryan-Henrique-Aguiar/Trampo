@@ -4,6 +4,9 @@ import java.time.LocalDate;
 
 public record UserDto(Integer id,
                       String name,
+                      String email,
+                      String phone,
+                      String cpf,
                       Double rating,
                       boolean provider,
                       boolean availableForUrgency,

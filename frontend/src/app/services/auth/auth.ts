@@ -8,6 +8,7 @@ import { LoginRequestDto } from '../../dto/auth/login-request';
 import { RegisterRequestDto } from '../../dto/auth/register-request.dto';
 import { RegisterResponseDto } from '../../dto/auth/register-response.dto';
 import { environment } from '../../../environments/environment';
+import { UpdateProfileRequest, UpdateLocationRequest, UpdatePasswordRequest, UpdateProfileResponse } from '../../dto/user/profile.dto';
 
 @Injectable({
   providedIn: 'root'
@@ -15,6 +16,7 @@ import { environment } from '../../../environments/environment';
 export class AuthService {
 
   private apiUrl = `${environment.apiUrl}/auth`;
+  private userApiUrl = `${environment.apiUrl}/user`;
 
   private platformId = inject(PLATFORM_ID);
 
@@ -42,6 +44,27 @@ export class AuthService {
         dto
       )
     );
+  }
+
+  async updateProfile(dto: UpdateProfileRequest): Promise<UserDto> {
+    const response = await firstValueFrom(
+      this.http.patch<UpdateProfileResponse>(`${this.userApiUrl}/profile`, dto)
+    );
+    this.setSession({ token: response.token });
+    this.currentUser = response.user;
+    return response.user;
+  }
+
+  async updateLocation(dto: UpdateLocationRequest): Promise<UserDto> {
+    const user = await firstValueFrom(
+      this.http.patch<UserDto>(`${this.userApiUrl}/location`, dto)
+    );
+    this.currentUser = user;
+    return user;
+  }
+
+  async updatePassword(dto: UpdatePasswordRequest): Promise<void> {
+    await firstValueFrom(this.http.patch<void>(`${this.userApiUrl}/password`, dto));
   }
 
   logout(): void {

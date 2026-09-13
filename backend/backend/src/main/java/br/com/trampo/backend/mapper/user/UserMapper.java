@@ -11,6 +11,9 @@ public class UserMapper {
         return new UserDto(
                 user.getId(),
                 user.getName(),
+                user.getEmail(),
+                user.getPhone(),
+                user.getCpf(),
                 user.getRating(),
                 user.isProvider(),
                 user.isAvailableForUrgency(),

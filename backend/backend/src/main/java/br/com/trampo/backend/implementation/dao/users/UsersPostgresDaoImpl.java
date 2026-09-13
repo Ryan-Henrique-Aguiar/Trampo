@@ -3,7 +3,6 @@ package br.com.trampo.backend.implementation.dao.users;
 import br.com.trampo.backend.domain.Users;
 import br.com.trampo.backend.infra.exception.DatabaseException;
 import br.com.trampo.backend.port.dao.users.UsersDao;
-import org.springframework.jdbc.datasource.DataSourceUtils;
 
 import javax.sql.DataSource;
 import java.sql.*;
@@ -107,7 +106,6 @@ public class UsersPostgresDaoImpl implements UsersDao {
     public Optional<Users> findById(long id) {
 
         String sql = "SELECT * FROM users WHERE id = ?";
-
         try (Connection connection = dataSource.getConnection(); PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, id);
 
@@ -125,9 +123,7 @@ public class UsersPostgresDaoImpl implements UsersDao {
     @Override
     public Optional<Users> findByEmail(String email) {
         String sql = "SELECT * FROM users WHERE email = ?";
-
-        try (Connection connection = dataSource.getConnection();
-             PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection(); PreparedStatement stmt = connection.prepareStatement(sql)) {
 
             stmt.setString(1, email);
 
@@ -146,10 +142,9 @@ public class UsersPostgresDaoImpl implements UsersDao {
 
     @Override
     public Optional<Users> findByCpf(String cpf) {
-        Connection connection = DataSourceUtils.getConnection(dataSource);
         String sql = "SELECT * FROM users WHERE cpf = ?";
 
-        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, cpf);
 
             try (ResultSet resultSet = statement.executeQuery()) {
@@ -165,10 +160,9 @@ public class UsersPostgresDaoImpl implements UsersDao {
 
     @Override
     public Optional<Users> findByPhone(String phone) {
-        Connection connection = DataSourceUtils.getConnection(dataSource);
         String sql = "SELECT * FROM users WHERE phone = ?";
 
-        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (Connection connection = dataSource.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setString(1, phone);
 
             try (ResultSet resultSet = statement.executeQuery()) {
@@ -183,22 +177,43 @@ public class UsersPostgresDaoImpl implements UsersDao {
     }
 
     @Override
-    public List<Users> findAll() {
-        Connection connection = DataSourceUtils.getConnection(dataSource);
-        List<Users> users = new ArrayList<>();
-        String sql = "SELECT * FROM users";
-
-        try (PreparedStatement stmt = connection.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-
-            while (rs.next()) {
-                users.add(mapUser(rs));
-            }
-
+    public void updateProfile(int userId, String name, String email, String cpf, String phone) {
+        String sql = "UPDATE users SET name = ?, email = ?, cpf = ?, phone = ? WHERE id = ?";
+        try (Connection connection = dataSource.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, name);
+            statement.setString(2, email);
+            statement.setString(3, cpf);
+            statement.setString(4, phone);
+            statement.setInt(5, userId);
+            statement.executeUpdate();
         } catch (SQLException e) {
-            throw new DatabaseException("Erro ao listar usuários.", e);
+            throw new DatabaseException("Erro ao atualizar dados do usuário.", e);
         }
-        return users;
+    }
+
+    @Override
+    public void updateLocation(int userId, String state, String city) {
+        String sql = "UPDATE users SET state = ?, city = ? WHERE id = ?";
+        try (Connection connection = dataSource.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, state);
+            statement.setString(2, city);
+            statement.setInt(3, userId);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao atualizar localização do usuário.", e);
+        }
+    }
+
+    @Override
+    public void updatePassword(int userId, String encodedPassword) {
+        String sql = "UPDATE users SET password = ? WHERE id = ?";
+        try (Connection connection = dataSource.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, encodedPassword);
+            statement.setInt(2, userId);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao atualizar senha do usuário.", e);
+        }
     }
 
     @Override

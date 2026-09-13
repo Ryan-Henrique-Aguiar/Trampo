@@ -16,7 +16,11 @@ public interface UsersDao {
 
     Optional<Users> findByPhone(String phone);
 
-    List<Users> findAll();
+    void updateProfile(int userId, String name, String email, String cpf, String phone);
+
+    void updateLocation(int userId, String state, String city);
+
+    void updatePassword(int userId, String encodedPassword);
 
     List<Users> findProvidersAvailableForUrgency(
             int userId,

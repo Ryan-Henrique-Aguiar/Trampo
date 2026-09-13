@@ -17,7 +17,6 @@ import { ViewModeService } from '../../../services/view-mode/view-mode-service';
   styleUrl: './main.css',
 })
 export class Main implements OnInit {
-  name: string | null = null;
   isHelpOpen = false;
   isNotificationsOpen = false;
   loadingNotifications = false;
@@ -36,12 +35,15 @@ export class Main implements OnInit {
     return this.authService.isProvider();
   }
 
+  get name(): string | null {
+    return this.authService.currentUser?.name ?? null;
+  }
+
   get isProviderMode() {
     return this.viewModeService.isProviderMode;
   }
 
   ngOnInit(): void {
-    this.name = this.authService.currentUser?.name ?? null;
     this.loadNotifications();
   }
 

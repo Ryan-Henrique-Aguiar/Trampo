@@ -3,52 +3,119 @@ package br.com.trampo.backend.implementation.service.users;
 import br.com.trampo.backend.domain.Users;
 
 
-import br.com.trampo.backend.dto.UserDto;
 import br.com.trampo.backend.dto.user.UrgentProviderDto;
+import br.com.trampo.backend.dto.user.UpdateProfileDto;
+import br.com.trampo.backend.dto.user.UpdateLocationDto;
+import br.com.trampo.backend.dto.user.UpdatePasswordDto;
+import br.com.trampo.backend.infra.exception.EmailAlreadyExistsException;
+import br.com.trampo.backend.infra.exception.CpfAlreadyExistsException;
+import br.com.trampo.backend.infra.exception.PhoneAlreadyExistsException;
+import br.com.trampo.backend.infra.exception.InvalidCpfException;
+import br.com.trampo.backend.infra.exception.InvalidPhoneException;
+import br.com.trampo.backend.infra.exception.UnauthorizedUserException;
 import br.com.trampo.backend.infra.exception.InvalidRequestException;
-import br.com.trampo.backend.port.dao.UsersCategoryDao;
+import br.com.trampo.backend.infra.validation.CpfValidator;
+import br.com.trampo.backend.infra.validation.PhoneValidator;
 import br.com.trampo.backend.port.dao.users.UsersDao;
 import br.com.trampo.backend.port.service.users.UserService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
 public class UserServiceImpl implements UserService {
 
     private final UsersDao usersDao;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserServiceImpl(UsersDao usersDao, PasswordEncoder passwordEncoder, UsersCategoryDao usersCategoryDao) {
+    public UserServiceImpl(UsersDao usersDao, PasswordEncoder passwordEncoder) {
         this.usersDao = usersDao;
+        this.passwordEncoder = passwordEncoder;
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     @Override
-    public List<UserDto> findAllUsers() {
-
-        List<UserDto> list = new ArrayList<>();
-
-        for (Users user : usersDao.findAll()) {
-            UserDto userDto = new UserDto(
-                    user.getId(),
-                    user.getName(),
-                    user.getRating(),
-                    user.isProvider(),
-                    user.isAvailableForUrgency(),
-                    user.getCreatedServicesCount(),
-                    user.getServiceStartDate(),
-                    user.getCompletedServicesCount(),
-                    user.getCity(),
-                    user.getState()
-            );
-
-            list.add(userDto);
+    public Users updateProfile(Users user, UpdateProfileDto data) {
+        if (user == null || user.getId() == null) {
+            throw new UnauthorizedUserException("Usuário não autenticado.");
+        }
+        if (data == null || data.name() == null || data.email() == null
+                || data.cpf() == null || data.phone() == null) {
+            throw new InvalidRequestException("Nome, e-mail, CPF e telefone são obrigatórios.");
         }
 
-        return list;
+        String name = data.name().trim();
+        String email = data.email().trim();
+        String cpf = CpfValidator.normalize(data.cpf());
+        String phone = PhoneValidator.normalize(data.phone());
+
+        if (name.isEmpty() || name.length() > 100) {
+            throw new InvalidRequestException("Nome inválido.");
+        }
+        if (email.length() > 150 || !email.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
+            throw new InvalidRequestException("E-mail inválido.");
+        }
+        if (!cpf.equals(user.getCpf()) && !CpfValidator.isValid(cpf)) {
+            throw new InvalidCpfException("CPF inválido.");
+        }
+        if (!phone.equals(user.getPhone()) && !PhoneValidator.isValid(phone)) {
+            throw new InvalidPhoneException("Telefone inválido.");
+        }
+        if (usersDao.findByEmail(email).filter(other -> !other.getId().equals(user.getId())).isPresent()) {
+            throw new EmailAlreadyExistsException("E-mail já cadastrado.");
+        }
+        if (usersDao.findByCpf(cpf).filter(other -> !other.getId().equals(user.getId())).isPresent()) {
+            throw new CpfAlreadyExistsException("CPF já cadastrado.");
+        }
+        if (usersDao.findByPhone(phone).filter(other -> !other.getId().equals(user.getId())).isPresent()) {
+            throw new PhoneAlreadyExistsException("Telefone já cadastrado.");
+        }
+
+        usersDao.updateProfile(user.getId(), name, email, cpf, phone);
+        return usersDao.findById(user.getId())
+                .orElseThrow(() -> new UnauthorizedUserException("Usuário não encontrado."));
+    }
+
+    @Transactional
+    @Override
+    public Users updateLocation(Users user, UpdateLocationDto data) {
+        if (user == null || user.getId() == null) {
+            throw new UnauthorizedUserException("Usuário não autenticado.");
+        }
+        if (data == null || data.state() == null || data.city() == null) {
+            throw new InvalidRequestException("Estado e cidade são obrigatórios.");
+        }
+
+        String state = data.state().trim().toUpperCase();
+        String city = data.city().trim();
+        if (!state.matches("[A-Z]{2}") || city.isEmpty() || city.length() > 100) {
+            throw new InvalidRequestException("Estado ou cidade inválidos.");
+        }
+
+        usersDao.updateLocation(user.getId(), state, city);
+        return usersDao.findById(user.getId())
+                .orElseThrow(() -> new UnauthorizedUserException("Usuário não encontrado."));
+    }
+
+    @Transactional
+    @Override
+    public void updatePassword(Users user, UpdatePasswordDto data) {
+        if (user == null || user.getId() == null) {
+            throw new UnauthorizedUserException("Usuário não autenticado.");
+        }
+        if (data == null || data.currentPassword() == null || data.newPassword() == null) {
+            throw new InvalidRequestException("Senha atual e nova senha são obrigatórias.");
+        }
+        if (!passwordEncoder.matches(data.currentPassword(), user.getPassword())) {
+            throw new InvalidRequestException("Senha atual incorreta.");
+        }
+        if (data.newPassword().length() < 6) {
+            throw new InvalidRequestException("A nova senha deve possuir pelo menos 6 caracteres.");
+        }
+
+        usersDao.updatePassword(user.getId(), passwordEncoder.encode(data.newPassword()));
     }
 
     @Transactional(readOnly = true)

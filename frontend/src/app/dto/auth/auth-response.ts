@@ -1,6 +1,9 @@
 export interface UserDto {
   id: number;
   name: string;
+  email: string;
+  phone: string;
+  cpf: string;
   rating: number | null;
   provider: boolean;
   availableForUrgency: boolean;

@@ -1,0 +1,133 @@
+<section class="profile-page">
+  <div class="profile-header">
+    <div class="profile-avatar"><i class="fa-solid fa-user" aria-hidden="true"></i></div>
+    <div>
+      <h1>Meu perfil</h1>
+      <p>Confira seus dados cadastrados.</p>
+    </div>
+  </div>
+
+  @if (user) {
+  <div class="profile-card">
+    <h2 class="profile-section-title">Dados básicos</h2>
+    <div class="profile-field"><span>Nome</span><strong>{{ user.name }}</strong></div>
+    <div class="profile-field"><span>E-mail</span><strong>{{ user.email }}</strong></div>
+    <div class="profile-field"><span>Telefone</span><strong>{{ user.phone }}</strong></div>
+    <div class="profile-field"><span>CPF</span><strong>{{ user.cpf }}</strong></div>
+    <div class="profile-field"><span>Tipo de conta</span><strong>{{ user.provider ? 'Prestador' : 'Cliente' }}</strong>
+    </div>
+    <h2 class="profile-section-title">Localização</h2>
+    <div class="profile-field"><span>Cidade e estado</span><strong>{{ user.city }} - {{ user.state }}</strong></div>
+    <h2 class="profile-section-title">Informações da conta</h2>
+    <div class="profile-field"><span>Avaliação</span><strong>{{ user.rating === null ? 'Ainda não há avaliações' :
+        (user.rating | number:'1.1-1') }}</strong></div>
+  </div>
+
+  <div class="profile-actions">
+    <button type="button" class="profile-button profile-button--primary" (click)="openDataModal()">
+      <i class="fa-solid fa-pen" aria-hidden="true"></i> Editar dados
+    </button>
+    <button type="button" class="profile-button profile-button--secondary" (click)="openPasswordModal()">
+      <i class="fa-solid fa-lock" aria-hidden="true"></i> Alterar senha
+    </button>
+  </div>
+
+  @if (activeModal === 'data') {
+  <div class="profile-modal-backdrop" (click)="closeModal()">
+    <form class="profile-modal" [formGroup]="dataForm" (ngSubmit)="saveData()" (click)="$event.stopPropagation()"
+      role="dialog" aria-modal="true" aria-labelledby="data-modal-title">
+      <div class="profile-modal-header">
+        <h2 id="data-modal-title">Editar dados</h2>
+        <button type="button" class="profile-close" aria-label="Fechar" (click)="closeModal()">&times;</button>
+      </div>
+      <div class="profile-form-grid">
+        <h3 class="profile-section-title">Dados básicos</h3>
+        <label>Nome<input class="profile-input" type="text" formControlName="name">
+          @if (dataForm.controls.name.touched && dataForm.controls.name.invalid) { <small
+            class="profile-field-error">Informe seu nome.</small> }
+        </label>
+        <label>E-mail<input class="profile-input" type="email" formControlName="email" placeholder="seu@email.com">
+          @if (dataForm.controls.email.touched && dataForm.controls.email.invalid) { <small
+            class="profile-field-error">Informe um e-mail válido.</small> }
+        </label>
+        <label>CPF<input class="profile-input" type="text" formControlName="cpf" placeholder="000.000.000-00">
+          @if (dataForm.controls.cpf.touched && dataForm.controls.cpf.hasError('required')) { <small
+            class="profile-field-error">Informe seu CPF.</small> }
+          @else if (dataForm.controls.cpf.touched && dataForm.controls.cpf.hasError('digitLength')) { <small
+            class="profile-field-error">O CPF deve conter 11 dígitos.</small> }
+        </label>
+        <label>Telefone<input class="profile-input" type="tel" formControlName="phone"
+            placeholder="(00) 00000-0000">
+          @if (dataForm.controls.phone.touched && dataForm.controls.phone.hasError('required')) { <small
+            class="profile-field-error">Informe seu telefone.</small> }
+          @else if (dataForm.controls.phone.touched && dataForm.controls.phone.hasError('digitLength')) { <small
+            class="profile-field-error">O telefone deve conter 11 dígitos.</small> }
+        </label>
+        <h3 class="profile-section-title">Localização</h3>
+        <label>Estado
+          <select class="profile-input" formControlName="state" (change)="onStateChange()">
+            <option value="">Selecione um estado</option>
+            @for (state of states; track state.id) { <option [value]="state.uf">{{ state.name }}</option> }
+          </select>
+          @if (dataForm.controls.state.touched && dataForm.controls.state.invalid) { <small
+            class="profile-field-error">Selecione um estado.</small> }
+        </label>
+        <label>Cidade
+          <select class="profile-input" formControlName="city">
+            <option value="">Selecione uma cidade</option>
+            @for (city of cities; track city.id) { <option [value]="city.name">{{ city.name }}</option> }
+          </select>
+          @if (dataForm.controls.city.touched && (dataForm.controls.city.invalid || (dataForm.controls.city.disabled && !dataForm.controls.city.value))) { <small
+            class="profile-field-error">Selecione uma cidade.</small> }
+        </label>
+        @if (locationError) { <p class="profile-message profile-message--error">{{ locationError }}</p> }
+      </div>
+      <div class="profile-form-actions">
+        <button type="button" class="profile-button profile-button--secondary" (click)="closeModal()">Cancelar</button>
+        <button type="submit" class="profile-button profile-button--primary" [disabled]="isSaving">{{ isSaving ?
+          'Salvando...' : 'Salvar alterações' }}</button>
+      </div>
+    </form>
+  </div>
+  }
+
+  @if (activeModal === 'password') {
+  <div class="profile-modal-backdrop" (click)="closeModal()">
+    <form class="profile-modal profile-modal--password" [formGroup]="passwordForm" (ngSubmit)="savePassword()"
+      (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="password-modal-title">
+      <div class="profile-modal-header">
+        <h2 id="password-modal-title">Alterar senha</h2>
+        <button type="button" class="profile-close" aria-label="Fechar" (click)="closeModal()">&times;</button>
+      </div>
+      <div class="profile-form-grid">
+        <label class="profile-field-full">Senha atual<input class="profile-input" type="password"
+            formControlName="currentPassword" autocomplete="current-password">
+          @if (passwordForm.controls.currentPassword.touched && passwordForm.controls.currentPassword.invalid) { <small
+            class="profile-field-error">Informe sua senha atual.</small> }
+        </label>
+        <label class="profile-field-full">Nova senha<input class="profile-input" type="password"
+            formControlName="newPassword" autocomplete="new-password">
+          @if (passwordForm.controls.newPassword.touched && passwordForm.controls.newPassword.hasError('required')) {
+          <small class="profile-field-error">Informe uma nova senha.</small> }
+        </label>
+        <label class="profile-field-full">Confirmar nova senha<input class="profile-input" type="password"
+            formControlName="confirmPassword" autocomplete="new-password">
+          @if (passwordForm.controls.confirmPassword.touched &&
+          passwordForm.controls.confirmPassword.hasError('required')) { <small class="profile-field-error">Confirme a
+            nova senha.</small> }
+        </label>
+        @if (passwordForm.controls.newPassword.touched && passwordForm.controls.newPassword.hasError('minlength')) { <p
+          class="profile-message profile-message--error">A nova senha deve ter ao menos 6 caracteres.</p> }
+        @if (passwordForm.controls.confirmPassword.touched && passwordForm.hasError('passwordsMismatch')) { <p
+          class="profile-message profile-message--error">As senhas não coincidem.</p> }
+      </div>
+      <div class="profile-form-actions">
+        <button type="button" class="profile-button profile-button--secondary" (click)="closeModal()">Cancelar</button>
+        <button type="submit" class="profile-button profile-button--primary" [disabled]="isSaving">{{ isSaving ?
+          'Salvando...' : 'Atualizar senha' }}</button>
+      </div>
+    </form>
+  </div>
+  }
+  }
+</section>
