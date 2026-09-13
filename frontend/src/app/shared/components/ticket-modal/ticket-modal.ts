@@ -284,7 +284,7 @@ export class TicketModal implements OnInit {
         await this.ticketService.create(dto);
 
       this.ticketCreated.emit(createdTicket);
-      this.toastrService.success("Ticket criado com sucesso")
+      this.toastrService.success("Serviço criado com sucesso")
       this.closeModal();
 
     } catch (err) {
@@ -427,12 +427,12 @@ export class TicketModal implements OnInit {
 
       whatsappWindow.location.href = url;
 
-      this.toastrService.success('Ticket urgente criado com sucesso');
+      this.toastrService.success('Serviço urgente criado com sucesso');
       this.closeModal();
     } catch (err) {
       whatsappWindow.close();
       console.error('Erro ao criar ticket urgente:', err);
-      this.toastrService.error('Não foi possível criar o ticket urgente.');
+      this.toastrService.error('Não foi possível criar o serviço urgente.');
     } finally {
       this.sendingProviderId = null;
       this.cdr.detectChanges();

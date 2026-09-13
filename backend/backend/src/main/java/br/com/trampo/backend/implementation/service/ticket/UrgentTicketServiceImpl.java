@@ -19,6 +19,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.SQLException;
+import java.util.List;
+import br.com.trampo.backend.infra.exception.UnauthorizedUserException;
 
 @Service
 public class UrgentTicketServiceImpl implements UrgentTicketService {
@@ -117,4 +119,18 @@ public class UrgentTicketServiceImpl implements UrgentTicketService {
         }
         throw new RuntimeException("Falha inesperada ao criar ticket Urgente.");
     }
+
+    @Override
+    public List<UrgentTicketDto> getMyUrgentTickets(Users user) {
+        if (user == null || user.getId() == null) {
+            throw new UnauthorizedUserException("Usuário não autenticado ou inválido.");
+        }
+        try {
+            return urgentTicketDao.findByUserId(user.getId())
+                    .stream().map(ticketMapper::toUrgentTicket).toList();
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao consultar tickets urgentes do usuário.", e);
+        }
+    }
+
 }

@@ -326,10 +326,10 @@ export class TicketDetail implements OnInit {
       this.isEditing = false;
 
       this.ticketUpdated.emit(updatedTicket);
-      this.toastrService.success('Ticket atualizado com sucesso');
+      this.toastrService.success('Serviço atualizado com sucesso');
     } catch (err) {
       console.error('Erro ao atualizar ticket:', err);
-      this.toastrService.error('Não foi possível atualizar o ticket');
+      this.toastrService.error('Não foi possível atualizar o serviço');
     } finally {
       this.isSaving = false;
       this.cdr.detectChanges();

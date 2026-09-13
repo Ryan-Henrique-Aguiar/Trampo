@@ -77,9 +77,6 @@ export class Home implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    if (this.authService.isProvider()) {
-      this.viewModeService.setMode('provider');
-    }
     this.loadMyTickets();
     if (this.authService.isProvider()) {
       this.loadAvailableTickets();

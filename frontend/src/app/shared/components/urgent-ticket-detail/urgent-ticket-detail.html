@@ -1,0 +1,53 @@
+@if (ticket) {
+  <div class="modal-overlay" (click)="onOverlayClick($event)">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="header-left">
+          <span class="ticket-code">{{ ticket.code }}</span>
+          <h2>{{ ticket.title }}</h2>
+        </div>
+        <button class="modal-close" (click)="closeModal()">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="status-row">
+          <span [class]="'status-badge ' + getStatusClass(ticket.status)">
+            {{ getStatusLabel(ticket.status) }}
+          </span>
+        </div>
+        <div class="detail-group">
+          <label>Descrição</label>
+          <p class="description-text">{{ ticket.description }}</p>
+        </div>
+        <div class="detail-grid">
+          <div class="detail-group">
+            <label>Publicado em</label>
+            <span class="detail-value">{{ formatDate(ticket.createdAt) }}</span>
+          </div>
+          @if (ticket.serviceDate) {
+            <div class="detail-group">
+              <label>Concluído em</label>
+              <span class="detail-value">{{ formatDate(ticket.serviceDate) }}</span>
+            </div>
+          }
+        </div>
+        <div class="detail-group">
+          <label>Endereço</label>
+          <div class="address-block">
+            <span>{{ ticket.address.street }}, {{ ticket.address.number }}</span>
+            <span class="zip-code">CEP: {{ ticket.address.zipCode }}</span>
+            <span>{{ ticket.address.neighborhood }}</span>
+            <span>{{ ticket.address.city }} - {{ ticket.address.state }}</span>
+            @if (ticket.address.complement) {
+              <span>Complemento: {{ ticket.address.complement }}</span>
+            }
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-close" (click)="closeModal()">Fechar</button>
+      </div>
+    </div>
+  </div>
+}

@@ -11,6 +11,10 @@ export class UrgentTicketService {
   private http = inject(HttpClient);
   private baseUrl = `${environment.apiUrl}/urgenttickets`;
 
+  async getMyUrgentTickets(): Promise<UrgentTicket[]> {
+    return firstValueFrom(this.http.get<UrgentTicket[]>(this.baseUrl));
+  }
+
   async create(dto: CreateUrgentTicketRequest): Promise<UrgentTicket> {
     const payload: CreateUrgentTicketRequest = {
       title: dto.title,

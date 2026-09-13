@@ -1,23 +1,4 @@
 <section class="tickets-page">
-
-  <!-- Loading -->
-  @if (loading) {
-    <div class="loading-state">
-      <i class="fa-solid fa-spinner fa-spin"></i>
-      <span>Carregando...</span>
-    </div>
-  }
-
-  <!-- Error -->
-  @if (error) {
-    <div class="error-state">
-      <i class="fa-solid fa-exclamation-circle"></i>
-      <p>{{ error }}</p>
-    </div>
-  }
-
-  <!-- Conteúdo principal -->
-  @if (!loading && !error) {
     <!-- ========== MODO PRESTADOR ========== -->
     @if (isProviderMode) {
       <div class="section-header">
@@ -25,9 +6,19 @@
         <span class="tickets-count">{{ availableTickets.length }} serviços</span>
       </div>
 
-      @if (availableTickets.length > 0) {
+      @if (loadingAvailableTickets) {
+        <div class="loading-state" role="status">
+          <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+          <span>Carregando serviços...</span>
+        </div>
+      } @else if (availableTicketsError) {
+        <div class="error-state" role="alert">
+          <i class="fa-solid fa-exclamation-circle" aria-hidden="true"></i>
+          <p>{{ availableTicketsError }}</p>
+        </div>
+      } @else if (availableTickets.length > 0) {
         <div class="tickets">
-          @for (ticket of availableTickets; track ticket.code) {
+          @for (ticket of availableTickets; track ticket.id) {
             <app-ticket-card [ticket]="ticket" (viewDetails)="openTicketDetail($event)" />
           }
         </div>
@@ -60,14 +51,36 @@
         </button>
       </div>
 
+      <div class="ticket-view-toggle" role="group" aria-label="Tipo de serviço">
+        <button type="button" [class.active]="ticketView === 'normal'"
+          [attr.aria-pressed]="ticketView === 'normal'" (click)="ticketView = 'normal'">
+          Serviços normais
+        </button>
+        <button type="button" class="urgent-toggle" [class.active]="ticketView === 'urgent'"
+          [attr.aria-pressed]="ticketView === 'urgent'" (click)="ticketView = 'urgent'">
+          Serviços urgentes
+        </button>
+      </div>
+
+      @if (ticketView === 'normal') {
       <div class="section-header">
         <h2>Meus serviços publicados</h2>
         <span class="tickets-count">{{ tickets.length }} serviços</span>
       </div>
 
-      @if (tickets.length > 0) {
+      @if (loadingMyTickets) {
+        <div class="loading-state" role="status">
+          <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+          <span>Carregando serviços...</span>
+        </div>
+      } @else if (myTicketsError) {
+        <div class="error-state" role="alert">
+          <i class="fa-solid fa-exclamation-circle" aria-hidden="true"></i>
+          <p>{{ myTicketsError }}</p>
+        </div>
+      } @else if (tickets.length > 0) {
         <div class="tickets">
-          @for (ticket of tickets; track ticket.code) {
+          @for (ticket of tickets; track ticket.id) {
             <app-ticket-card
               [ticket]="ticket"
               (viewDetails)="openTicketDetail($event)"
@@ -86,8 +99,44 @@
           </button>
         </div>
       }
+      } @else {
+        <div class="section-header">
+          <h2>Meus serviços urgentes</h2>
+          @if (!loadingMyUrgentTickets && !myUrgentTicketsError) {
+            <span class="tickets-count">{{ urgentTickets.length }} serviços</span>
+          }
+        </div>
+
+        @if (loadingMyUrgentTickets) {
+          <div class="loading-state" role="status">
+            <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+            <span>Carregando seus serviços urgentes...</span>
+          </div>
+        } @else if (myUrgentTicketsError) {
+          <div class="error-state" role="alert">
+            <p>{{ myUrgentTicketsError }}</p>
+            <button type="button" class="btn-primary" (click)="loadMyUrgentTickets()">Tentar novamente</button>
+          </div>
+        } @else if (urgentTickets.length > 0) {
+          <div class="tickets">
+            @for (ticket of urgentTickets; track ticket.id) {
+              <app-urgent-ticket-card
+                [ticket]="ticket"
+                (viewDetails)="openUrgentTicketDetail($event)" />
+            }
+          </div>
+        } @else {
+          <div class="empty-state">
+            <i class="fa-solid fa-bolt" aria-hidden="true"></i>
+            <h3>Nenhum serviço urgente publicado</h3>
+            <p>Os serviços urgentes que você solicitar aparecerão aqui.</p>
+            <button type="button" class="btn-primary" (click)="openTicketModal(true)">
+              Solicitar serviço urgente
+            </button>
+          </div>
+        }
+      }
     }
-  }
 
   @if (activeModal === 'create') {
     <app-ticket-modal
@@ -101,6 +150,12 @@
       [ticket]="selectedTicket"
       (close)="closeModal()"
       (ticketUpdated)="onTicketUpdated($event)" />
+  }
+
+  @if (activeModal === 'urgent-details' && selectedUrgentTicket) {
+    <app-urgent-ticket-detail
+      [ticket]="selectedUrgentTicket"
+      (close)="closeModal()" />
   }
 
   @if (activeModal === 'proposals' && selectedTicket) {
