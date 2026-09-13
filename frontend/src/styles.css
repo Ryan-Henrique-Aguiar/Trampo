@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap');
 @import '@ng-select/ng-select/themes/default.theme.css';
 :root {
 
@@ -54,6 +54,8 @@
      FONTES
   ========================= */
 
+  --font-family: 'Roboto', sans-serif;
+
   --font-size-xs: 12px;
   --font-size-sm: 14px;
   --font-size-md: 16px;
@@ -105,7 +107,7 @@ body {
   font-size: var(--font-size-md);
   font-weight: var(--font-weight-regular);
 
-  font-family: 'Roboto', sans-serif;
+  font-family: var(--font-family);
 }
 
 /* =========================
@@ -159,7 +161,7 @@ body {
 
   color: var(--text-primary);
 
-  font-family: 'Syne', sans-serif;
+  font-family: 'Roboto', sans-serif;
   font-size: var(--font-size-md);
   font-weight: var(--font-weight-semibold);
 
@@ -217,7 +219,7 @@ body {
 ng-select {
   width: 100%;
   margin-top: 6px;
-  font-family: 'Syne', sans-serif;
+  font-family: 'Roboto', sans-serif;
 }
 
 ng-select .ng-select-container {

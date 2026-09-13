@@ -12,7 +12,7 @@
 }
 
 .section-header h1 {
-    font-family: 'Syne', sans-serif;
+    font-family: 'Roboto', sans-serif;
     font-size: var(--font-size-xxl);
     font-weight: var(--font-weight-semibold);
     color: var(--text-primary);
@@ -46,7 +46,7 @@
 }
 
 .content-card h2 {
-    font-family: 'Syne', sans-serif;
+    font-family: 'Roboto', sans-serif;
     font-size: var(--font-size-lg);
     margin-bottom: 12px;
 }
@@ -143,7 +143,7 @@
     background: var(--primary);
     color: #fff;
     padding: 12px 20px;
-    font-family: 'Syne', sans-serif;
+    font-family: 'Roboto', sans-serif;
     font-weight: var(--font-weight-semibold);
     cursor: pointer;
     display: flex;
