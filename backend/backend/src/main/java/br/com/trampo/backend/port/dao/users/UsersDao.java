@@ -16,6 +16,10 @@ public interface UsersDao {
 
     Optional<Users> findByPhone(String phone);
 
+    void incrementCreatedServicesCount(int userId);
+
+    void incrementCompletedServicesCountForTicket(int ticketId);
+
     void updateProfile(int userId, String name, String email, String cpf, String phone);
 
     void updateLocation(int userId, String state, String city);

@@ -67,6 +67,12 @@ export class AuthService {
     await firstValueFrom(this.http.patch<void>(`${this.userApiUrl}/password`, dto));
   }
 
+  async refreshUser(): Promise<void> {
+    this.currentUser = await firstValueFrom(
+      this.http.get<UserDto>(`${this.apiUrl}/me`)
+    );
+  }
+
   logout(): void {
     if (!this.isBrowser()) return;
 
@@ -89,9 +95,7 @@ export class AuthService {
     }
 
     try {
-      this.currentUser = await firstValueFrom(
-        this.http.get<UserDto>(`${this.apiUrl}/me`)
-      );
+      await this.refreshUser();
       return true;
     } catch {
       this.logout();

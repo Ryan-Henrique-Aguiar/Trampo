@@ -100,6 +100,8 @@ public class UrgentTicketServiceImpl implements UrgentTicketService {
 
                 UrgentTicket newUrgentTicket = urgentTicketDao.save(urgentTicket);
 
+                usersDao.incrementCreatedServicesCount(user.getId());
+
                 return ticketMapper.toUrgentTicket(newUrgentTicket);
 
             } catch (DuplicateKeyException e) {

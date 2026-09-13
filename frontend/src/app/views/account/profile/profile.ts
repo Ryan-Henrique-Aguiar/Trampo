@@ -17,6 +17,7 @@ export class Profile implements OnInit {
   activeModal: 'data' | 'password' | null = null;
   states: State[] = [];
   cities: City[] = [];
+  profileError = '';
   locationError = '';
   isSaving = false;
 
@@ -49,10 +50,22 @@ export class Profile implements OnInit {
   }
 
   async ngOnInit(): Promise<void> {
+    await this.refreshProfile();
     try {
       this.states = await this.locationService.getStates();
     } catch {
       this.locationError = 'Não foi possível carregar os estados.';
+    } finally {
+      this.cdr.detectChanges();
+    }
+  }
+
+  private async refreshProfile(): Promise<void> {
+    try {
+      await this.authService.refreshUser();
+      this.profileError = '';
+    } catch {
+      this.profileError = 'Não foi possível atualizar os dados do perfil.';
     } finally {
       this.cdr.detectChanges();
     }
@@ -169,10 +182,12 @@ export class Profile implements OnInit {
         await this.authService.updateLocation({ state, city });
       }
       this.closeModal();
+      await this.refreshProfile();
       this.toastrService.success('Dados atualizados com sucesso.');
     } catch (err) {
       const message = (err as HttpErrorResponse).error?.message ?? 'Não foi possível atualizar seus dados.';
       this.toastrService.error(basicSaved ? `Dados básicos salvos. ${message}` : message);
+      if (basicSaved) await this.refreshProfile();
     } finally {
       this.isSaving = false;
       this.cdr.detectChanges();

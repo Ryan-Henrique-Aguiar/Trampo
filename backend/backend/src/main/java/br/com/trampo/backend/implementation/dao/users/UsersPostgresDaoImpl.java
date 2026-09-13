@@ -177,6 +177,39 @@ public class UsersPostgresDaoImpl implements UsersDao {
     }
 
     @Override
+    public void incrementCreatedServicesCount(int userId) {
+        String sql = "UPDATE users SET created_services_count = COALESCE(created_services_count, 0) + 1 WHERE id = ?";
+
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, userId);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao atualizar quantidade de serviços criados.", e);
+        }
+    }
+
+    @Override
+    public void incrementCompletedServicesCountForTicket(int ticketId) {
+        String sql = """
+                UPDATE users
+                SET completed_services_count = COALESCE(completed_services_count, 0) + 1
+                WHERE id IN (
+                    SELECT professional_id FROM proposal
+                    WHERE ticket_id = ? AND status = 'ACCEPTED'
+                )
+                """;
+
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, ticketId);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao atualizar quantidade de serviços realizados.", e);
+        }
+    }
+
+    @Override
     public void updateProfile(int userId, String name, String email, String cpf, String phone) {
         String sql = "UPDATE users SET name = ?, email = ?, cpf = ?, phone = ? WHERE id = ?";
         try (Connection connection = dataSource.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {

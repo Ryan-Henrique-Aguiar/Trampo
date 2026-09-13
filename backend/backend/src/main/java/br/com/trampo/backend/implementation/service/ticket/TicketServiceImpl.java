@@ -19,6 +19,7 @@ import br.com.trampo.backend.port.dao.ticket.AvailableDayDao;
 import br.com.trampo.backend.port.dao.ticket.AvailableHourDao;
 import br.com.trampo.backend.port.dao.ticket.TicketDao;
 import br.com.trampo.backend.port.dao.ticket.TicketPaymentMethodDao;
+import br.com.trampo.backend.port.dao.users.UsersDao;
 import br.com.trampo.backend.port.service.category.CategoryService;
 import br.com.trampo.backend.port.service.ticket.TicketService;
 import br.com.trampo.backend.utils.TicketCodeGenerate;
@@ -57,8 +58,9 @@ public class TicketServiceImpl implements TicketService {
     private final CategoryService categoryService;
     private final TicketMapper ticketMapper;
     private final TicketPaymentMethodDao ticketPaymentMethodDao;
+    private final UsersDao usersDao;
 
-    public TicketServiceImpl(TicketCodeGenerate ticketCodeGenerate, TicketDao ticketDao, AddressDao addressDao, AvailableDayDao availableDayDao, AvailableHourDao availableHourDao, CategoryService categoryService, TicketMapper ticketMapper, TicketPaymentMethodDao ticketPaymentMethodDao) {
+    public TicketServiceImpl(TicketCodeGenerate ticketCodeGenerate, TicketDao ticketDao, AddressDao addressDao, AvailableDayDao availableDayDao, AvailableHourDao availableHourDao, CategoryService categoryService, TicketMapper ticketMapper, TicketPaymentMethodDao ticketPaymentMethodDao, UsersDao usersDao) {
         this.ticketCodeGenerate = ticketCodeGenerate;
         this.ticketDao = ticketDao;
         this.addressDao = addressDao;
@@ -67,6 +69,7 @@ public class TicketServiceImpl implements TicketService {
         this.categoryService = categoryService;
         this.ticketMapper = ticketMapper;
         this.ticketPaymentMethodDao = ticketPaymentMethodDao;
+        this.usersDao = usersDao;
     }
 
     @Transactional
@@ -134,6 +137,8 @@ public class TicketServiceImpl implements TicketService {
                     );
                     ticketPaymentMethodDao.save(ticketPaymentMethod);
                 }
+
+                usersDao.incrementCreatedServicesCount(user.getId());
 
                 return ticketMapper.toDto(
                         newTicket,
@@ -359,6 +364,9 @@ public class TicketServiceImpl implements TicketService {
         validateStatusTransition(ticket.getStatus(), newStatus);
 
         ticketDao.updateStatus(ticketId, newStatus);
+        if (newStatus == StatusTicket.COMPLETED) {
+            usersDao.incrementCompletedServicesCountForTicket(ticketId);
+        }
 
         Ticket updatedTicket = findTicketById(ticketId);
 

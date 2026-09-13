@@ -7,6 +7,8 @@
     </div>
   </div>
 
+  @if (profileError) { <p class="profile-message profile-message--error">{{ profileError }}</p> }
+
   @if (user) {
   <div class="profile-card">
     <h2 class="profile-section-title">Dados básicos</h2>
@@ -21,6 +23,20 @@
     <h2 class="profile-section-title">Informações da conta</h2>
     <div class="profile-field"><span>Avaliação</span><strong>{{ user.rating === null ? 'Ainda não há avaliações' :
         (user.rating | number:'1.1-1') }}</strong></div>
+      @if(user.provider){
+      <div class="profile-field">
+        <span>Quantidade de serviços realizados</span>
+        <strong>
+          {{user.completedServicesCount === null ? 'Ainda não realizou nenhum serviço': user.completedServicesCount}}
+        </strong>
+      </div>
+      }
+      <div class="profile-field">
+        <span>Quantidade de serviços solicitados</span>
+        <strong>
+          {{user.createdServicesCount === null ? 'Você não solicitou nenhum serviço': user.createdServicesCount}}
+        </strong>
+      </div>
   </div>
 
   <div class="profile-actions">
