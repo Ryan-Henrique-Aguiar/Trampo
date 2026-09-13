@@ -47,20 +47,23 @@
             class="profile-field-error">Informe seu nome.</small> }
         </label>
         <label>E-mail<input class="profile-input" type="email" formControlName="email" placeholder="seu@email.com">
-          @if (dataForm.controls.email.touched && dataForm.controls.email.invalid) { <small
-            class="profile-field-error">Informe um e-mail válido.</small> }
+          @if (dataForm.controls.email.touched && dataForm.controls.email.hasError('required')) { <small
+            class="profile-field-error">Informe seu e-mail.</small> }
+          @else if (dataForm.controls.email.touched && dataForm.controls.email.hasError('email')) { <small
+            class="profile-field-error">E-mail inválido.</small> }
         </label>
-        <label>CPF<input class="profile-input" type="text" formControlName="cpf" placeholder="000.000.000-00">
+        <label>CPF<input class="profile-input" type="text" formControlName="cpf" placeholder="000.000.000-00"
+            inputmode="numeric" maxlength="14">
           @if (dataForm.controls.cpf.touched && dataForm.controls.cpf.hasError('required')) { <small
             class="profile-field-error">Informe seu CPF.</small> }
-          @else if (dataForm.controls.cpf.touched && dataForm.controls.cpf.hasError('digitLength')) { <small
+          @else if (dataForm.controls.cpf.touched && dataForm.controls.cpf.hasError('minlength')) { <small
             class="profile-field-error">O CPF deve conter 11 dígitos.</small> }
         </label>
-        <label>Telefone<input class="profile-input" type="tel" formControlName="phone"
-            placeholder="(00) 00000-0000">
+        <label>Telefone<input class="profile-input" type="tel" formControlName="phone" placeholder="(00) 00000-0000"
+            inputmode="numeric" maxlength="15">
           @if (dataForm.controls.phone.touched && dataForm.controls.phone.hasError('required')) { <small
             class="profile-field-error">Informe seu telefone.</small> }
-          @else if (dataForm.controls.phone.touched && dataForm.controls.phone.hasError('digitLength')) { <small
+          @else if (dataForm.controls.phone.touched && dataForm.controls.phone.hasError('minlength')) { <small
             class="profile-field-error">O telefone deve conter 11 dígitos.</small> }
         </label>
         <h3 class="profile-section-title">Localização</h3>
@@ -77,8 +80,8 @@
             <option value="">Selecione uma cidade</option>
             @for (city of cities; track city.id) { <option [value]="city.name">{{ city.name }}</option> }
           </select>
-          @if (dataForm.controls.city.touched && (dataForm.controls.city.invalid || (dataForm.controls.city.disabled && !dataForm.controls.city.value))) { <small
-            class="profile-field-error">Selecione uma cidade.</small> }
+          @if (dataForm.controls.city.touched && (dataForm.controls.city.invalid || (dataForm.controls.city.disabled &&
+          !dataForm.controls.city.value))) { <small class="profile-field-error">Selecione uma cidade.</small> }
         </label>
         @if (locationError) { <p class="profile-message profile-message--error">{{ locationError }}</p> }
       </div>
@@ -118,7 +121,8 @@
         </label>
         @if (passwordForm.controls.newPassword.touched && passwordForm.controls.newPassword.hasError('minlength')) { <p
           class="profile-message profile-message--error">A nova senha deve ter ao menos 6 caracteres.</p> }
-        @if (passwordForm.controls.confirmPassword.touched && passwordForm.hasError('passwordsMismatch')) { <p
+        @if (passwordForm.controls.confirmPassword.touched && passwordForm.controls.confirmPassword.value &&
+        passwordForm.controls.newPassword.value !== passwordForm.controls.confirmPassword.value) { <p
           class="profile-message profile-message--error">As senhas não coincidem.</p> }
       </div>
       <div class="profile-form-actions">

@@ -1,10 +1,11 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
-import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../../services/auth/auth';
 import { LocationService, State, City } from '../../../services/location/location';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ToastrService } from '@iqx-limited/ngx-toastr';
+import { formatCpf, formatPhone, onlyDigits } from '../../../utils/input-mask';
 
 @Component({
   selector: 'app-profile',
@@ -22,8 +23,8 @@ export class Profile implements OnInit {
   dataForm = new FormGroup({
     name: new FormControl('', [Validators.required, Validators.maxLength(100)]),
     email: new FormControl('', [Validators.required, Validators.email]),
-    cpf: new FormControl('', [Validators.required, this.exactDigitsValidator]),
-    phone: new FormControl('', [Validators.required, this.exactDigitsValidator]),
+    cpf: new FormControl('', [Validators.required, Validators.minLength(14)]),
+    phone: new FormControl('', [Validators.required, Validators.minLength(15)]),
     state: new FormControl('', Validators.required),
     city: new FormControl({ value: '', disabled: true }, Validators.required)
   });
@@ -32,14 +33,16 @@ export class Profile implements OnInit {
     currentPassword: new FormControl('', Validators.required),
     newPassword: new FormControl('', [Validators.required, Validators.minLength(6)]),
     confirmPassword: new FormControl('', Validators.required)
-  }, { validators: this.passwordsMatch });
+  });
 
   constructor(
     public authService: AuthService,
     private locationService: LocationService,
     private toastrService: ToastrService,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) {
+    this.setupInputMasks();
+  }
 
   get user() {
     return this.authService.currentUser;
@@ -63,8 +66,8 @@ export class Profile implements OnInit {
     this.dataForm.reset({
       name: user.name,
       email: user.email,
-      cpf: user.cpf,
-      phone: user.phone,
+      cpf: formatCpf(user.cpf),
+      phone: formatPhone(user.phone),
       state: user.state,
       city: user.city
     });
@@ -115,6 +118,21 @@ export class Profile implements OnInit {
     }
   }
 
+  private setupInputMasks(): void {
+    const cpfControl = this.dataForm.controls.cpf;
+    const phoneControl = this.dataForm.controls.phone;
+
+    cpfControl.valueChanges.subscribe(value => {
+      const formatted = formatCpf(value ?? '');
+      if (value !== formatted) cpfControl.setValue(formatted, { emitEvent: false });
+    });
+
+    phoneControl.valueChanges.subscribe(value => {
+      const formatted = formatPhone(value ?? '');
+      if (value !== formatted) phoneControl.setValue(formatted, { emitEvent: false });
+    });
+  }
+
   async saveData(): Promise<void> {
     this.dataForm.markAllAsTouched();
     if (this.dataForm.invalid || this.isSaving || !this.user) return;
@@ -123,8 +141,8 @@ export class Profile implements OnInit {
     const data = this.dataForm.getRawValue();
     const name = data.name!.trim();
     const email = data.email!.trim();
-    const cpf = data.cpf!.replace(/\D/g, '');
-    const phone = data.phone!.replace(/\D/g, '');
+    const cpf = onlyDigits(data.cpf!);
+    const phone = onlyDigits(data.phone!);
     const state = data.state!;
     const city = data.city!;
 
@@ -163,7 +181,8 @@ export class Profile implements OnInit {
 
   async savePassword(): Promise<void> {
     this.passwordForm.markAllAsTouched();
-    if (this.passwordForm.invalid || this.isSaving) return;
+    if (this.passwordForm.invalid || this.isSaving
+      || this.passwordForm.controls.newPassword.value !== this.passwordForm.controls.confirmPassword.value) return;
 
     this.isSaving = true;
     try {
@@ -180,16 +199,5 @@ export class Profile implements OnInit {
       this.isSaving = false;
       this.cdr.detectChanges();
     }
-  }
-
-  private passwordsMatch(control: AbstractControl): ValidationErrors | null {
-    return control.get('newPassword')?.value === control.get('confirmPassword')?.value
-      ? null : { passwordsMismatch: true };
-  }
-
-  private exactDigitsValidator(control: AbstractControl): ValidationErrors | null {
-    const digits = (control.value ?? '').replace(/\D/g, '');
-    if (!digits) return null;
-    return digits.length === 11 ? null : { digitLength: true };
   }
 }

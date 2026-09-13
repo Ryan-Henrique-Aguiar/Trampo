@@ -178,11 +178,6 @@ input.ng-invalid.ng-touched {
   border-color: red;
 }
 
-input.server-error,
-input.server-error:focus {
-  border-color: red;
-}
-
 .error-msg {
   display: block;
   margin-top: 4px;

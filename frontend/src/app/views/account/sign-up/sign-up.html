@@ -20,24 +20,22 @@
       @if(registerForm.get('name')?.touched && registerForm.get('name')?.hasError('required')){
       <small class="error-msg">Informe seu nome.</small>
       }
+      @else if(registerForm.get('name')?.touched && registerForm.get('name')?.hasError('maxlength')){
+      <small class="error-msg">O nome deve ter no máximo 100 caracteres.</small>
+      }
 
       <div class="input-icon">
         <i class="fa-solid fa-envelope"></i>
         <input
           type="email"
           placeholder="Email"
-          formControlName="email"
-          [class.server-error]="!!fieldErrors.email">
+          formControlName="email">
       </div>
       @if(registerForm.get('email')?.touched && registerForm.get('email')?.hasError('required')){
       <small class="error-msg">Informe seu email.</small>
       }
       @else if(registerForm.get('email')?.touched && registerForm.get('email')?.hasError('email')){
       <small class="error-msg">Email inválido.</small>
-      }
-
-      @else if(fieldErrors.email){
-      <small class="error-msg">{{ fieldErrors.email }}</small>
       }
 
       <div class="row">
@@ -49,17 +47,13 @@
               placeholder="Telefone"
               formControlName="phone"
               inputmode="numeric"
-              maxlength="15"
-              [class.server-error]="!!fieldErrors.phone">
+              maxlength="15">
           </div>
           @if(registerForm.get('phone')?.touched && registerForm.get('phone')?.hasError('required')){
           <small class="error-msg">Informe seu telefone.</small>
           }
-          @else if(registerForm.get('phone')?.touched && registerForm.get('phone')?.hasError('digitLength')){
+          @else if(registerForm.get('phone')?.touched && registerForm.get('phone')?.hasError('minlength')){
           <small class="error-msg">O telefone deve conter 11 dígitos.</small>
-          }
-          @else if(fieldErrors.phone){
-          <small class="error-msg">{{ fieldErrors.phone }}</small>
           }
         </div>
 
@@ -71,17 +65,13 @@
               placeholder="CPF"
               formControlName="cpf"
               inputmode="numeric"
-              maxlength="14"
-              [class.server-error]="!!fieldErrors.cpf">
+              maxlength="14">
           </div>
           @if(registerForm.get('cpf')?.touched && registerForm.get('cpf')?.hasError('required')){
           <small class="error-msg">Informe seu CPF.</small>
           }
-          @else if(registerForm.get('cpf')?.touched && registerForm.get('cpf')?.hasError('digitLength')){
+          @else if(registerForm.get('cpf')?.touched && registerForm.get('cpf')?.hasError('minlength')){
           <small class="error-msg">O CPF deve conter 11 dígitos.</small>
-          }
-          @else if(fieldErrors.cpf){
-          <small class="error-msg">{{ fieldErrors.cpf }}</small>
           }
         </div>
       </div>
@@ -124,7 +114,8 @@
           @if(registerForm.get('repeatPassword')?.touched && registerForm.get('repeatPassword')?.hasError('required')){
           <small class="error-msg">Confirme sua senha.</small>
           }
-          @else if(registerForm.get('repeatPassword')?.touched && registerForm.hasError('passwordsMismatch')){
+          @else if(registerForm.get('repeatPassword')?.touched &&
+            registerForm.value.password !== registerForm.value.repeatPassword){
           <small class="error-msg">As senhas não coincidem.</small>
           }
         </div>
