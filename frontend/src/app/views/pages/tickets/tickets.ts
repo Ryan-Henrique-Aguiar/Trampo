@@ -23,6 +23,7 @@ export class Tickets implements OnInit {
   availableTickets: Ticket[] = [];
   urgentTickets: UrgentTicket[] = [];
   selectedStatuses: TicketStatus[] = [];
+  selectedUrgentStatuses: TicketStatus[] = [];
 
   currentPage = 0;
   readonly pageSize = 5;
@@ -78,7 +79,7 @@ export class Tickets implements OnInit {
     this.loadingMyUrgentTickets = true;
     this.myUrgentTicketsError = null;
     try {
-      const response = await this.urgentTicketService.getMyUrgentTickets(this.urgentCurrentPage, this.urgentPageSize);
+      const response = await this.urgentTicketService.getMyUrgentTickets(this.selectedUrgentStatuses, this.urgentCurrentPage, this.urgentPageSize);
       this.urgentTickets = response.content;
       this.urgentHasNextPage = response.hasNext;
     } catch (err) {
@@ -95,6 +96,14 @@ export class Tickets implements OnInit {
   changeUrgentPage(page: number): void {
     if (page < 0 || page === this.urgentCurrentPage || (page > this.urgentCurrentPage && !this.urgentHasNextPage)) return;
     this.urgentCurrentPage = page;
+    this.loadMyUrgentTickets();
+  }
+
+  toggleUrgentStatus(status: TicketStatus): void {
+    this.selectedUrgentStatuses = this.selectedUrgentStatuses.includes(status)
+      ? this.selectedUrgentStatuses.filter(item => item !== status)
+      : [...this.selectedUrgentStatuses, status];
+    this.urgentCurrentPage = 0;
     this.loadMyUrgentTickets();
   }
 

@@ -22,13 +22,18 @@ public class UrgentTicketPostgresDaoImpl implements UrgentTicketDao {
     }
 
     @Override
-    public List<UrgentTicket> findByUserId(int userId, int page, int size) {
+    public List<UrgentTicket> findByUserId(int userId, List<StatusTicket> statuses, int page, int size) {
         String sql = """
                 SELECT t.*, a.street, a.number, a.neighborhood,
                        a.city, a.state, a.zip_code, a.complement
                 FROM urgent_ticket t
                 INNER JOIN address a ON a.id = t.address_id
                 WHERE t.user_id = ?
+                """;
+        if (statuses != null && !statuses.isEmpty()) {
+            sql += " AND t.status IN (" + "?,".repeat(statuses.size()).replaceAll(",$", "") + ")";
+        }
+        sql += """
                 ORDER BY t.created_at DESC, t.id DESC
                 LIMIT ? OFFSET ?
                 """;
@@ -37,8 +42,12 @@ public class UrgentTicketPostgresDaoImpl implements UrgentTicketDao {
         try (Connection connection = dataSource.getConnection();
              PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, userId);
-            stmt.setInt(2, size + 1);
-            stmt.setInt(3, page * size);
+            int parameter = 2;
+            if (statuses != null && !statuses.isEmpty()) {
+                for (StatusTicket status : statuses) stmt.setString(parameter++, status.name());
+            }
+            stmt.setInt(parameter++, size + 1);
+            stmt.setInt(parameter, page * size);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     tickets.add(mapResultSetToUrgentTicket(rs));

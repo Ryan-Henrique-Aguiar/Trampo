@@ -152,6 +152,23 @@
           }
         </div>
 
+        <div class="ticket-filters" aria-label="Filtros de serviços urgentes">
+          <div class="filter-group filter-group--status">
+            <span class="filter-label">Status</span>
+            <div class="status-filters">
+              @for (status of statusOptions; track status.value) {
+                @if (status.value !== 'OPEN') {
+                  <button type="button" [class.active]="selectedUrgentStatuses.includes(status.value)"
+                    [attr.aria-pressed]="selectedUrgentStatuses.includes(status.value)"
+                    (click)="toggleUrgentStatus(status.value)">
+                    {{ status.label }}
+                  </button>
+                }
+              }
+            </div>
+          </div>
+        </div>
+
         @if (loadingMyUrgentTickets) {
           <div class="loading-state" role="status">
             <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>

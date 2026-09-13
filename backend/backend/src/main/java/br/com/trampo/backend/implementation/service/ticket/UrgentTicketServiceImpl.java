@@ -1,6 +1,7 @@
 package br.com.trampo.backend.implementation.service.ticket;
 
 import br.com.trampo.backend.domain.Address;
+import br.com.trampo.backend.domain.enums.StatusTicket;
 import br.com.trampo.backend.domain.Users;
 import br.com.trampo.backend.domain.ticket.UrgentTicket;
 import br.com.trampo.backend.dto.ticket.CreateUrgentTicketDto;
@@ -122,7 +123,7 @@ public class UrgentTicketServiceImpl implements UrgentTicketService {
     }
 
     @Override
-    public PageDto<UrgentTicketDto> getMyUrgentTickets(Users user, int page, int size) {
+    public PageDto<UrgentTicketDto> getMyUrgentTickets(Users user, List<StatusTicket> statuses, int page, int size) {
         if (user == null || user.getId() == null) {
             throw new UnauthorizedUserException("Usuário não autenticado ou inválido.");
         }
@@ -130,7 +131,7 @@ public class UrgentTicketServiceImpl implements UrgentTicketService {
             if (page < 0 || size < 1 || size > 50) {
                 throw new InvalidRequestException("Paginação inválida.");
             }
-            List<UrgentTicket> tickets = urgentTicketDao.findByUserId(user.getId(), page, size);
+            List<UrgentTicket> tickets = urgentTicketDao.findByUserId(user.getId(), statuses, page, size);
             boolean hasNext = tickets.size() > size;
             if (hasNext) tickets = tickets.subList(0, size);
             return new PageDto<>(tickets.stream().map(ticketMapper::toUrgentTicket).toList(), hasNext);
