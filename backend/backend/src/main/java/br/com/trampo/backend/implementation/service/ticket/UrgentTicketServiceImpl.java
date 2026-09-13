@@ -5,6 +5,7 @@ import br.com.trampo.backend.domain.Users;
 import br.com.trampo.backend.domain.ticket.UrgentTicket;
 import br.com.trampo.backend.dto.ticket.CreateUrgentTicketDto;
 import br.com.trampo.backend.dto.ticket.UrgentTicketDto;
+import br.com.trampo.backend.dto.common.PageDto;
 import br.com.trampo.backend.infra.exception.DatabaseException;
 import br.com.trampo.backend.infra.exception.InvalidRequestException;
 import br.com.trampo.backend.mapper.ticket.TicketMapper;
@@ -121,13 +122,18 @@ public class UrgentTicketServiceImpl implements UrgentTicketService {
     }
 
     @Override
-    public List<UrgentTicketDto> getMyUrgentTickets(Users user) {
+    public PageDto<UrgentTicketDto> getMyUrgentTickets(Users user, int page, int size) {
         if (user == null || user.getId() == null) {
             throw new UnauthorizedUserException("Usuário não autenticado ou inválido.");
         }
         try {
-            return urgentTicketDao.findByUserId(user.getId())
-                    .stream().map(ticketMapper::toUrgentTicket).toList();
+            if (page < 0 || size < 1 || size > 50) {
+                throw new InvalidRequestException("Paginação inválida.");
+            }
+            List<UrgentTicket> tickets = urgentTicketDao.findByUserId(user.getId(), page, size);
+            boolean hasNext = tickets.size() > size;
+            if (hasNext) tickets = tickets.subList(0, size);
+            return new PageDto<>(tickets.stream().map(ticketMapper::toUrgentTicket).toList(), hasNext);
         } catch (SQLException e) {
             throw new DatabaseException("Erro ao consultar tickets urgentes do usuário.", e);
         }

@@ -8,5 +8,5 @@ import java.util.List;
 public interface UrgentTicketDao {
 
     UrgentTicket save(UrgentTicket urgentTicket) throws SQLException;
-    List<UrgentTicket> findByUserId(int userId) throws SQLException;
+    List<UrgentTicket> findByUserId(int userId, int page, int size) throws SQLException;
 }

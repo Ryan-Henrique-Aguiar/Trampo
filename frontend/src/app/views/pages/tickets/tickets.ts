@@ -30,10 +30,14 @@ export class Tickets implements OnInit {
   availableCurrentPage = 0;
   readonly availablePageSize = 10;
   availableHasNextPage = false;
+  urgentCurrentPage = 0;
+  readonly urgentPageSize = 5;
+  urgentHasNextPage = false;
 
   loadingMyTickets = false;
   loadingAvailableTickets = false;
   loadingMyUrgentTickets = false;
+
   myTicketsError: string | null = null;
   availableTicketsError: string | null = null;
   myUrgentTicketsError: string | null = null;
@@ -74,15 +78,24 @@ export class Tickets implements OnInit {
     this.loadingMyUrgentTickets = true;
     this.myUrgentTicketsError = null;
     try {
-      this.urgentTickets = await this.urgentTicketService.getMyUrgentTickets();
+      const response = await this.urgentTicketService.getMyUrgentTickets(this.urgentCurrentPage, this.urgentPageSize);
+      this.urgentTickets = response.content;
+      this.urgentHasNextPage = response.hasNext;
     } catch (err) {
       console.error('Erro ao carregar tickets urgentes do usuário:', err);
       this.urgentTickets = [];
+      this.urgentHasNextPage = false;
       this.myUrgentTicketsError = 'Não foi possível carregar seus serviços urgentes.';
     } finally {
       this.loadingMyUrgentTickets = false;
       this.cdr.detectChanges();
     }
+  }
+
+  changeUrgentPage(page: number): void {
+    if (page < 0 || page === this.urgentCurrentPage || (page > this.urgentCurrentPage && !this.urgentHasNextPage)) return;
+    this.urgentCurrentPage = page;
+    this.loadMyUrgentTickets();
   }
 
   private async loadMyTickets(): Promise<void> {
@@ -197,7 +210,7 @@ export class Tickets implements OnInit {
 
   closeModal(): void {
     if (this.activeModal === 'create' && this.isModalUrgent) {
-      this.loadMyUrgentTickets();
+      this.urgentCurrentPage = 0;
     }
     this.activeModal = null;
     this.isModalUrgent = false;

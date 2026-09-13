@@ -170,6 +170,17 @@
                 (viewDetails)="openUrgentTicketDetail($event)" />
             }
           </div>
+          @if (urgentCurrentPage > 0 || urgentHasNextPage) {
+            <div class="pagination" aria-label="Paginação de serviços urgentes">
+              <button type="button" (click)="changeUrgentPage(urgentCurrentPage - 1)" [disabled]="urgentCurrentPage === 0">
+                Anterior
+              </button>
+              <span>Página {{ urgentCurrentPage + 1 }}</span>
+              <button type="button" (click)="changeUrgentPage(urgentCurrentPage + 1)" [disabled]="!urgentHasNextPage">
+                Próxima
+              </button>
+            </div>
+          }
         } @else {
           <div class="empty-state">
             <i class="fa-solid fa-bolt" aria-hidden="true"></i>

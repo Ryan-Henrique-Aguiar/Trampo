@@ -3,6 +3,7 @@ package br.com.trampo.backend.controller.ticket;
 import br.com.trampo.backend.domain.Users;
 import br.com.trampo.backend.dto.ticket.CreateUrgentTicketDto;
 import br.com.trampo.backend.dto.ticket.UrgentTicketDto;
+import br.com.trampo.backend.dto.common.PageDto;
 import br.com.trampo.backend.port.service.ticket.UrgentTicketService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,9 +14,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.sql.SQLException;
-import java.util.List;
 
 @RestController
 @RequestMapping("api/v1/urgenttickets")
@@ -35,10 +36,12 @@ public class UrgentTicketController {
     }
 
     @GetMapping
-    public ResponseEntity<List<UrgentTicketDto>> findMyUrgentTickets(
-            @AuthenticationPrincipal Users user
+    public ResponseEntity<PageDto<UrgentTicketDto>> findMyUrgentTickets(
+            @AuthenticationPrincipal Users user,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size
     ) {
-        return ResponseEntity.ok(urgentTicketService.getMyUrgentTickets(user));
+        return ResponseEntity.ok(urgentTicketService.getMyUrgentTickets(user, page, size));
     }
 
 }

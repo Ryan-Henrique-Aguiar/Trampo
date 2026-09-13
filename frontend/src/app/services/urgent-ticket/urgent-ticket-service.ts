@@ -11,8 +11,10 @@ export class UrgentTicketService {
   private http = inject(HttpClient);
   private baseUrl = `${environment.apiUrl}/urgenttickets`;
 
-  async getMyUrgentTickets(): Promise<UrgentTicket[]> {
-    return firstValueFrom(this.http.get<UrgentTicket[]>(this.baseUrl));
+  async getMyUrgentTickets(page = 0, size = 5): Promise<{ content: UrgentTicket[]; hasNext: boolean }> {
+    return firstValueFrom(this.http.get<{ content: UrgentTicket[]; hasNext: boolean }>(this.baseUrl, {
+      params: { page, size }
+    }));
   }
 
   async create(dto: CreateUrgentTicketRequest): Promise<UrgentTicket> {

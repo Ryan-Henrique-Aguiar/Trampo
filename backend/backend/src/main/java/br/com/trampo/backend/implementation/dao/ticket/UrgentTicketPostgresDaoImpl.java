@@ -22,7 +22,7 @@ public class UrgentTicketPostgresDaoImpl implements UrgentTicketDao {
     }
 
     @Override
-    public List<UrgentTicket> findByUserId(int userId) {
+    public List<UrgentTicket> findByUserId(int userId, int page, int size) {
         String sql = """
                 SELECT t.*, a.street, a.number, a.neighborhood,
                        a.city, a.state, a.zip_code, a.complement
@@ -30,12 +30,15 @@ public class UrgentTicketPostgresDaoImpl implements UrgentTicketDao {
                 INNER JOIN address a ON a.id = t.address_id
                 WHERE t.user_id = ?
                 ORDER BY t.created_at DESC, t.id DESC
+                LIMIT ? OFFSET ?
                 """;
         List<UrgentTicket> tickets = new ArrayList<>();
 
         try (Connection connection = dataSource.getConnection();
              PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, userId);
+            stmt.setInt(2, size + 1);
+            stmt.setInt(3, page * size);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     tickets.add(mapResultSetToUrgentTicket(rs));
