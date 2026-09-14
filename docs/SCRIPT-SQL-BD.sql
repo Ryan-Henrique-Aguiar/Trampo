@@ -26,6 +26,9 @@ CREATE TABLE IF NOT EXISTS users (
     -- Específico de cliente (User.createdServicesCount)
     created_services_count INT DEFAULT 0,
 
+    profile_image_url VARCHAR(500),
+
+
     -- Específico de profissional (User.serviceStartDate / completedServicesCount)
     service_start_date DATE,
     completed_services_count INT DEFAULT 0,
@@ -246,4 +249,21 @@ CREATE TABLE IF NOT EXISTS review (
     FOREIGN KEY (professional_id) REFERENCES users(id),
     FOREIGN KEY (user_id) REFERENCES users(id),
     UNIQUE(professional_id, user_id)
+);
+
+
+CREATE TABLE IF NOT EXISTS ticket_image (
+    id SERIAL PRIMARY KEY,
+
+    ticket_id INT NOT NULL,
+
+    file_name VARCHAR(255) NOT NULL,
+    file_path VARCHAR(500) NOT NULL,
+    content_type VARCHAR(100) NOT NULL,
+    file_size BIGINT NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (ticket_id)
+        REFERENCES ticket(id)
+        ON DELETE CASCADE
 );
