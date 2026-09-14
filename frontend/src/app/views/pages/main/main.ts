@@ -4,7 +4,7 @@ import { Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/rou
 import { NotificationResponse } from '../../../dto/notification/notification-response';
 import { AuthService } from '../../../services/auth/auth';
 import { NotificationService } from '../../../services/notification/notification-service';
-import { ViewModeService } from '../../../services/view-mode/view-mode-service';
+import { ViewMode, ViewModeService } from '../../../services/view-mode/view-mode-service';
 
 @Component({
   selector: 'app-main',
@@ -47,8 +47,8 @@ export class Main implements OnInit {
     this.loadNotifications();
   }
 
-  toggleMode(): void {
-    this.viewModeService.toggle();
+  setMode(mode: ViewMode): void {
+    this.viewModeService.setMode(mode);
   }
 
   async toggleNotifications(): Promise<void> {
@@ -118,7 +118,7 @@ export class Main implements OnInit {
 
   async logout(): Promise<void> {
     this.authService.logout();
-    this.viewModeService.setMode('client');
+    this.viewModeService.clear();
     await this.router.navigate(['/login']);
   }
 }
