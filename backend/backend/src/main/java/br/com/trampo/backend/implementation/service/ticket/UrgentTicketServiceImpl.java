@@ -6,6 +6,7 @@ import br.com.trampo.backend.domain.Users;
 import br.com.trampo.backend.domain.ticket.UrgentTicket;
 import br.com.trampo.backend.dto.ticket.CreateUrgentTicketDto;
 import br.com.trampo.backend.dto.ticket.UrgentTicketDto;
+import br.com.trampo.backend.dto.ticket.UpdateTicketStatusDto;
 import br.com.trampo.backend.dto.common.PageDto;
 import br.com.trampo.backend.infra.exception.DatabaseException;
 import br.com.trampo.backend.infra.exception.InvalidRequestException;
@@ -22,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Locale;
 import br.com.trampo.backend.infra.exception.UnauthorizedUserException;
 
 @Service
@@ -140,6 +142,42 @@ public class UrgentTicketServiceImpl implements UrgentTicketService {
         } catch (SQLException e) {
             throw new DatabaseException("Erro ao consultar tickets urgentes do usuário.", e);
         }
+    }
+
+    @Transactional
+    @Override
+    public UrgentTicketDto updateStatus(int ticketId, UpdateTicketStatusDto data, Users user) {
+        if (user == null || user.getId() == null) {
+            throw new UnauthorizedUserException("Usuário não autenticado.");
+        }
+        if (ticketId <= 0 || data == null || data.status() == null) {
+            throw new InvalidRequestException("Ticket e status são obrigatórios.");
+        }
+
+        UrgentTicket ticket = urgentTicketDao.findById(ticketId)
+                .orElseThrow(() -> new InvalidRequestException("Ticket urgente não encontrado."));
+        if (!ticket.getUser().getId().equals(user.getId())) {
+            throw new UnauthorizedUserException("Apenas o criador do ticket pode alterar o status.");
+        }
+        if (ticket.getStatus() != StatusTicket.IN_PROGRESS) {
+            throw new InvalidRequestException("Apenas tickets urgentes em andamento podem mudar de status.");
+        }
+
+        StatusTicket newStatus;
+        try {
+            newStatus = StatusTicket.valueOf(data.status().trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            throw new InvalidRequestException("Status do ticket urgente inválido.");
+        }
+        if (newStatus != StatusTicket.COMPLETED && newStatus != StatusTicket.CANCELLED) {
+            throw new InvalidRequestException("O ticket urgente só pode ser concluído ou cancelado.");
+        }
+
+        if (!urgentTicketDao.updateStatus(ticketId, newStatus)) {
+            throw new InvalidRequestException("O status deste ticket urgente já foi alterado.");
+        }
+        return ticketMapper.toUrgentTicket(urgentTicketDao.findById(ticketId)
+                .orElseThrow(() -> new InvalidRequestException("Ticket urgente não encontrado.")));
     }
 
 }

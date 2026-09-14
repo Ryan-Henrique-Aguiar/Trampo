@@ -31,4 +31,10 @@ export class UrgentTicketService {
       this.http.post<UrgentTicket>(this.baseUrl, payload)
     );
   }
+
+  async updateStatus(id: number, status: TicketStatus): Promise<UrgentTicket> {
+    return firstValueFrom(
+      this.http.patch<UrgentTicket>(`${this.baseUrl}/${id}/status`, { status })
+    );
+  }
 }

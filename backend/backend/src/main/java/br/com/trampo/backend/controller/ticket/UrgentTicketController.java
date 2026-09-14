@@ -4,6 +4,7 @@ import br.com.trampo.backend.domain.Users;
 import br.com.trampo.backend.domain.enums.StatusTicket;
 import br.com.trampo.backend.dto.ticket.CreateUrgentTicketDto;
 import br.com.trampo.backend.dto.ticket.UrgentTicketDto;
+import br.com.trampo.backend.dto.ticket.UpdateTicketStatusDto;
 import br.com.trampo.backend.dto.common.PageDto;
 import br.com.trampo.backend.port.service.ticket.UrgentTicketService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PatchMapping;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -45,6 +48,15 @@ public class UrgentTicketController {
             @RequestParam(defaultValue = "5") int size
     ) {
         return ResponseEntity.ok(urgentTicketService.getMyUrgentTickets(user, status, page, size));
+    }
+
+    @PatchMapping("/{ticketId}/status")
+    public ResponseEntity<UrgentTicketDto> updateStatus(
+            @PathVariable int ticketId,
+            @RequestBody UpdateTicketStatusDto data,
+            @AuthenticationPrincipal Users user
+    ) {
+        return ResponseEntity.ok(urgentTicketService.updateStatus(ticketId, data, user));
     }
 
 }
