@@ -1,13 +1,18 @@
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&display=swap');
 @import '@ng-select/ng-select/themes/default.theme.css';
+
+@font-face {
+  font-family: 'qurova';
+  src: url('../src/assets/fonts/QurovademoMedium-pg4LZ.otf') format('truetype');
+}
 :root {
 
   /* =========================
      CORES
   ========================= */
 
-  --primary: #185FA5;
-  --primary-dark: #0C447C;
+  --primary: #006fdf;
+  --primary-dark: #0051a1;
 
   --white: #FFFFFF;
 
@@ -29,9 +34,9 @@
   --status-progress-background: #FFF4E5;
   --status-progress-border: #F2BF75;
 
-  --status-completed-text: #237A48;
+  --status-completed-text: #00b65b;
   --status-completed-background: #EAF7EF;
-  --status-completed-border: #91D4AC;
+  --status-completed-border: #88e6ae;
 
   --status-cancelled-text: #B83A43;
   --status-cancelled-background: #FDECEE;
@@ -106,6 +111,62 @@ body {
   font-weight: var(--font-weight-regular);
 
   font-family: 'Roboto', sans-serif;
+}
+
+.logo-text {
+  font-family: 'qurova', sans-serif;
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1;
+}
+.logo-text-mobile {
+  font-family: 'qurova', sans-serif;
+  font-size: 25px;
+  font-weight: 450;
+  line-height: 1;
+  color: white;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logo-image {
+  width: 40px;
+  height: auto;
+}
+
+.navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    min-height: 70px;
+    padding: 0 24px;
+}
+
+.navbar-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.logo-navbar-mobile {
+    width: 25px;
+    height: auto;
+}
+
+
+.navbar-title {
+    font-size: 16px;
 }
 
 /* =========================
