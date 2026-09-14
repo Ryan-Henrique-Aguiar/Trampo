@@ -1,0 +1,9 @@
+services:
+
+  backend:
+    image: trampo-backend
+    volumes:
+      - uploads:/app/uploads
+
+volumes:
+  uploads:
