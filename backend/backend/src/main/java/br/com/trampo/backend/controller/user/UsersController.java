@@ -8,6 +8,7 @@ import br.com.trampo.backend.dto.user.UpdateProfileDto;
 import br.com.trampo.backend.dto.user.UpdateProfileResponseDto;
 import br.com.trampo.backend.dto.user.UpdateLocationDto;
 import br.com.trampo.backend.dto.user.UpdatePasswordDto;
+import br.com.trampo.backend.dto.user.UpdateCategoriesDto;
 import br.com.trampo.backend.infra.security.TokenService;
 import br.com.trampo.backend.mapper.user.UserMapper;
 import br.com.trampo.backend.port.service.users.UserService;
@@ -58,6 +59,19 @@ public class UsersController {
     ) {
         usersService.updatePassword(user, data);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/categories")
+    public ResponseEntity<List<Integer>> findCategories(@AuthenticationPrincipal Users user) {
+        return ResponseEntity.ok(usersService.findCategoryIds(user));
+    }
+
+    @PatchMapping("/categories")
+    public ResponseEntity<List<Integer>> updateCategories(
+            @AuthenticationPrincipal Users user,
+            @RequestBody UpdateCategoriesDto data
+    ) {
+        return ResponseEntity.ok(usersService.updateCategories(user, data));
     }
 
     @GetMapping("/providers/urgent")

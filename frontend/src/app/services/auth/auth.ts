@@ -67,6 +67,16 @@ export class AuthService {
     await firstValueFrom(this.http.patch<void>(`${this.userApiUrl}/password`, dto));
   }
 
+  async getUserCategories(): Promise<number[]> {
+    return await firstValueFrom(this.http.get<number[]>(`${this.userApiUrl}/categories`));
+  }
+
+  async updateUserCategories(categoryIds: number[]): Promise<number[]> {
+    return await firstValueFrom(
+      this.http.patch<number[]>(`${this.userApiUrl}/categories`, { categoryIds })
+    );
+  }
+
   async refreshUser(): Promise<void> {
     this.currentUser = await firstValueFrom(
       this.http.get<UserDto>(`${this.apiUrl}/me`)

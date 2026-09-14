@@ -18,6 +18,15 @@
     <div class="profile-field"><span>CPF</span><strong>{{ user.cpf }}</strong></div>
     <div class="profile-field"><span>Tipo de conta</span><strong>{{ user.provider ? 'Prestador' : 'Cliente' }}</strong>
     </div>
+    @if (user.provider) {
+    <div class="profile-field profile-field-full">
+      <span>Categorias de atuação</span>
+      <strong>{{ selectedCategories.length ? selectedCategories.slice(0, 3).join(', ') : 'Nenhuma categoria cadastrada' }}</strong>
+      @if (selectedCategories.length > 3) {
+      <span>+{{ selectedCategories.length - 3 }} {{ selectedCategories.length === 4 ? 'outra categoria' : 'outras categorias' }}. Veja todas em Editar categorias.</span>
+      }
+    </div>
+    }
     <h2 class="profile-section-title">Localização</h2>
     <div class="profile-field"><span>Cidade e estado</span><strong>{{ user.city }} - {{ user.state }}</strong></div>
     <h2 class="profile-section-title">Informações da conta</h2>
@@ -46,7 +55,43 @@
     <button type="button" class="profile-button profile-button--secondary" (click)="openPasswordModal()">
       <i class="fa-solid fa-lock" aria-hidden="true"></i> Alterar senha
     </button>
+    <button type="button" class="profile-button profile-button--secondary" (click)="openCategoriesModal()" [disabled]="!categoriesLoaded || !categories.length">
+      <i class="fa-solid fa-briefcase" aria-hidden="true"></i>
+      {{ user.provider ? 'Editar categorias' : 'Quero ser prestador' }}
+    </button>
   </div>
+
+  @if (activeModal === 'categories') {
+  <div class="profile-modal-backdrop" (click)="closeModal()">
+    <form class="profile-modal profile-modal--categories" [formGroup]="categoriesForm" (ngSubmit)="saveCategories()"
+      (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="categories-modal-title">
+      <div class="profile-modal-header">
+        <h2 id="categories-modal-title">{{ user.provider ? 'Editar categorias' : 'Tornar-se prestador' }}</h2>
+        <button type="button" class="profile-close" aria-label="Fechar" (click)="closeModal()">&times;</button>
+      </div>
+      @if (!user.provider) {
+      <p class="profile-modal-description">Escolha as áreas em que você deseja trabalhar. Ao salvar, sua conta também poderá oferecer serviços.</p>
+      } @else {
+      <p class="profile-modal-description">Selecione as categorias em que você deseja oferecer serviços.</p>
+      }
+      <div class="profile-form-grid">
+        <label class="profile-field-full">Categorias de atuação
+          <ng-select [items]="categories" bindLabel="name" bindValue="id" [multiple]="true"
+            [searchable]="false" [closeOnSelect]="false" dropdownPosition="bottom"
+            placeholder="Selecione as categorias" formControlName="categoryIds">
+          </ng-select>
+          @if (categoriesForm.controls.categoryIds.touched && categoriesForm.controls.categoryIds.invalid) {
+          <small class="profile-field-error">Selecione pelo menos uma categoria.</small>
+          }
+        </label>
+      </div>
+      <div class="profile-form-actions">
+        <button type="button" class="profile-button profile-button--secondary" (click)="closeModal()">Cancelar</button>
+        <button type="submit" class="profile-button profile-button--primary" [disabled]="isSaving">{{ isSaving ? 'Salvando...' : 'Salvar categorias' }}</button>
+      </div>
+    </form>
+  </div>
+  }
 
   @if (activeModal === 'data') {
   <div class="profile-modal-backdrop" (click)="closeModal()">

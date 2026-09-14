@@ -7,7 +7,7 @@
     display: flex;
     align-items: center;
     gap: 16px;
-    margin-bottom: 24px;
+    margin-bottom: 18px;
 }
 
 .profile-header h1 {
@@ -34,8 +34,8 @@
 .profile-card {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px;
-    padding: 24px;
+    gap: 10px 16px;
+    padding: 20px;
     background: var(--surface);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
@@ -46,14 +46,14 @@
     grid-column: 1 / -1;
     font-size: var(--font-size-md);
     color: var(--primary);
-    margin: 4px 0 0;
+    margin: 0;
 }
 
 .profile-field {
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    padding: 10px 0;
+    gap: 4px;
+    padding: 5px 0;
     border-bottom: 1px solid var(--border-color);
     min-width: 0;
 }
@@ -67,11 +67,15 @@
     overflow-wrap: anywhere;
 }
 
+.profile-field-full {
+    grid-column: 1 / -1;
+}
+
 .profile-actions {
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
-    margin-top: 20px;
+    margin-top: 16px;
 }
 
 .profile-button {
@@ -138,6 +142,20 @@
 
 .profile-modal--password {
     width: min(480px, 100%);
+}
+
+.profile-modal--categories {
+    width: min(480px, 100%);
+}
+
+.profile-modal--categories ng-select.ng-select-opened {
+    margin-bottom: 120px;
+}
+
+.profile-modal-description {
+    margin-bottom: 20px;
+    color: var(--text-secondary);
+    line-height: 1.5;
 }
 
 .profile-modal-header {

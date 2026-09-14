@@ -6,15 +6,21 @@ import { LocationService, State, City } from '../../../services/location/locatio
 import { HttpErrorResponse } from '@angular/common/http';
 import { ToastrService } from '@iqx-limited/ngx-toastr';
 import { formatCpf, formatPhone, onlyDigits } from '../../../utils/input-mask';
+import { CategoryService } from '../../../services/category/category-service';
+import { Category } from '../../../models/category.model';
+import { NgSelectModule } from '@ng-select/ng-select';
 
 @Component({
   selector: 'app-profile',
-  imports: [DecimalPipe, ReactiveFormsModule],
+  imports: [DecimalPipe, ReactiveFormsModule, NgSelectModule],
   templateUrl: './profile.html',
   styleUrl: './profile.css'
 })
 export class Profile implements OnInit {
-  activeModal: 'data' | 'password' | null = null;
+  activeModal: 'data' | 'password' | 'categories' | null = null;
+  categories: Category[] = [];
+  categoryIds: number[] = [];
+  categoriesLoaded = false;
   states: State[] = [];
   cities: City[] = [];
   profileError = '';
@@ -36,9 +42,14 @@ export class Profile implements OnInit {
     confirmPassword: new FormControl('', Validators.required)
   });
 
+  categoriesForm = new FormGroup({
+    categoryIds: new FormControl<number[]>([], Validators.required)
+  });
+
   constructor(
     public authService: AuthService,
     private locationService: LocationService,
+    private categoryService: CategoryService,
     private toastrService: ToastrService,
     private cdr: ChangeDetectorRef
   ) {
@@ -49,8 +60,22 @@ export class Profile implements OnInit {
     return this.authService.currentUser;
   }
 
+  get selectedCategories(): string[] {
+    return this.categories
+      .filter(category => this.categoryIds.includes(category.id))
+      .map(category => category.name);
+  }
+
   async ngOnInit(): Promise<void> {
     await this.refreshProfile();
+    try {
+      this.categories = await this.categoryService.getAll();
+      this.categoryIds = await this.authService.getUserCategories();
+      this.categoriesLoaded = true;
+    } catch {
+      this.categoriesLoaded = false;
+      this.profileError = 'Não foi possível carregar as categorias do perfil.';
+    }
     try {
       this.states = await this.locationService.getStates();
     } catch {
@@ -93,6 +118,11 @@ export class Profile implements OnInit {
   openPasswordModal(): void {
     this.passwordForm.reset();
     this.activeModal = 'password';
+  }
+
+  openCategoriesModal(): void {
+    this.categoriesForm.reset({ categoryIds: [...this.categoryIds] });
+    this.activeModal = 'categories';
   }
 
   closeModal(): void {
@@ -210,6 +240,25 @@ export class Profile implements OnInit {
       this.toastrService.success('Senha atualizada com sucesso.');
     } catch (err) {
       this.toastrService.error((err as HttpErrorResponse).error?.message ?? 'Não foi possível atualizar sua senha.');
+    } finally {
+      this.isSaving = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  async saveCategories(): Promise<void> {
+    this.categoriesForm.markAllAsTouched();
+    const categoryIds = this.categoriesForm.controls.categoryIds.value;
+    if (!categoryIds?.length || this.isSaving) return;
+
+    this.isSaving = true;
+    try {
+      this.categoryIds = await this.authService.updateUserCategories(categoryIds);
+      this.closeModal();
+      await this.refreshProfile();
+      this.toastrService.success('Categorias atualizadas com sucesso.');
+    } catch (err) {
+      this.toastrService.error((err as HttpErrorResponse).error?.message ?? 'Não foi possível salvar as categorias.');
     } finally {
       this.isSaving = false;
       this.cdr.detectChanges();

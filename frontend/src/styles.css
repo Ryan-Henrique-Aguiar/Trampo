@@ -245,3 +245,7 @@ ng-select.ng-invalid.ng-touched .ng-select-container {
 ng-select .ng-value {
   font-size: var(--font-size-sm);
 }
+
+.profile-modal--categories .ng-dropdown-panel .ng-dropdown-panel-items {
+  max-height: 120px;
+}

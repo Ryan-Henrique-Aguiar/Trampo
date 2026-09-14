@@ -7,6 +7,7 @@ import br.com.trampo.backend.dto.user.UrgentProviderDto;
 import br.com.trampo.backend.dto.user.UpdateProfileDto;
 import br.com.trampo.backend.dto.user.UpdateLocationDto;
 import br.com.trampo.backend.dto.user.UpdatePasswordDto;
+import br.com.trampo.backend.dto.user.UpdateCategoriesDto;
 import br.com.trampo.backend.infra.exception.EmailAlreadyExistsException;
 import br.com.trampo.backend.infra.exception.CpfAlreadyExistsException;
 import br.com.trampo.backend.infra.exception.PhoneAlreadyExistsException;
@@ -14,9 +15,13 @@ import br.com.trampo.backend.infra.exception.InvalidCpfException;
 import br.com.trampo.backend.infra.exception.InvalidPhoneException;
 import br.com.trampo.backend.infra.exception.UnauthorizedUserException;
 import br.com.trampo.backend.infra.exception.InvalidRequestException;
+import br.com.trampo.backend.infra.exception.InvalidCategoryException;
+import br.com.trampo.backend.infra.exception.CategoryNotFoundException;
 import br.com.trampo.backend.infra.validation.CpfValidator;
 import br.com.trampo.backend.infra.validation.PhoneValidator;
 import br.com.trampo.backend.port.dao.users.UsersDao;
+import br.com.trampo.backend.port.dao.UsersCategoryDao;
+import br.com.trampo.backend.port.dao.CategoryDao;
 import br.com.trampo.backend.port.service.users.UserService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -29,10 +34,15 @@ public class UserServiceImpl implements UserService {
 
     private final UsersDao usersDao;
     private final PasswordEncoder passwordEncoder;
+    private final UsersCategoryDao usersCategoryDao;
+    private final CategoryDao categoryDao;
 
-    public UserServiceImpl(UsersDao usersDao, PasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UsersDao usersDao, PasswordEncoder passwordEncoder,
+                           UsersCategoryDao usersCategoryDao, CategoryDao categoryDao) {
         this.usersDao = usersDao;
         this.passwordEncoder = passwordEncoder;
+        this.usersCategoryDao = usersCategoryDao;
+        this.categoryDao = categoryDao;
     }
 
     @Transactional
@@ -116,6 +126,38 @@ public class UserServiceImpl implements UserService {
         }
 
         usersDao.updatePassword(user.getId(), passwordEncoder.encode(data.newPassword()));
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<Integer> findCategoryIds(Users user) {
+        if (user == null || user.getId() == null) {
+            throw new UnauthorizedUserException("Usuário não autenticado.");
+        }
+        return usersCategoryDao.findCategoryIdsByUserId(user.getId());
+    }
+
+    @Transactional
+    @Override
+    public List<Integer> updateCategories(Users user, UpdateCategoriesDto data) {
+        if (user == null || user.getId() == null) {
+            throw new UnauthorizedUserException("Usuário não autenticado.");
+        }
+        if (data == null || data.categoryIds() == null || data.categoryIds().isEmpty()) {
+            throw new InvalidCategoryException("Selecione pelo menos uma categoria.");
+        }
+        if (data.categoryIds().contains(null)
+                || data.categoryIds().stream().distinct().count() != data.categoryIds().size()) {
+            throw new InvalidCategoryException("Lista de categorias inválida.");
+        }
+        for (Integer categoryId : data.categoryIds()) {
+            if (categoryDao.findById(categoryId).isEmpty()) {
+                throw new CategoryNotFoundException("Categoria não encontrada: " + categoryId);
+            }
+        }
+
+        usersCategoryDao.updateCategoriesAndActivateProvider(user.getId(), data.categoryIds());
+        return usersCategoryDao.findCategoryIdsByUserId(user.getId());
     }
 
     @Transactional(readOnly = true)

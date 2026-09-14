@@ -4,6 +4,7 @@ import br.com.trampo.backend.dto.user.UrgentProviderDto;
 import br.com.trampo.backend.dto.user.UpdateProfileDto;
 import br.com.trampo.backend.dto.user.UpdateLocationDto;
 import br.com.trampo.backend.dto.user.UpdatePasswordDto;
+import br.com.trampo.backend.dto.user.UpdateCategoriesDto;
 
 import java.util.List;
 
@@ -15,6 +16,10 @@ public interface UserService {
     Users updateLocation(Users user, UpdateLocationDto data);
 
     void updatePassword(Users user, UpdatePasswordDto data);
+
+    List<Integer> findCategoryIds(Users user);
+
+    List<Integer> updateCategories(Users user, UpdateCategoriesDto data);
 
     List<UrgentProviderDto> findProvidersAvailableForUrgency(
             Users user,
