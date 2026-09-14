@@ -3,6 +3,7 @@ import { UrgentTicket } from '../../../models/ticket.model';
 import { TicketStatus } from '../../../enums/ticket-status';
 import { UrgentTicketService } from '../../../services/urgent-ticket/urgent-ticket-service';
 import { ToastrService } from '@iqx-limited/ngx-toastr';
+import { AuthService } from '../../../services/auth/auth';
 
 @Component({
   selector: 'app-urgent-ticket-detail',
@@ -22,12 +23,14 @@ export class UrgentTicketDetail {
 
   constructor(
     private urgentTicketService: UrgentTicketService,
+    private authService: AuthService,
     private toastrService: ToastrService,
     private cdr: ChangeDetectorRef
   ) {}
 
   get canChangeStatus(): boolean {
-    return this.ticket.status === TicketStatus.IN_PROGRESS;
+    return this.ticket.userId === this.authService.currentUser?.id &&
+      (this.ticket.status === TicketStatus.OPEN || this.ticket.status === TicketStatus.IN_PROGRESS);
   }
 
   toggleStatusMenu(): void {
@@ -35,6 +38,7 @@ export class UrgentTicketDetail {
   }
 
   selectNewStatus(status: TicketStatus): void {
+    if (!this.canChangeStatus) return;
     this.isStatusMenuOpen = false;
     this.pendingStatus = status;
   }

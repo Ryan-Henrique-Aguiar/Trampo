@@ -31,6 +31,7 @@ export interface UrgentTicket {
     description: string;
     createdAt: string;
     status: TicketStatus
+    userId: number;
     categoryId: number;
     providerId: number;
     address: Address;

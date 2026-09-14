@@ -32,6 +32,12 @@ export class UrgentTicketService {
     );
   }
 
+  async getMyProvidedUrgentTickets(statuses: TicketStatus[] = [], page = 0, size = 10): Promise<{ content: UrgentTicket[]; hasNext: boolean }> {
+    let params: Record<string, string | number | string[]> = { page, size };
+    if (statuses.length > 0) params = { ...params, status: statuses };
+    return firstValueFrom(this.http.get<{ content: UrgentTicket[]; hasNext: boolean }>(`${this.baseUrl}/assigned`, { params }));
+  }
+
   async updateStatus(id: number, status: TicketStatus): Promise<UrgentTicket> {
     return firstValueFrom(
       this.http.patch<UrgentTicket>(`${this.baseUrl}/${id}/status`, { status })

@@ -12,6 +12,7 @@ import java.util.List;
 
 public interface UrgentTicketService {
     PageDto<UrgentTicketDto> getMyUrgentTickets(Users user, List<StatusTicket> statuses, int page, int size);
+    PageDto<UrgentTicketDto> getMyProvidedUrgentTickets(Users user, List<StatusTicket> statuses, int page, int size);
     UrgentTicketDto createUrgentTicket(CreateUrgentTicketDto createUrgentTicketDto, Users user) throws SQLException;
     UrgentTicketDto updateStatus(int ticketId, UpdateTicketStatusDto data, Users user);
 }

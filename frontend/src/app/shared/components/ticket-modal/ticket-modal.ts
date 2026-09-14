@@ -427,7 +427,7 @@ export class TicketModal implements OnInit {
 
       whatsappWindow.location.href = url;
 
-      this.toastrService.success('Serviço urgente criado com sucesso');
+      this.toastrService.success('Solicitação criada. Inicie o atendimento após combinar com o prestador.');
       this.closeModal();
     } catch (err) {
       whatsappWindow.close();

@@ -144,6 +144,28 @@ public class UrgentTicketServiceImpl implements UrgentTicketService {
         }
     }
 
+    @Override
+    public PageDto<UrgentTicketDto> getMyProvidedUrgentTickets(Users user, List<StatusTicket> statuses, int page, int size) {
+        if (user == null || user.getId() == null) {
+            throw new UnauthorizedUserException("Usuário não autenticado ou inválido.");
+        }
+        if (!user.isProvider()) {
+            throw new UnauthorizedUserException("Apenas prestadores podem consultar seus serviços urgentes.");
+        }
+        if (page < 0 || size < 1 || size > 50) {
+            throw new InvalidRequestException("Paginação inválida.");
+        }
+
+        try {
+            List<UrgentTicket> tickets = urgentTicketDao.findByProviderId(user.getId(), statuses, page, size);
+            boolean hasNext = tickets.size() > size;
+            if (hasNext) tickets = tickets.subList(0, size);
+            return new PageDto<>(tickets.stream().map(ticketMapper::toUrgentTicket).toList(), hasNext);
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao consultar tickets urgentes do prestador.", e);
+        }
+    }
+
     @Transactional
     @Override
     public UrgentTicketDto updateStatus(int ticketId, UpdateTicketStatusDto data, Users user) {
@@ -159,21 +181,25 @@ public class UrgentTicketServiceImpl implements UrgentTicketService {
         if (!ticket.getUser().getId().equals(user.getId())) {
             throw new UnauthorizedUserException("Apenas o criador do ticket pode alterar o status.");
         }
-        if (ticket.getStatus() != StatusTicket.IN_PROGRESS) {
-            throw new InvalidRequestException("Apenas tickets urgentes em andamento podem mudar de status.");
-        }
-
         StatusTicket newStatus;
         try {
             newStatus = StatusTicket.valueOf(data.status().trim().toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException e) {
             throw new InvalidRequestException("Status do ticket urgente inválido.");
         }
-        if (newStatus != StatusTicket.COMPLETED && newStatus != StatusTicket.CANCELLED) {
-            throw new InvalidRequestException("O ticket urgente só pode ser concluído ou cancelado.");
+        if (ticket.getStatus() == StatusTicket.OPEN) {
+            if (newStatus != StatusTicket.IN_PROGRESS && newStatus != StatusTicket.CANCELLED) {
+                throw new InvalidRequestException("O ticket urgente aberto só pode ser iniciado ou cancelado.");
+            }
+        } else if (ticket.getStatus() == StatusTicket.IN_PROGRESS) {
+            if (newStatus != StatusTicket.COMPLETED && newStatus != StatusTicket.CANCELLED) {
+                throw new InvalidRequestException("O ticket urgente em andamento só pode ser concluído ou cancelado.");
+            }
+        } else {
+            throw new InvalidRequestException("O status deste ticket urgente não pode mais ser alterado.");
         }
 
-        if (!urgentTicketDao.updateStatus(ticketId, newStatus)) {
+        if (!urgentTicketDao.updateStatus(ticketId, ticket.getStatus(), newStatus)) {
             throw new InvalidRequestException("O status deste ticket urgente já foi alterado.");
         }
         return ticketMapper.toUrgentTicket(urgentTicketDao.findById(ticketId)

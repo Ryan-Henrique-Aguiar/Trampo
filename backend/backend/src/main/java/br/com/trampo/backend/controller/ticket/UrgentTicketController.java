@@ -50,6 +50,16 @@ public class UrgentTicketController {
         return ResponseEntity.ok(urgentTicketService.getMyUrgentTickets(user, status, page, size));
     }
 
+    @GetMapping("/assigned")
+    public ResponseEntity<PageDto<UrgentTicketDto>> findMyProvidedUrgentTickets(
+            @AuthenticationPrincipal Users user,
+            @RequestParam(required = false) List<StatusTicket> status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ResponseEntity.ok(urgentTicketService.getMyProvidedUrgentTickets(user, status, page, size));
+    }
+
     @PatchMapping("/{ticketId}/status")
     public ResponseEntity<UrgentTicketDto> updateStatus(
             @PathVariable int ticketId,

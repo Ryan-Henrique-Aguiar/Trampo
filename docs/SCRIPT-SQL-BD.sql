@@ -205,7 +205,7 @@ CREATE TABLE IF NOT EXISTS urgent_ticket (
     code VARCHAR(20) UNIQUE NOT NULL,
     title VARCHAR(100) NOT NULL,
     description TEXT NOT NULL,
-    status VARCHAR(30) NOT NULL DEFAULT 'IN_PROGRESS',
+    status VARCHAR(30) NOT NULL DEFAULT 'OPEN',
     service_date TIMESTAMP,                          -- nullable, só preenchido ao concluir
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -218,7 +218,7 @@ CREATE TABLE IF NOT EXISTS urgent_ticket (
     FOREIGN KEY (provider_id) REFERENCES users(id),
     FOREIGN KEY (category_id) REFERENCES category(id),
     FOREIGN KEY (address_id) REFERENCES address(id),
-    CHECK (status IN ('IN_PROGRESS', 'COMPLETED', 'CANCELLED'))
+    CHECK (status IN ('OPEN', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'))
 );
 
 -- ==========================================================

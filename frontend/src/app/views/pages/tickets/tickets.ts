@@ -26,8 +26,10 @@ export class Tickets implements OnInit {
   availableTickets: Ticket[] = [];
   myProposals: MyProposal[] = [];
   urgentTickets: UrgentTicket[] = [];
+  providedUrgentTickets: UrgentTicket[] = [];
   selectedStatuses: TicketStatus[] = [];
   selectedUrgentStatuses: TicketStatus[] = [];
+  selectedProvidedUrgentStatuses: TicketStatus[] = [];
 
   currentPage = 0;
   readonly pageSize = 5;
@@ -41,16 +43,21 @@ export class Tickets implements OnInit {
   urgentCurrentPage = 0;
   readonly urgentPageSize = 5;
   urgentHasNextPage = false;
+  providedUrgentCurrentPage = 0;
+  readonly providedUrgentPageSize = 10;
+  providedUrgentHasNextPage = false;
 
   loadingMyTickets = false;
   loadingAvailableTickets = false;
   loadingMyProposals = false;
   loadingMyUrgentTickets = false;
+  loadingProvidedUrgentTickets = false;
 
   myTicketsError: string | null = null;
   availableTicketsError: string | null = null;
   myProposalsError: string | null = null;
   myUrgentTicketsError: string | null = null;
+  providedUrgentTicketsError: string | null = null;
 
 
   selectedProposalStatuses: ProposalStatus[] = [ProposalStatus.PENDING];
@@ -61,7 +68,7 @@ export class Tickets implements OnInit {
   ];
 
   ticketView: 'normal' | 'urgent' = 'normal';
-  providerView: 'available' | 'proposals' = 'available';
+  providerView: 'available' | 'proposals' | 'urgent' = 'available';
   activeModal: 'create' | 'details' | 'urgent-details' | 'proposals' | null = null;
   isModalUrgent = false;
   selectedTicket: Ticket | null = null;
@@ -94,13 +101,57 @@ export class Tickets implements OnInit {
     }
   }
 
-  changeProviderView(view: 'available' | 'proposals'): void {
+  changeProviderView(view: 'available' | 'proposals' | 'urgent'): void {
     this.providerView = view;
     if (view === 'available') {
       this.loadAvailableTickets();
-    } else {
+    } else if (view === 'proposals') {
       this.loadMyProposals();
+    } else {
+      this.loadProvidedUrgentTickets();
     }
+  }
+
+  async loadProvidedUrgentTickets(): Promise<void> {
+    this.loadingProvidedUrgentTickets = true;
+    this.providedUrgentTicketsError = null;
+    try {
+      const response = await this.urgentTicketService.getMyProvidedUrgentTickets(
+        this.selectedProvidedUrgentStatuses,
+        this.providedUrgentCurrentPage,
+        this.providedUrgentPageSize
+      );
+      this.providedUrgentTickets = response.content;
+      this.providedUrgentHasNextPage = response.hasNext;
+    } catch (err) {
+      console.error('Erro ao carregar serviços urgentes do prestador:', err);
+      this.providedUrgentTickets = [];
+      this.providedUrgentHasNextPage = false;
+      this.providedUrgentTicketsError = 'Não foi possível carregar seus serviços urgentes.';
+    } finally {
+      this.loadingProvidedUrgentTickets = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  changeProvidedUrgentPage(page: number): void {
+    if (page < 0 || page === this.providedUrgentCurrentPage || (page > this.providedUrgentCurrentPage && !this.providedUrgentHasNextPage)) return;
+    this.providedUrgentCurrentPage = page;
+    this.loadProvidedUrgentTickets();
+  }
+
+  toggleProvidedUrgentStatus(status: TicketStatus): void {
+    this.selectedProvidedUrgentStatuses = this.selectedProvidedUrgentStatuses.includes(status)
+      ? this.selectedProvidedUrgentStatuses.filter(item => item !== status)
+      : [...this.selectedProvidedUrgentStatuses, status];
+    this.providedUrgentCurrentPage = 0;
+    this.loadProvidedUrgentTickets();
+  }
+
+  clearProvidedUrgentFilters(): void {
+    this.selectedProvidedUrgentStatuses = [];
+    this.providedUrgentCurrentPage = 0;
+    this.loadProvidedUrgentTickets();
   }
 
   async loadMyUrgentTickets(): Promise<void> {
@@ -303,6 +354,7 @@ export class Tickets implements OnInit {
   closeModal(): void {
     if (this.activeModal === 'create' && this.isModalUrgent) {
       this.urgentCurrentPage = 0;
+      this.loadMyUrgentTickets();
     }
     this.activeModal = null;
     this.isModalUrgent = false;
@@ -327,7 +379,11 @@ export class Tickets implements OnInit {
   }
   onUrgentTicketUpdated(updatedTicket: UrgentTicket): void {
     this.selectedUrgentTicket = updatedTicket;
-    this.loadMyUrgentTickets();
+    if (this.isProviderMode) {
+      this.loadProvidedUrgentTickets();
+    } else {
+      this.loadMyUrgentTickets();
+    }
   }
   onTicketCreated(ticket: Ticket): void {
     this.currentPage = 0;

@@ -4,11 +4,15 @@
       <div class="ticket-view-toggle" role="group" aria-label="Visualização de serviços do prestador">
         <button type="button" [class.active]="providerView === 'available'"
           [attr.aria-pressed]="providerView === 'available'" (click)="changeProviderView('available')">
-          Disponíveis
+          Serviços Disponíveis
         </button>
         <button type="button" [class.active]="providerView === 'proposals'"
           [attr.aria-pressed]="providerView === 'proposals'" (click)="changeProviderView('proposals')">
           Minhas propostas
+        </button>
+        <button type="button" class="urgent-toggle" [class.active]="providerView === 'urgent'"
+          [attr.aria-pressed]="providerView === 'urgent'" (click)="changeProviderView('urgent')">
+          Atendimentos urgentes
         </button>
       </div>
 
@@ -53,7 +57,7 @@
           <p>Não há serviços disponíveis nas suas categorias de atuação no momento.</p>
         </div>
       }
-      } @else {
+      } @else if (providerView === 'proposals') {
         <div class="section-header">
           <h2>Minhas propostas</h2>
           <span class="tickets-count">{{ myProposals.length }} propostas</span>
@@ -115,6 +119,62 @@
             <i class="fa-regular fa-file-lines" aria-hidden="true"></i>
             <h3>{{ selectedProposalStatuses.length === 0 ? 'Nenhuma proposta enviada' : 'Nenhuma proposta encontrada' }}</h3>
             <p>{{ selectedProposalStatuses.length === 0 ? 'Quando você enviar uma proposta, ela aparecerá aqui com o resultado.' : 'Tente alterar ou limpar os filtros selecionados.' }}</p>
+          </div>
+        }
+      } @else {
+        <div class="section-header">
+          <h2>Serviços urgentes atribuídos a você</h2>
+          <span class="tickets-count">{{ providedUrgentTickets.length }} serviços</span>
+        </div>
+
+        <div class="ticket-filters" aria-label="Filtros dos serviços urgentes atendidos">
+          <div class="filter-group filter-group--status">
+            <span class="filter-label">Status</span>
+            <div class="status-filters">
+              @for (status of statusOptions; track status.value) {
+                @if (status.value === 'IN_PROGRESS' || status.value === 'COMPLETED') {
+                  <button type="button" [class.active]="selectedProvidedUrgentStatuses.includes(status.value)"
+                    [attr.aria-pressed]="selectedProvidedUrgentStatuses.includes(status.value)"
+                    (click)="toggleProvidedUrgentStatus(status.value)">
+                    {{ status.label }}
+                  </button>
+                }
+              }
+            </div>
+          </div>
+          @if (selectedProvidedUrgentStatuses.length > 0) {
+            <button type="button" class="clear-filters" (click)="clearProvidedUrgentFilters()">Limpar filtros</button>
+          }
+        </div>
+
+        @if (loadingProvidedUrgentTickets) {
+          <div class="loading-state" role="status">
+            <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+            <span>Carregando seus serviços urgentes...</span>
+          </div>
+        } @else if (providedUrgentTicketsError) {
+          <div class="error-state" role="alert">
+            <p>{{ providedUrgentTicketsError }}</p>
+            <button type="button" class="btn-primary" (click)="loadProvidedUrgentTickets()">Tentar novamente</button>
+          </div>
+        } @else if (providedUrgentTickets.length > 0) {
+          <div class="tickets">
+            @for (ticket of providedUrgentTickets; track ticket.id) {
+              <app-urgent-ticket-card [ticket]="ticket" (viewDetails)="openUrgentTicketDetail($event)" />
+            }
+          </div>
+          @if (providedUrgentCurrentPage > 0 || providedUrgentHasNextPage) {
+            <div class="pagination" aria-label="Paginação dos serviços urgentes atendidos">
+              <button type="button" (click)="changeProvidedUrgentPage(providedUrgentCurrentPage - 1)" [disabled]="providedUrgentCurrentPage === 0">Anterior</button>
+              <span>Página {{ providedUrgentCurrentPage + 1 }}</span>
+              <button type="button" (click)="changeProvidedUrgentPage(providedUrgentCurrentPage + 1)" [disabled]="!providedUrgentHasNextPage">Próxima</button>
+            </div>
+          }
+        } @else {
+          <div class="empty-state">
+            <i class="fa-solid fa-bolt" aria-hidden="true"></i>
+            <h3>Nenhum serviço urgente encontrado</h3>
+            <p>{{ selectedProvidedUrgentStatuses.length > 0 ? 'Tente alterar ou limpar os filtros selecionados.' : 'Os serviços urgentes que você atender aparecerão aqui.' }}</p>
           </div>
         }
       }
@@ -234,13 +294,11 @@
             <span class="filter-label">Status</span>
             <div class="status-filters">
               @for (status of statusOptions; track status.value) {
-                @if (status.value !== 'OPEN') {
-                  <button type="button" [class.active]="selectedUrgentStatuses.includes(status.value)"
-                    [attr.aria-pressed]="selectedUrgentStatuses.includes(status.value)"
-                    (click)="toggleUrgentStatus(status.value)">
-                    {{ status.label }}
-                  </button>
-                }
+                <button type="button" [class.active]="selectedUrgentStatuses.includes(status.value)"
+                  [attr.aria-pressed]="selectedUrgentStatuses.includes(status.value)"
+                  (click)="toggleUrgentStatus(status.value)">
+                  {{ status.label }}
+                </button>
               }
             </div>
           </div>
