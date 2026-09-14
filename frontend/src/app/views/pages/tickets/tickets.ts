@@ -235,6 +235,10 @@ export class Tickets implements OnInit {
     this.loadMyTickets();
     this.cdr.detectChanges();
   }
+  onUrgentTicketUpdated(updatedTicket: UrgentTicket): void {
+    this.selectedUrgentTicket = updatedTicket;
+    this.loadMyUrgentTickets();
+  }
   onTicketCreated(ticket: Ticket): void {
     this.currentPage = 0;
     this.loadMyTickets();

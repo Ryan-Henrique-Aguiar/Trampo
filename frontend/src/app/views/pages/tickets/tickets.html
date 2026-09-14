@@ -228,7 +228,8 @@
   @if (activeModal === 'urgent-details' && selectedUrgentTicket) {
     <app-urgent-ticket-detail
       [ticket]="selectedUrgentTicket"
-      (close)="closeModal()" />
+      (close)="closeModal()"
+      (ticketUpdated)="onUrgentTicketUpdated($event)" />
   }
 
   @if (activeModal === 'proposals' && selectedTicket) {

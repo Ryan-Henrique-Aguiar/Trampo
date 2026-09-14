@@ -12,6 +12,7 @@ import javax.sql.DataSource;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class UrgentTicketPostgresDaoImpl implements UrgentTicketDao {
 
@@ -56,6 +57,79 @@ public class UrgentTicketPostgresDaoImpl implements UrgentTicketDao {
             return tickets;
         } catch (SQLException e) {
             throw new DatabaseException("Erro ao buscar tickets urgentes.", e);
+        }
+    }
+
+    @Override
+    public Optional<UrgentTicket> findById(int id) {
+        String sql = """
+                SELECT t.*, a.street, a.number, a.neighborhood,
+                       a.city, a.state, a.zip_code, a.complement
+                FROM urgent_ticket t
+                INNER JOIN address a ON a.id = t.address_id
+                WHERE t.id = ?
+                """;
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, id);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return Optional.of(mapResultSetToUrgentTicket(resultSet));
+                }
+            }
+            return Optional.empty();
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao buscar ticket urgente.", e);
+        }
+    }
+
+    @Override
+    public boolean updateStatus(int id, StatusTicket status) {
+        String updateTicket = """
+                UPDATE urgent_ticket
+                SET status = ?,
+                    service_date = CASE WHEN ? = 'COMPLETED' THEN CURRENT_TIMESTAMP ELSE service_date END
+                WHERE id = ? AND status = 'IN_PROGRESS'
+                RETURNING provider_id
+                """;
+        String updateProvider = """
+                UPDATE users
+                SET completed_services_count = COALESCE(completed_services_count, 0) + 1
+                WHERE id = ?
+                """;
+
+        try (Connection connection = dataSource.getConnection()) {
+            connection.setAutoCommit(false);
+            try {
+                int providerId;
+                try (PreparedStatement statement = connection.prepareStatement(updateTicket)) {
+                    statement.setString(1, status.name());
+                    statement.setString(2, status.name());
+                    statement.setInt(3, id);
+                    try (ResultSet resultSet = statement.executeQuery()) {
+                        if (!resultSet.next()) {
+                            connection.rollback();
+                            return false;
+                        }
+                        providerId = resultSet.getInt("provider_id");
+                    }
+                }
+
+                if (status == StatusTicket.COMPLETED) {
+                    try (PreparedStatement statement = connection.prepareStatement(updateProvider)) {
+                        statement.setInt(1, providerId);
+                        statement.executeUpdate();
+                    }
+                }
+
+                connection.commit();
+                return true;
+            } catch (SQLException e) {
+                connection.rollback();
+                throw e;
+            }
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao atualizar status do ticket urgente.", e);
         }
     }
 

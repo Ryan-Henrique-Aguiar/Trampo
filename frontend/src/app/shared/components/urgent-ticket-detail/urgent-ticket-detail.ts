@@ -1,6 +1,8 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, Output } from '@angular/core';
 import { UrgentTicket } from '../../../models/ticket.model';
 import { TicketStatus } from '../../../enums/ticket-status';
+import { UrgentTicketService } from '../../../services/urgent-ticket/urgent-ticket-service';
+import { ToastrService } from '@iqx-limited/ngx-toastr';
 
 @Component({
   selector: 'app-urgent-ticket-detail',
@@ -9,8 +11,55 @@ import { TicketStatus } from '../../../enums/ticket-status';
   styleUrl: './urgent-ticket-detail.css',
 })
 export class UrgentTicketDetail {
+  readonly TicketStatus = TicketStatus;
   @Input() ticket!: UrgentTicket;
   @Output() close = new EventEmitter<void>();
+  @Output() ticketUpdated = new EventEmitter<UrgentTicket>();
+
+  isStatusMenuOpen = false;
+  pendingStatus: TicketStatus | null = null;
+  isChangingStatus = false;
+
+  constructor(
+    private urgentTicketService: UrgentTicketService,
+    private toastrService: ToastrService,
+    private cdr: ChangeDetectorRef
+  ) {}
+
+  get canChangeStatus(): boolean {
+    return this.ticket.status === TicketStatus.IN_PROGRESS;
+  }
+
+  toggleStatusMenu(): void {
+    if (this.canChangeStatus) this.isStatusMenuOpen = !this.isStatusMenuOpen;
+  }
+
+  selectNewStatus(status: TicketStatus): void {
+    this.isStatusMenuOpen = false;
+    this.pendingStatus = status;
+  }
+
+  cancelStatusRequest(): void {
+    this.pendingStatus = null;
+  }
+
+  async confirmStatusChange(): Promise<void> {
+    if (!this.pendingStatus || this.isChangingStatus) return;
+
+    this.isChangingStatus = true;
+    try {
+      const updatedTicket = await this.urgentTicketService.updateStatus(this.ticket.id, this.pendingStatus);
+      this.ticket = updatedTicket;
+      this.pendingStatus = null;
+      this.ticketUpdated.emit(updatedTicket);
+      this.toastrService.success('Status atualizado com sucesso.');
+    } catch {
+      this.toastrService.error('Não foi possível atualizar o status.');
+    } finally {
+      this.isChangingStatus = false;
+      this.cdr.detectChanges();
+    }
+  }
 
   closeModal(): void {
     this.close.emit();
