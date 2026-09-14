@@ -370,6 +370,7 @@ export class TicketDetail implements OnInit {
       this.isProposalFormOpen = false;
       this.proposalPriceControl.reset();
       this.toastrService.success('Proposta enviada com sucesso');
+      this.ticketUpdated.emit(this.ticket);
       this.closeModal();
     } catch (err) {
       console.error('Erro ao enviar proposta:', err);

@@ -1,6 +1,18 @@
 <section class="tickets-page">
     <!-- ========== MODO PRESTADOR ========== -->
     @if (isProviderMode) {
+      <div class="ticket-view-toggle" role="group" aria-label="Visualização de serviços do prestador">
+        <button type="button" [class.active]="providerView === 'available'"
+          [attr.aria-pressed]="providerView === 'available'" (click)="changeProviderView('available')">
+          Disponíveis
+        </button>
+        <button type="button" [class.active]="providerView === 'proposals'"
+          [attr.aria-pressed]="providerView === 'proposals'" (click)="changeProviderView('proposals')">
+          Minhas propostas
+        </button>
+      </div>
+
+      @if (providerView === 'available') {
       <div class="section-header">
         <h2>Serviços disponíveis para você</h2>
         <span class="tickets-count">{{ availableTickets.length }} serviços</span>
@@ -40,6 +52,71 @@
           <h3>Nenhum serviço disponível</h3>
           <p>Não há serviços disponíveis nas suas categorias de atuação no momento.</p>
         </div>
+      }
+      } @else {
+        <div class="section-header">
+          <h2>Minhas propostas</h2>
+          <span class="tickets-count">{{ myProposals.length }} propostas</span>
+        </div>
+
+        <div class="ticket-filters" aria-label="Filtros das minhas propostas">
+          <div class="filter-group filter-group--status">
+            <span class="filter-label">Status</span>
+            <div class="status-filters">
+              @for (status of proposalStatusOptions; track status.value) {
+                <button type="button" [class.active]="selectedProposalStatuses.includes(status.value)"
+                  [attr.aria-pressed]="selectedProposalStatuses.includes(status.value)"
+                  (click)="toggleProposalStatus(status.value)">
+                  {{ status.label }}
+                </button>
+              }
+            </div>
+          </div>
+          @if (selectedProposalStatuses.length > 0) {
+            <button type="button" class="clear-filters" (click)="clearProposalFilters()">Limpar filtros</button>
+          }
+        </div>
+
+        @if (loadingMyProposals) {
+          <div class="loading-state" role="status">
+            <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+            <span>Carregando propostas...</span>
+          </div>
+        } @else if (myProposalsError) {
+          <div class="error-state" role="alert">
+            <i class="fa-solid fa-exclamation-circle" aria-hidden="true"></i>
+            <p>{{ myProposalsError }}</p>
+            <button type="button" class="btn-primary" (click)="loadMyProposals()">Tentar novamente</button>
+          </div>
+        } @else if (myProposals.length > 0) {
+          <div class="tickets">
+            @for (item of myProposals; track item.proposal.id) {
+              <div class="my-proposal-item">
+                <div class="my-proposal-summary">
+                  <span>Sua proposta: <strong>{{ formatCurrency(item.proposal.priceRange) }}</strong></span>
+                  <span class="proposal-status" [class]="'proposal-status--' + item.proposal.status.toLowerCase()">
+                    {{ getProposalStatusLabel(item.proposal.status) }}
+                  </span>
+                </div>
+                <app-ticket-card [ticket]="item.ticket" (viewDetails)="openTicketDetail($event)" />
+              </div>
+            }
+          </div>
+
+          @if (proposalsCurrentPage > 0 || proposalsHasNextPage) {
+            <div class="pagination" aria-label="Paginação das minhas propostas">
+              <button type="button" (click)="changeProposalsPage(proposalsCurrentPage - 1)" [disabled]="proposalsCurrentPage === 0">Anterior</button>
+              <span>Página {{ proposalsCurrentPage + 1 }}</span>
+              <button type="button" (click)="changeProposalsPage(proposalsCurrentPage + 1)" [disabled]="!proposalsHasNextPage">Próxima</button>
+            </div>
+          }
+        } @else {
+          <div class="empty-state">
+            <i class="fa-regular fa-file-lines" aria-hidden="true"></i>
+            <h3>{{ selectedProposalStatuses.length === 0 ? 'Nenhuma proposta enviada' : 'Nenhuma proposta encontrada' }}</h3>
+            <p>{{ selectedProposalStatuses.length === 0 ? 'Quando você enviar uma proposta, ela aparecerá aqui com o resultado.' : 'Tente alterar ou limpar os filtros selecionados.' }}</p>
+          </div>
+        }
       }
     }
 
@@ -206,8 +283,8 @@
             <button type="button" class="btn-primary" (click)="openTicketModal(true)">
               Solicitar serviço urgente
             </button>
-          </div>
-        }
+        </div>
+      }
       }
     }
 

@@ -97,6 +97,53 @@ public class ProposalPostgresDaoImpl implements ProposalDao {
     }
 
     @Override
+    public List<Proposal> findByProfessionalId(int professionalId, List<StatusProposal> statuses, int page, int size) {
+        String sql = """
+                SELECT
+                    p.id,
+                    p.price_range,
+                    p.status,
+                    p.professional_id,
+                    p.ticket_id,
+                    u.name AS professional_name,
+                    u.phone AS professional_phone
+                FROM proposal p
+                INNER JOIN users u ON u.id = p.professional_id
+                WHERE p.professional_id = ?
+                  AND (
+                      ?
+                      OR (p.status = 'PENDING' AND ?)
+                      OR (p.status = 'ACCEPTED' AND ?)
+                      OR (p.status = 'REJECTED' AND ?)
+                  )
+                ORDER BY p.id DESC
+                LIMIT ? OFFSET ?
+                """;
+        List<Proposal> proposals = new ArrayList<>();
+        List<StatusProposal> selectedStatuses = statuses == null ? List.of() : statuses;
+
+        try (Connection connection = dataSource.getConnection(); PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, professionalId);
+            statement.setBoolean(2, selectedStatuses.isEmpty());
+            statement.setBoolean(3, selectedStatuses.contains(StatusProposal.PENDING));
+            statement.setBoolean(4, selectedStatuses.contains(StatusProposal.ACCEPTED));
+            statement.setBoolean(5, selectedStatuses.contains(StatusProposal.REJECTED));
+            statement.setInt(6, size + 1);
+            statement.setInt(7, page * size);
+
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    proposals.add(mapProposal(resultSet));
+                }
+            }
+
+            return proposals;
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao buscar propostas do prestador.", e);
+        }
+    }
+
+    @Override
     public boolean existsByTicketIdAndProfessionalId(int ticketId, int professionalId) {
         String sql = """
                 SELECT EXISTS (

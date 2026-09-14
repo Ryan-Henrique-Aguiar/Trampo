@@ -11,6 +11,9 @@ import { UrgentTicketService } from '../../../services/urgent-ticket/urgent-tick
 import { UrgentTicketCard } from '../../../shared/components/urgent-ticket-card/urgent-ticket-card';
 import { UrgentTicketDetail } from '../../../shared/components/urgent-ticket-detail/urgent-ticket-detail';
 import { TicketStatus } from '../../../enums/ticket-status';
+import { MyProposal } from '../../../models/proposal.model';
+import { ProposalService } from '../../../services/proposal/proposal-service';
+import { ProposalStatus } from '../../../enums/proposal-status';
 
 @Component({
   selector: 'app-tickets',
@@ -21,6 +24,7 @@ import { TicketStatus } from '../../../enums/ticket-status';
 export class Tickets implements OnInit {
   tickets: Ticket[] = [];
   availableTickets: Ticket[] = [];
+  myProposals: MyProposal[] = [];
   urgentTickets: UrgentTicket[] = [];
   selectedStatuses: TicketStatus[] = [];
   selectedUrgentStatuses: TicketStatus[] = [];
@@ -31,19 +35,33 @@ export class Tickets implements OnInit {
   availableCurrentPage = 0;
   readonly availablePageSize = 10;
   availableHasNextPage = false;
+  proposalsCurrentPage = 0;
+  readonly proposalsPageSize = 10;
+  proposalsHasNextPage = false;
   urgentCurrentPage = 0;
   readonly urgentPageSize = 5;
   urgentHasNextPage = false;
 
   loadingMyTickets = false;
   loadingAvailableTickets = false;
+  loadingMyProposals = false;
   loadingMyUrgentTickets = false;
 
   myTicketsError: string | null = null;
   availableTicketsError: string | null = null;
+  myProposalsError: string | null = null;
   myUrgentTicketsError: string | null = null;
 
+
+  selectedProposalStatuses: ProposalStatus[] = [ProposalStatus.PENDING];
+  readonly proposalStatusOptions = [
+    { value: ProposalStatus.PENDING, label: 'Pendentes' },
+    { value: ProposalStatus.ACCEPTED, label: 'Aceitas' },
+    { value: ProposalStatus.REJECTED, label: 'Recusadas' }
+  ];
+
   ticketView: 'normal' | 'urgent' = 'normal';
+  providerView: 'available' | 'proposals' = 'available';
   activeModal: 'create' | 'details' | 'urgent-details' | 'proposals' | null = null;
   isModalUrgent = false;
   selectedTicket: Ticket | null = null;
@@ -57,6 +75,7 @@ export class Tickets implements OnInit {
 
   constructor(
     private ticketService: TicketService,
+    private proposalService: ProposalService,
     private urgentTicketService: UrgentTicketService,
     private authService: AuthService,
     private viewModeService: ViewModeService,
@@ -72,6 +91,15 @@ export class Tickets implements OnInit {
     this.loadMyUrgentTickets();
     if (this.authService.isProvider()) {
       this.loadAvailableTickets();
+    }
+  }
+
+  changeProviderView(view: 'available' | 'proposals'): void {
+    this.providerView = view;
+    if (view === 'available') {
+      this.loadAvailableTickets();
+    } else {
+      this.loadMyProposals();
     }
   }
 
@@ -170,6 +198,39 @@ export class Tickets implements OnInit {
     this.loadAvailableTickets();
   }
 
+  changeProposalsPage(page: number): void {
+    if (page < 0 || page === this.proposalsCurrentPage || (page > this.proposalsCurrentPage && !this.proposalsHasNextPage)) return;
+    this.proposalsCurrentPage = page;
+    this.loadMyProposals();
+  }
+
+  toggleProposalStatus(status: ProposalStatus): void {
+    this.selectedProposalStatuses = this.selectedProposalStatuses.includes(status)
+      ? this.selectedProposalStatuses.filter(item => item !== status)
+      : [...this.selectedProposalStatuses, status];
+    this.proposalsCurrentPage = 0;
+    this.loadMyProposals();
+  }
+
+  clearProposalFilters(): void {
+    this.selectedProposalStatuses = [];
+    this.proposalsCurrentPage = 0;
+    this.loadMyProposals();
+  }
+
+  getProposalStatusLabel(status: ProposalStatus): string {
+    const labels: Record<ProposalStatus, string> = {
+      [ProposalStatus.PENDING]: 'Pendente',
+      [ProposalStatus.ACCEPTED]: 'Aceita',
+      [ProposalStatus.REJECTED]: 'Recusada'
+    };
+    return labels[status];
+  }
+
+  formatCurrency(value: number): string {
+    return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  }
+
   get hasActiveFilters(): boolean {
     return this.selectedStatuses.length > 0;
   }
@@ -192,6 +253,28 @@ export class Tickets implements OnInit {
       this.availableTicketsError = 'Não foi possível carregar os serviços disponíveis.';
     } finally {
       this.loadingAvailableTickets = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  async loadMyProposals(): Promise<void> {
+    this.loadingMyProposals = true;
+    this.myProposalsError = null;
+    try {
+      const response = await this.proposalService.getMyProposals(
+        this.selectedProposalStatuses,
+        this.proposalsCurrentPage,
+        this.proposalsPageSize
+      );
+      this.myProposals = response.content;
+      this.proposalsHasNextPage = response.hasNext;
+    } catch (err) {
+      console.error('Erro ao carregar propostas do prestador:', err);
+      this.myProposals = [];
+      this.proposalsHasNextPage = false;
+      this.myProposalsError = 'Não foi possível carregar suas propostas.';
+    } finally {
+      this.loadingMyProposals = false;
       this.cdr.detectChanges();
     }
   }
@@ -232,7 +315,14 @@ export class Tickets implements OnInit {
       ticket.id === updatedTicket.id ? updatedTicket : ticket
     );
     this.selectedTicket = updatedTicket;
-    this.loadMyTickets();
+    if (this.isProviderMode) {
+      this.availableCurrentPage = 0;
+      this.loadAvailableTickets();
+      this.proposalsCurrentPage = 0;
+      this.loadMyProposals();
+    } else {
+      this.loadMyTickets();
+    }
     this.cdr.detectChanges();
   }
   onUrgentTicketUpdated(updatedTicket: UrgentTicket): void {

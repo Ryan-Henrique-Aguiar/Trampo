@@ -1,10 +1,11 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 
-import { Proposal } from '../../models/proposal.model';
+import { MyProposalPage, Proposal } from '../../models/proposal.model';
 import { CreateProposalRequest } from '../../dto/proposal/create-proposal-request';
 import { environment } from '../../../environments/environment';
+import { ProposalStatus } from '../../enums/proposal-status';
 
 @Injectable({
   providedIn: 'root'
@@ -19,6 +20,21 @@ export class ProposalService {
       this.http.get<Proposal[]>(
         `${this.baseUrl}/ticket/${ticketId}`
       )
+    );
+  }
+
+  async getMyProposals(statuses: ProposalStatus[], page = 0, size = 10): Promise<MyProposalPage> {
+    let params = new HttpParams();
+    for (const status of statuses) {
+      params = params.append('status', status);
+    }
+    params = params.set('page', page.toString());
+    params = params.set('size', size.toString());
+
+    return firstValueFrom(
+      this.http.get<MyProposalPage>(`${this.baseUrl}/my`, {
+        params
+      })
     );
   }
 
