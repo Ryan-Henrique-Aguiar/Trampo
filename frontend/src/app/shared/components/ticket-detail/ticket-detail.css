@@ -728,3 +728,80 @@
         font-size: var(--font-size-xs, 12px);
     }
 }
+
+.ticket-owner-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+    border: 1px solid var(--border-color, #e0e0e0);
+    border-radius: var(--radius-sm, 6px);
+    background: var(--surface-alt, #f8f8f8);
+}
+
+.ticket-owner-avatar {
+    width: 46px;
+    height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: rgba(24, 95, 165, 0.12);
+    color: var(--primary);
+    font-size: 20px;
+}
+
+.ticket-owner-info {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.ticket-owner-info strong {
+    overflow: hidden;
+    color: var(--text-primary);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ticket-owner-label {
+    color: var(--text-secondary);
+    font-size: var(--font-size-xs);
+}
+
+.ticket-owner-rating {
+    color: var(--text-secondary);
+    font-size: var(--font-size-xs);
+}
+
+.ticket-owner-rating i {
+    color: #f4b400;
+}
+
+.btn-reviews {
+    padding: 7px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--text-secondary);
+    font-size: var(--font-size-xs);
+}
+
+.btn-reviews:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+@media (max-width: 520px) {
+    .ticket-owner-card {
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .btn-reviews {
+        width: 100%;
+    }
+}

@@ -80,6 +80,23 @@
             <!-- ===== MODO VISUALIZAÇÃO ===== -->
             @if (!isEditing) {
 
+            <div class="ticket-owner-card">
+                <div class="ticket-owner-avatar" aria-hidden="true">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+                <div class="ticket-owner-info">
+                    <span class="ticket-owner-label">Publicado por</span>
+                    <strong>{{ ticket.userName }}</strong>
+                    <span class="ticket-owner-rating">
+                        <i class="fa-solid fa-star"></i>
+                        {{ ticket.userRating !== null ? (ticket.userRating | number:'1.1-1') : 'Sem avaliações ainda' }}
+                    </span>
+                </div>
+                <button type="button" class="btn-reviews" disabled title="Funcionalidade em desenvolvimento">
+                    Avaliações em breve
+                </button>
+            </div>
+
             @if (ticket.description) {
             <div class="detail-group">
                 <label>Descrição</label>

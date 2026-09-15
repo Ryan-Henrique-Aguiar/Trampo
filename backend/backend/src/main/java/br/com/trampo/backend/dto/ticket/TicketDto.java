@@ -18,6 +18,8 @@ public record TicketDto(
         LocalDateTime serviceDate,
         StatusTicket status,
         Integer userId,
+        String userName,
+        Double userRating,
         Integer categoryId,
         Integer proposalsCount,
         AddressDto address,

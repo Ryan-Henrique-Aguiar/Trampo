@@ -34,6 +34,8 @@ public class TicketMapper {
                 ticket.getServiceDate(),
                 ticket.getStatus(),
                 ticket.getUser().getId(),
+                ticket.getUser().getName(),
+                ticket.getUser().getRating(),
                 ticket.getCategory().getId(),
                 ticket.getProposalsCount(),
                 toAddressDto(ticket.getAddress()),

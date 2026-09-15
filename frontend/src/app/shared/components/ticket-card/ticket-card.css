@@ -75,6 +75,19 @@
     margin-bottom: 8px;
 }
 
+.ticket-owner {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+    font-size: var(--font-size-xs);
+}
+
+.ticket-owner i {
+    color: var(--primary);
+}
+
 .ticket-meta {
     display: flex;
     gap: 10px;
