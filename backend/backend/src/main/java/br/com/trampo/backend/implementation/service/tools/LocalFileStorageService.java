@@ -2,6 +2,9 @@ package br.com.trampo.backend.implementation.service.tools;
 
 import br.com.trampo.backend.port.service.tools.FileStorageService;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -10,6 +13,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
 
+@Service
 public class LocalFileStorageService implements FileStorageService {
 
     private final Path uploadDirectory;
@@ -120,6 +124,35 @@ public class LocalFileStorageService implements FileStorageService {
             Files.deleteIfExists(path);
         } catch (IOException e) {
             throw new RuntimeException("Erro ao excluir arquivo", e);
+        }
+    }
+
+    @Override
+    public Resource load(String filePath) {
+
+        if (filePath == null || filePath.isBlank()) {
+            throw new IllegalArgumentException("Caminho da imagem não informado.");
+        }
+
+        try {
+            Path path = uploadDirectory
+                    .resolve(filePath)
+                    .normalize();
+
+            if (!path.startsWith(uploadDirectory)) {
+                throw new SecurityException("Caminho de arquivo inválido.");
+            }
+
+            Resource resource = new UrlResource(path.toUri());
+
+            if (!resource.exists() || !resource.isReadable()) {
+                throw new IllegalArgumentException("Imagem não encontrada.");
+            }
+
+            return resource;
+
+        } catch (IOException e) {
+            throw new RuntimeException("Erro ao carregar imagem.", e);
         }
     }
 }

@@ -6,6 +6,7 @@ import br.com.trampo.backend.domain.Category;
 import br.com.trampo.backend.domain.Users;
 import br.com.trampo.backend.domain.enums.StatusTicket;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -13,6 +14,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
+@Builder
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

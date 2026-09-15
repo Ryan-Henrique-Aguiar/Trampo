@@ -336,4 +336,17 @@ public class UsersPostgresDaoImpl implements UsersDao {
             throw new DatabaseException("Erro ao atualizar disponibilidade para urgências.", e);
         }
     }
+
+    @Override
+    public void updateProfileImage(Integer userId, String imagePath) {
+        String sql = "UPDATE users SET profile_image_ural = ? WHERE id = ?";
+
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setInt(1, userId);
+            preparedStatement.setString(2, imagePath);
+        } catch (SQLException e) {
+            throw new DatabaseException("Erro ao atualizar profile image.", e);
+        }
+    }
 }

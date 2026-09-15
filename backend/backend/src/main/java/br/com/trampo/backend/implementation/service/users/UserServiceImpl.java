@@ -22,12 +22,16 @@ import br.com.trampo.backend.infra.validation.PhoneValidator;
 import br.com.trampo.backend.port.dao.users.UsersDao;
 import br.com.trampo.backend.port.dao.UsersCategoryDao;
 import br.com.trampo.backend.port.dao.CategoryDao;
+import br.com.trampo.backend.port.service.tools.FileStorageService;
 import br.com.trampo.backend.port.service.users.UserService;
+import org.springframework.core.io.Resource;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -37,12 +41,15 @@ public class UserServiceImpl implements UserService {
     private final UsersCategoryDao usersCategoryDao;
     private final CategoryDao categoryDao;
 
+    private final FileStorageService fileStorageService;
+
     public UserServiceImpl(UsersDao usersDao, PasswordEncoder passwordEncoder,
-                           UsersCategoryDao usersCategoryDao, CategoryDao categoryDao) {
+                           UsersCategoryDao usersCategoryDao, CategoryDao categoryDao, FileStorageService fileStorageService) {
         this.usersDao = usersDao;
         this.passwordEncoder = passwordEncoder;
         this.usersCategoryDao = usersCategoryDao;
         this.categoryDao = categoryDao;
+        this.fileStorageService = fileStorageService;
     }
 
     @Transactional
@@ -224,5 +231,78 @@ public class UserServiceImpl implements UserService {
 
         usersDao.updateUrgencyAvailability(user.getId(), available);
         return available;
+    }
+
+    @Override
+    public void updateProfileImage(Integer userId, MultipartFile file) {
+
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("Imagem não pode ser vazia");
+        }
+
+        Users user = usersDao.findById(userId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("Usuário não encontrado")
+                );
+
+        String oldImagePath = user.getProfileImagePath();
+
+        String newImagePath = fileStorageService.save(
+                file,
+                "users/" + userId
+        );
+
+        usersDao.updateProfileImage(
+                userId,
+                newImagePath
+        );
+
+        if (oldImagePath != null && !oldImagePath.isBlank()) {
+            fileStorageService.delete(oldImagePath);
+        }
+    }
+
+    @Override
+    public Resource getProfileImage(Integer userId) {
+
+        if (userId == null || userId <= 0) {
+            throw new IllegalArgumentException("Usuário não encontrado.");
+        }
+
+        Users user = usersDao.findById(userId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("Usuário não encontrado.")
+                );
+
+        String filePath = user.getProfileImagePath();
+
+        if (filePath == null || filePath.isBlank()) {
+            throw new IllegalArgumentException("Usuário não possui foto de perfil.");
+        }
+
+        return fileStorageService.load(filePath);
+    }
+
+    @Override
+    public void deleteProfileImage(Integer userId) {
+
+        if (userId == null || userId <= 0) {
+            throw new IllegalArgumentException("Usuário não encontrado.");
+        }
+
+        Users user = usersDao.findById(userId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("Usuário não encontrado.")
+                );
+
+        String filePath = user.getProfileImagePath();
+
+        if (filePath == null || filePath.isBlank()) {
+            return;
+        }
+
+        fileStorageService.delete(filePath);
+
+        usersDao.updateProfileImage(userId, null);
     }
 }

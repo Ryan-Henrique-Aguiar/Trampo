@@ -381,7 +381,9 @@ public class TicketServiceImpl implements TicketService {
         }
     }
 
-    private Ticket findTicketById(int ticketId) {
+
+    @Override
+    public Ticket findTicketById(int ticketId) {
         try {
             return ticketDao.findById(ticketId)
                     .orElseThrow(() -> new InvalidRequestException("Ticket não encontrado."));
@@ -389,6 +391,7 @@ public class TicketServiceImpl implements TicketService {
             throw new DatabaseException("Erro ao buscar ticket por ID.", e);
         }
     }
+
 
     private StatusTicket parseStatus(String status) {
         try {

@@ -38,6 +38,8 @@ public class Users implements UserDetails {
     private String city;
     private String state;
 
+    private String profileImagePath;
+
     private List<Category> categories = new ArrayList<>();
 
     // Construtor para o metodo Register
