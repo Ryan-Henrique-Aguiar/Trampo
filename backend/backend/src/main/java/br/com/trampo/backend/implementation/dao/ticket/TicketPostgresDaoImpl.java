@@ -90,9 +90,11 @@ public class TicketPostgresDaoImpl implements TicketDao {
     @Override
     public Optional<Ticket> findById(int id) {
 
-        String sql = "SELECT t.*, a.street, a.number, a.neighborhood, a.city, a.state, a.zip_code, a.complement " +
+        String sql = "SELECT t.*, a.street, a.number, a.neighborhood, a.city, a.state, a.zip_code, a.complement, " +
+                "u.name AS user_name, u.rating AS user_rating " +
                 "FROM ticket t " +
                 "INNER JOIN address a ON t.address_id = a.id " +
+                "INNER JOIN users u ON u.id = t.user_id " +
                 "WHERE t.id = ?";
 
         try (Connection connection = dataSource.getConnection(); PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -133,10 +135,14 @@ public class TicketPostgresDaoImpl implements TicketDao {
                     a.city,
                     a.state,
                     a.zip_code,
-                    a.complement
+                    a.complement,
+                    u.name AS user_name,
+                    u.rating AS user_rating
                 FROM ticket t
                 INNER JOIN address a
                     ON a.id = t.address_id
+                INNER JOIN users u
+                    ON u.id = t.user_id
                 INNER JOIN user_category uc
                     ON uc.category_id = t.category_id
                    AND uc.user_id = ?
@@ -204,9 +210,11 @@ public class TicketPostgresDaoImpl implements TicketDao {
     public List<Ticket> findAll() {
 
         List<Ticket> tickets = new ArrayList<>();
-        String sql = "SELECT t.*, a.street, a.number, a.neighborhood, a.city, a.state, a.zip_code, a.complement " +
+        String sql = "SELECT t.*, a.street, a.number, a.neighborhood, a.city, a.state, a.zip_code, a.complement, " +
+                "u.name AS user_name, u.rating AS user_rating " +
                 "FROM ticket t " +
-                "INNER JOIN address a ON t.address_id = a.id";
+                "INNER JOIN address a ON t.address_id = a.id " +
+                "INNER JOIN users u ON u.id = t.user_id";
 
         try (Connection connection = dataSource.getConnection(); PreparedStatement stmt = connection.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
@@ -238,9 +246,12 @@ public class TicketPostgresDaoImpl implements TicketDao {
                     a.city,
                     a.state,
                     a.zip_code,
-                    a.complement
+                    a.complement,
+                    u.name AS user_name,
+                    u.rating AS user_rating
                 FROM ticket t
                 INNER JOIN address a ON a.id = t.address_id
+                INNER JOIN users u ON u.id = t.user_id
                 WHERE t.user_id = ?
                 """);
 
@@ -333,6 +344,10 @@ public class TicketPostgresDaoImpl implements TicketDao {
 
         Users user = new Users();
         user.setId(rs.getInt("user_id"));
+        user.setName(rs.getString("user_name"));
+        if (rs.getObject("user_rating") != null) {
+            user.setRating(rs.getDouble("user_rating"));
+        }
         ticket.setUser(user);
 
         Category category = new Category();

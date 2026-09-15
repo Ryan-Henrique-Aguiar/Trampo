@@ -11,6 +11,8 @@ export interface Ticket {
     serviceDate?: string;
     status: TicketStatus;
     userId: number;
+    userName: string;
+    userRating: number | null;
     categoryId: number;
     proposalsCount?: number;
     address: Address;

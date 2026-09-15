@@ -13,6 +13,7 @@ import {
   Validators
 } from '@angular/forms';
 import { ToastrService } from '@iqx-limited/ngx-toastr';
+import { DecimalPipe } from '@angular/common';
 
 import { Ticket } from '../../../models/ticket.model';
 import { Proposal } from '../../../models/proposal.model';
@@ -29,7 +30,7 @@ import { ProposalService } from '../../../services/proposal/proposal-service';
 
 @Component({
   selector: 'app-ticket-detail',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, DecimalPipe],
   templateUrl: './ticket-detail.html',
   styleUrl: './ticket-detail.css'
 })
