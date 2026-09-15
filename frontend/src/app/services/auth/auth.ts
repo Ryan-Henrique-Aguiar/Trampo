@@ -8,6 +8,7 @@ import { LoginRequestDto } from '../../dto/auth/login-request';
 import { RegisterRequestDto } from '../../dto/auth/register-request.dto';
 import { RegisterResponseDto } from '../../dto/auth/register-response.dto';
 import { environment } from '../../../environments/environment';
+import { UpdateProfileRequest, UpdateLocationRequest, UpdatePasswordRequest, UpdateProfileResponse } from '../../dto/user/profile.dto';
 
 @Injectable({
   providedIn: 'root'
@@ -15,6 +16,7 @@ import { environment } from '../../../environments/environment';
 export class AuthService {
 
   private apiUrl = `${environment.apiUrl}/auth`;
+  private userApiUrl = `${environment.apiUrl}/user`;
 
   private platformId = inject(PLATFORM_ID);
 
@@ -35,8 +37,8 @@ export class AuthService {
     return res;
   }
   
-  async register(dto: RegisterRequestDto): Promise<RegisterResponseDto> {
-    return await firstValueFrom(
+  register(dto: RegisterRequestDto): Promise<RegisterResponseDto> {
+    return firstValueFrom(
       this.http.post<RegisterResponseDto>(
         `${this.apiUrl}/register`,
         dto
@@ -44,55 +46,64 @@ export class AuthService {
     );
   }
 
+  async updateProfile(dto: UpdateProfileRequest): Promise<UserDto> {
+    const response = await firstValueFrom(
+      this.http.patch<UpdateProfileResponse>(`${this.userApiUrl}/profile`, dto)
+    );
+    this.setSession({ token: response.token });
+    this.currentUser = response.user;
+    return response.user;
+  }
+
+  async updateLocation(dto: UpdateLocationRequest): Promise<UserDto> {
+    const user = await firstValueFrom(
+      this.http.patch<UserDto>(`${this.userApiUrl}/location`, dto)
+    );
+    this.currentUser = user;
+    return user;
+  }
+
+  updatePassword(dto: UpdatePasswordRequest): Promise<void> {
+    return firstValueFrom(
+      this.http.patch<void>(`${this.userApiUrl}/password`, dto)
+    );
+  }
+
+  getUserCategories(): Promise<number[]> {
+    return firstValueFrom(
+      this.http.get<number[]>(`${this.userApiUrl}/categories`)
+    );
+  }
+
+  updateUserCategories(categoryIds: number[]): Promise<number[]> {
+    return firstValueFrom(
+      this.http.patch<number[]>(`${this.userApiUrl}/categories`, { categoryIds })
+    );
+  }
+
+  async refreshUser(): Promise<void> {
+    this.currentUser = await firstValueFrom(
+      this.http.get<UserDto>(`${this.apiUrl}/me`)
+    );
+  }
+
   logout(): void {
     if (!this.isBrowser()) return;
 
     localStorage.removeItem('token');
-    localStorage.removeItem('user');
 
     this.currentUser = null;
   }
 
   async validateSession(): Promise<boolean> {
-    if (!this.isBrowser()) return false;
-
-    localStorage.removeItem('user');
-
-    const token = this.getToken();
-
-    if (!token || this.isTokenExpired(token)) {
-      this.logout();
-      return false;
-    }
+    if (!this.isBrowser() || !this.getToken()) return false;
 
     try {
-      this.currentUser = await firstValueFrom(
-        this.http.get<UserDto>(`${this.apiUrl}/me`)
-      );
+      await this.refreshUser();
       return true;
     } catch {
       this.logout();
       return false;
-    }
-  }
-
-  private isTokenExpired(token: string): boolean {
-    try {
-      const base64 = token
-        .split('.')[1]
-        .replace(/-/g, '+')
-        .replace(/_/g, '/');
-
-      const padded = base64.padEnd(
-        Math.ceil(base64.length / 4) * 4,
-        '='
-      );
-
-      const payload = JSON.parse(atob(padded));
-
-      return !payload.exp || payload.exp * 1000 <= Date.now();
-    } catch {
-      return true;
     }
   }
 
@@ -109,7 +120,6 @@ export class AuthService {
   private setSession(res: AuthResponseDto): void {
     if (!this.isBrowser()) return;
 
-    localStorage.removeItem('user');
     localStorage.setItem('token', res.token);
   }
 

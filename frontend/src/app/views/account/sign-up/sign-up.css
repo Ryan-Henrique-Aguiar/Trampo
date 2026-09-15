@@ -132,7 +132,7 @@
 
   padding: 0 36px;
 
-  font-family: 'Syne', sans-serif;
+  font-family: 'Roboto', sans-serif;
   font-size: var(--font-size-md);
 
   color: var(--text-primary);
@@ -168,18 +168,13 @@ input[type="date"] {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
   padding: 0 12px;
-  font-family: 'Syne', sans-serif;
+  font-family: 'Roboto', sans-serif;
   font-size: var(--font-size-md);
   color: var(--text-primary);
   margin-top: 6px;
 }
 
 input.ng-invalid.ng-touched {
-  border-color: red;
-}
-
-input.server-error,
-input.server-error:focus {
   border-color: red;
 }
 
@@ -223,7 +218,7 @@ input[type="date"]::placeholder {
 
   padding: 0 36px;
 
-  font-family: 'Syne', sans-serif;
+  font-family: 'Roboto', sans-serif;
   font-size: var(--font-size-md);
 
   color: var(--text-primary);

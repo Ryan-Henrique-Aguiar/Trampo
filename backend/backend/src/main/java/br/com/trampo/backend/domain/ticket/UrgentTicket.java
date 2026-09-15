@@ -40,6 +40,6 @@ public class UrgentTicket {
         this.category = category;
 
         this.createdAt = LocalDateTime.now();
-        this.status = StatusTicket.IN_PROGRESS;
+        this.status = StatusTicket.OPEN;
     }
 }

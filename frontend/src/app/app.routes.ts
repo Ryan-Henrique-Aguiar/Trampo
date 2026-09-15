@@ -13,6 +13,7 @@ import { authGuard } from './guards/auth-guard';
 import { Support } from './views/pages/support/support';
 import { Contact } from './views/pages/contact/contact';
 import { Ofcommitment } from './views/pages/of-commitment/of-commitment';
+import { Profile } from './views/account/profile/profile';
 
 export const routes: Routes = [
 
@@ -49,14 +50,29 @@ export const routes: Routes = [
         path: 'categories',
         component: Categories
       },
+      {
+        path: 'perfil',
+        component: Profile
+      },
+      {
+        path: 'termo-de-compromisso',
+        component: Ofcommitment
+      },
+      {
+        path: 'faq',
+        component: Faq
+      },
+      {
+        path: 'suporte',
+        component: Support
+      },
+      {
+        path: 'contato',
+        component: Contact
+      },
 
     ]
   },
-
-  { path: 'termo-de-compromisso', component: Ofcommitment },
-  { path: 'faq', component: Faq },
-  { path: 'suporte', component: Support },
-  { path: 'contato', component: Contact},
 
   // Qualquer rota inexistente
   {

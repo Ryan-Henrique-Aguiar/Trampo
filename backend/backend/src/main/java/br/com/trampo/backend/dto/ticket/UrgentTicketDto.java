@@ -15,6 +15,7 @@ public record UrgentTicketDto(
         LocalDateTime createdAt,
         LocalDateTime serviceDate,
         StatusTicket status,
+        Integer userId,
         Integer providerId,
         Integer categoryId,
         @Validated

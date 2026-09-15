@@ -1,0 +1,35 @@
+<div class="ticket-card">
+  <div class="ticket-top">
+    <span class="ticket-code">{{ ticket.code }}</span>
+    <div class="ticket-status-group">
+      <span class="ticket-status-label">Status:</span>
+      <span class="ticket-status" [class]="'ticket-status--' + ticket.status.toLowerCase()">
+        {{ getStatusLabel(ticket.status) }}
+      </span>
+    </div>
+  </div>
+
+  <p class="ticket-title">{{ ticket.title }}</p>
+
+  <div class="ticket-footer">
+    <div class="ticket-meta">
+      <span>
+        <i class="fa-solid fa-location-dot"></i>
+        {{ ticket.address.neighborhood }}, {{ ticket.address.city }}
+      </span>
+
+      <span>
+        <i class="fa-solid fa-clock"></i>
+        {{ formatDate(ticket.createdAt) }}
+      </span>
+    </div>
+    <div class="group-btn-detail">
+      <button
+        type="button"
+        class="ticket-button ticket-button--details"
+        (click)="onViewDetails()">
+        Detalhes
+      </button>
+    </div>
+  </div>
+</div>

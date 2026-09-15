@@ -65,6 +65,7 @@ public class TicketMapper {
                 urgentTicket.getCreatedAt(),
                 urgentTicket.getServiceDate(),
                 urgentTicket.getStatus(),
+                urgentTicket.getUser().getId(),
                 urgentTicket.getProvider().getId(),
                 urgentTicket.getCategory().getId(),
                 toAddressDto(urgentTicket.getAddress())

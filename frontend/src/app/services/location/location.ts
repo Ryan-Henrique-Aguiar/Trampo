@@ -31,8 +31,8 @@ export class LocationService {
 
   constructor(private http: HttpClient) {}
 
-  async getCep(cep: string): Promise<BrasilApiCepResponse> {
-    return await firstValueFrom(
+  getCep(cep: string): Promise<BrasilApiCepResponse> {
+    return firstValueFrom(
       this.http.get<BrasilApiCepResponse>(
         `${this.baseUrl}/cep/v2/${cep}`
       )

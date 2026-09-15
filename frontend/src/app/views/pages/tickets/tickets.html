@@ -1,42 +1,180 @@
 <section class="tickets-page">
-
-  <!-- Loading -->
-  @if (loading) {
-    <div class="loading-state">
-      <i class="fa-solid fa-spinner fa-spin"></i>
-      <span>Carregando...</span>
-    </div>
-  }
-
-  <!-- Error -->
-  @if (error) {
-    <div class="error-state">
-      <i class="fa-solid fa-exclamation-circle"></i>
-      <p>{{ error }}</p>
-    </div>
-  }
-
-  <!-- Conteúdo principal -->
-  @if (!loading && !error) {
     <!-- ========== MODO PRESTADOR ========== -->
     @if (isProviderMode) {
+      <div class="ticket-view-toggle" role="group" aria-label="Visualização de serviços do prestador">
+        <button type="button" [class.active]="providerView === 'available'"
+          [attr.aria-pressed]="providerView === 'available'" (click)="changeProviderView('available')">
+          Serviços Disponíveis
+        </button>
+        <button type="button" [class.active]="providerView === 'proposals'"
+          [attr.aria-pressed]="providerView === 'proposals'" (click)="changeProviderView('proposals')">
+          Minhas propostas
+        </button>
+        <button type="button" class="urgent-toggle" [class.active]="providerView === 'urgent'"
+          [attr.aria-pressed]="providerView === 'urgent'" (click)="changeProviderView('urgent')">
+          Atendimentos urgentes
+        </button>
+      </div>
+
+      @if (providerView === 'available') {
       <div class="section-header">
         <h2>Serviços disponíveis para você</h2>
         <span class="tickets-count">{{ availableTickets.length }} serviços</span>
       </div>
 
-      @if (availableTickets.length > 0) {
+      @if (loadingAvailableTickets) {
+        <div class="loading-state" role="status">
+          <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+          <span>Carregando serviços...</span>
+        </div>
+      } @else if (availableTicketsError) {
+        <div class="error-state" role="alert">
+          <i class="fa-solid fa-exclamation-circle" aria-hidden="true"></i>
+          <p>{{ availableTicketsError }}</p>
+        </div>
+      } @else if (availableTickets.length > 0) {
         <div class="tickets">
-          @for (ticket of availableTickets; track ticket.code) {
+          @for (ticket of availableTickets; track ticket.id) {
             <app-ticket-card [ticket]="ticket" (viewDetails)="openTicketDetail($event)" />
           }
         </div>
+
+        @if (availableCurrentPage > 0 || availableHasNextPage) {
+          <div class="pagination" aria-label="Paginação de serviços disponíveis">
+            <button type="button" (click)="changeAvailablePage(availableCurrentPage - 1)" [disabled]="availableCurrentPage === 0">
+              Anterior
+            </button>
+            <span>Página {{ availableCurrentPage + 1 }}</span>
+            <button type="button" (click)="changeAvailablePage(availableCurrentPage + 1)" [disabled]="!availableHasNextPage">
+              Próxima
+            </button>
+          </div>
+        }
       } @else {
         <div class="empty-state">
           <i class="fa-regular fa-face-smile"></i>
           <h3>Nenhum serviço disponível</h3>
           <p>Não há serviços disponíveis nas suas categorias de atuação no momento.</p>
         </div>
+      }
+      } @else if (providerView === 'proposals') {
+        <div class="section-header">
+          <h2>Minhas propostas</h2>
+          <span class="tickets-count">{{ myProposals.length }} propostas</span>
+        </div>
+
+        <div class="ticket-filters" aria-label="Filtros das minhas propostas">
+          <div class="filter-group filter-group--status">
+            <span class="filter-label">Status</span>
+            <div class="status-filters">
+              @for (status of proposalStatusOptions; track status.value) {
+                <button type="button" [class.active]="selectedProposalStatuses.includes(status.value)"
+                  [attr.aria-pressed]="selectedProposalStatuses.includes(status.value)"
+                  (click)="toggleProposalStatus(status.value)">
+                  {{ status.label }}
+                </button>
+              }
+            </div>
+          </div>
+          @if (selectedProposalStatuses.length > 0) {
+            <button type="button" class="clear-filters" (click)="clearProposalFilters()">Limpar filtros</button>
+          }
+        </div>
+
+        @if (loadingMyProposals) {
+          <div class="loading-state" role="status">
+            <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+            <span>Carregando propostas...</span>
+          </div>
+        } @else if (myProposalsError) {
+          <div class="error-state" role="alert">
+            <i class="fa-solid fa-exclamation-circle" aria-hidden="true"></i>
+            <p>{{ myProposalsError }}</p>
+            <button type="button" class="btn-primary" (click)="loadMyProposals()">Tentar novamente</button>
+          </div>
+        } @else if (myProposals.length > 0) {
+          <div class="tickets">
+            @for (item of myProposals; track item.proposal.id) {
+              <div class="my-proposal-item">
+                <div class="my-proposal-summary">
+                  <span>Sua proposta: <strong>{{ formatCurrency(item.proposal.priceRange) }}</strong></span>
+                  <span class="proposal-status" [class]="'proposal-status--' + item.proposal.status.toLowerCase()">
+                    {{ getProposalStatusLabel(item.proposal.status) }}
+                  </span>
+                </div>
+                <app-ticket-card [ticket]="item.ticket" (viewDetails)="openTicketDetail($event)" />
+              </div>
+            }
+          </div>
+
+          @if (proposalsCurrentPage > 0 || proposalsHasNextPage) {
+            <div class="pagination" aria-label="Paginação das minhas propostas">
+              <button type="button" (click)="changeProposalsPage(proposalsCurrentPage - 1)" [disabled]="proposalsCurrentPage === 0">Anterior</button>
+              <span>Página {{ proposalsCurrentPage + 1 }}</span>
+              <button type="button" (click)="changeProposalsPage(proposalsCurrentPage + 1)" [disabled]="!proposalsHasNextPage">Próxima</button>
+            </div>
+          }
+        } @else {
+          <div class="empty-state">
+            <i class="fa-regular fa-file-lines" aria-hidden="true"></i>
+            <h3>{{ selectedProposalStatuses.length === 0 ? 'Nenhuma proposta enviada' : 'Nenhuma proposta encontrada' }}</h3>
+            <p>{{ selectedProposalStatuses.length === 0 ? 'Quando você enviar uma proposta, ela aparecerá aqui com o resultado.' : 'Tente alterar ou limpar os filtros selecionados.' }}</p>
+          </div>
+        }
+      } @else {
+        <div class="section-header">
+          <h2>Serviços urgentes atribuídos a você</h2>
+          <span class="tickets-count">{{ providedUrgentTickets.length }} serviços</span>
+        </div>
+
+        <div class="ticket-filters" aria-label="Filtros dos serviços urgentes atendidos">
+          <div class="filter-group filter-group--status">
+            <span class="filter-label">Status</span>
+            <div class="status-filters">
+              @for (status of providedUrgentStatusOptions; track status.value) {
+                <button type="button" [class.active]="selectedProvidedUrgentStatuses.includes(status.value)"
+                  [attr.aria-pressed]="selectedProvidedUrgentStatuses.includes(status.value)"
+                  (click)="toggleProvidedUrgentStatus(status.value)">
+                  {{ status.label }}
+                </button>
+              }
+            </div>
+          </div>
+          @if (selectedProvidedUrgentStatuses.length > 0) {
+            <button type="button" class="clear-filters" (click)="clearProvidedUrgentFilters()">Limpar filtros</button>
+          }
+        </div>
+
+        @if (loadingProvidedUrgentTickets) {
+          <div class="loading-state" role="status">
+            <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+            <span>Carregando seus serviços urgentes...</span>
+          </div>
+        } @else if (providedUrgentTicketsError) {
+          <div class="error-state" role="alert">
+            <p>{{ providedUrgentTicketsError }}</p>
+            <button type="button" class="btn-primary" (click)="loadProvidedUrgentTickets()">Tentar novamente</button>
+          </div>
+        } @else if (providedUrgentTickets.length > 0) {
+          <div class="tickets">
+            @for (ticket of providedUrgentTickets; track ticket.id) {
+              <app-urgent-ticket-card [ticket]="ticket" (viewDetails)="openUrgentTicketDetail($event)" />
+            }
+          </div>
+          @if (providedUrgentCurrentPage > 0 || providedUrgentHasNextPage) {
+            <div class="pagination" aria-label="Paginação dos serviços urgentes atendidos">
+              <button type="button" (click)="changeProvidedUrgentPage(providedUrgentCurrentPage - 1)" [disabled]="providedUrgentCurrentPage === 0">Anterior</button>
+              <span>Página {{ providedUrgentCurrentPage + 1 }}</span>
+              <button type="button" (click)="changeProvidedUrgentPage(providedUrgentCurrentPage + 1)" [disabled]="!providedUrgentHasNextPage">Próxima</button>
+            </div>
+          }
+        } @else {
+          <div class="empty-state">
+            <i class="fa-solid fa-bolt" aria-hidden="true"></i>
+            <h3>Nenhum serviço urgente encontrado</h3>
+            <p>{{ selectedProvidedUrgentStatuses.length > 0 ? 'Tente alterar ou limpar os filtros selecionados.' : 'Os serviços urgentes que você atender aparecerão aqui.' }}</p>
+          </div>
+        }
       }
     }
 
@@ -60,14 +198,55 @@
         </button>
       </div>
 
+      <div class="ticket-view-toggle" role="group" aria-label="Tipo de serviço">
+        <button type="button" [class.active]="ticketView === 'normal'"
+          [attr.aria-pressed]="ticketView === 'normal'" (click)="ticketView = 'normal'">
+          Serviços normais
+        </button>
+        <button type="button" class="urgent-toggle" [class.active]="ticketView === 'urgent'"
+          [attr.aria-pressed]="ticketView === 'urgent'" (click)="ticketView = 'urgent'">
+          Serviços urgentes
+        </button>
+      </div>
+
+      @if (ticketView === 'normal') {
       <div class="section-header">
         <h2>Meus serviços publicados</h2>
         <span class="tickets-count">{{ tickets.length }} serviços</span>
       </div>
 
-      @if (tickets.length > 0) {
+      <div class="ticket-filters" aria-label="Filtros de serviços">
+        <div class="filter-group filter-group--status">
+          <span class="filter-label">Status</span>
+          <div class="status-filters">
+            @for (status of statusOptions; track status.value) {
+              <button type="button" [class.active]="selectedStatuses.includes(status.value)"
+                [attr.aria-pressed]="selectedStatuses.includes(status.value)"
+                (click)="toggleStatus(status.value)">
+                {{ status.label }}
+              </button>
+            }
+          </div>
+        </div>
+
+        @if (hasActiveFilters) {
+          <button type="button" class="clear-filters" (click)="clearFilters()">Limpar filtros</button>
+        }
+      </div>
+
+      @if (loadingMyTickets) {
+        <div class="loading-state" role="status">
+          <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+          <span>Carregando serviços...</span>
+        </div>
+      } @else if (myTicketsError) {
+        <div class="error-state" role="alert">
+          <i class="fa-solid fa-exclamation-circle" aria-hidden="true"></i>
+          <p>{{ myTicketsError }}</p>
+        </div>
+      } @else if (tickets.length > 0) {
         <div class="tickets">
-          @for (ticket of tickets; track ticket.code) {
+          @for (ticket of tickets; track ticket.id) {
             <app-ticket-card
               [ticket]="ticket"
               (viewDetails)="openTicketDetail($event)"
@@ -75,25 +254,104 @@
           }
 
         </div>
+
+        @if (currentPage > 0 || hasNextPage) {
+          <div class="pagination" aria-label="Paginação de serviços">
+            <button type="button" (click)="changePage(currentPage - 1)" [disabled]="currentPage === 0">
+              Anterior
+            </button>
+            <span>Página {{ currentPage + 1 }}</span>
+            <button type="button" (click)="changePage(currentPage + 1)" [disabled]="!hasNextPage">
+              Próxima
+            </button>
+          </div>
+        }
       } @else {
         <div class="empty-state">
           <i class="fa-regular fa-face-smile"></i>
-          <h3>Nenhum serviço publicado</h3>
-          <p>Você ainda não publicou nenhum serviço. Comece agora!</p>
-          <button type="button" class="btn-primary" (click)="openTicketModal(false)">
-            <i class="fa-solid fa-plus"></i>
-            Publicar meu primeiro serviço
-          </button>
+          <h3>{{ hasActiveFilters ? 'Nenhum serviço encontrado' : 'Nenhum serviço publicado' }}</h3>
+          <p>{{ hasActiveFilters ? 'Tente alterar ou limpar os filtros selecionados.' : 'Você ainda não publicou nenhum serviço. Comece agora!' }}</p>
+          @if (!hasActiveFilters) {
+            <button type="button" class="btn-primary" (click)="openTicketModal(false)">
+              <i class="fa-solid fa-plus"></i>
+              Publicar meu primeiro serviço
+            </button>
+          }
         </div>
       }
+      } @else {
+        <div class="section-header">
+          <h2>Meus serviços urgentes</h2>
+          @if (!loadingMyUrgentTickets && !myUrgentTicketsError) {
+            <span class="tickets-count">{{ urgentTickets.length }} serviços</span>
+          }
+        </div>
+
+        <div class="ticket-filters" aria-label="Filtros de serviços urgentes">
+          <div class="filter-group filter-group--status">
+            <span class="filter-label">Status</span>
+            <div class="status-filters">
+              @for (status of statusOptions; track status.value) {
+                <button type="button" [class.active]="selectedUrgentStatuses.includes(status.value)"
+                  [attr.aria-pressed]="selectedUrgentStatuses.includes(status.value)"
+                  (click)="toggleUrgentStatus(status.value)">
+                  {{ status.label }}
+                </button>
+              }
+            </div>
+          </div>
+          @if (selectedUrgentStatuses.length > 0) {
+            <button type="button" class="clear-filters" (click)="clearUrgentFilters()">Limpar filtros</button>
+          }
+        </div>
+
+        @if (loadingMyUrgentTickets) {
+          <div class="loading-state" role="status">
+            <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+            <span>Carregando seus serviços urgentes...</span>
+          </div>
+        } @else if (myUrgentTicketsError) {
+          <div class="error-state" role="alert">
+            <p>{{ myUrgentTicketsError }}</p>
+            <button type="button" class="btn-primary" (click)="loadMyUrgentTickets()">Tentar novamente</button>
+          </div>
+        } @else if (urgentTickets.length > 0) {
+          <div class="tickets">
+            @for (ticket of urgentTickets; track ticket.id) {
+              <app-urgent-ticket-card
+                [ticket]="ticket"
+                (viewDetails)="openUrgentTicketDetail($event)" />
+            }
+          </div>
+          @if (urgentCurrentPage > 0 || urgentHasNextPage) {
+            <div class="pagination" aria-label="Paginação de serviços urgentes">
+              <button type="button" (click)="changeUrgentPage(urgentCurrentPage - 1)" [disabled]="urgentCurrentPage === 0">
+                Anterior
+              </button>
+              <span>Página {{ urgentCurrentPage + 1 }}</span>
+              <button type="button" (click)="changeUrgentPage(urgentCurrentPage + 1)" [disabled]="!urgentHasNextPage">
+                Próxima
+              </button>
+            </div>
+          }
+        } @else {
+          <div class="empty-state">
+            <i class="fa-solid fa-bolt" aria-hidden="true"></i>
+            <h3>Nenhum serviço urgente publicado</h3>
+            <p>Os serviços urgentes que você solicitar aparecerão aqui.</p>
+            <button type="button" class="btn-primary" (click)="openTicketModal(true)">
+              Solicitar serviço urgente
+            </button>
+        </div>
+      }
+      }
     }
-  }
 
   @if (activeModal === 'create') {
     <app-ticket-modal
       [isUrgent]="isModalUrgent"
       (close)="closeModal()"
-      (ticketCreated)="onTicketCreated($event)" />
+      (ticketCreated)="onTicketCreated()" />
   }
 
   @if (activeModal === 'details' && selectedTicket) {
@@ -101,6 +359,13 @@
       [ticket]="selectedTicket"
       (close)="closeModal()"
       (ticketUpdated)="onTicketUpdated($event)" />
+  }
+
+  @if (activeModal === 'urgent-details' && selectedUrgentTicket) {
+    <app-urgent-ticket-detail
+      [ticket]="selectedUrgentTicket"
+      (close)="closeModal()"
+      (ticketUpdated)="onUrgentTicketUpdated($event)" />
   }
 
   @if (activeModal === 'proposals' && selectedTicket) {

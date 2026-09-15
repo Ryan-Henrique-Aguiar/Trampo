@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { AuthLayout } from "../../../shared/components/auth-layout/auth-layout";
 import { Router, RouterLink } from '@angular/router';
-import { AbstractControl, FormBuilder, FormControl, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { LocationService, State, City } from '../../../services/location/location';
 import { AuthService } from '../../../services/auth/auth';
 import { RegisterRequestDto } from '../../../dto/auth/register-request.dto';
@@ -9,6 +9,7 @@ import { Category } from '../../../models/category.model';
 import { CategoryService } from '../../../services/category/category-service';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { ToastrService } from '@iqx-limited/ngx-toastr';
+import { formatCpf, formatPhone, onlyDigits } from '../../../utils/input-mask';
 
 @Component({
   selector: 'app-sign-up',
@@ -20,15 +21,9 @@ export class SignUp implements OnInit {
   registerForm;
 
   currentStep = 1;
-  errorMsg = '';
   loading = false;
   showPassword = false;
   showRepeatPassword = false;
-  fieldErrors: Record<'email' | 'cpf' | 'phone', string> = {
-    email: '',
-    cpf: '',
-    phone: ''
-  };
 
   categories: Category[] = [];
   states: State[] = [];
@@ -50,24 +45,18 @@ export class SignUp implements OnInit {
     private toastrService: ToastrService
   ) {
     this.registerForm = this.fb.group({
-      name: new FormControl('', Validators.required),
+      name: new FormControl('', [Validators.required, Validators.maxLength(100)]),
       password: new FormControl('', [Validators.required, Validators.minLength(6)]),
       repeatPassword: new FormControl('', Validators.required),
       email: new FormControl('', [Validators.required, Validators.email]),
-      phone: new FormControl('', [Validators.required, this.exactDigitsValidator(11)]),
-      cpf: new FormControl('', [Validators.required, this.exactDigitsValidator(11)]),
+      phone: new FormControl('', [Validators.required, Validators.minLength(15)]),
+      cpf: new FormControl('', [Validators.required, Validators.minLength(14)]),
       state: new FormControl('', Validators.required),
       city: new FormControl({ value: '', disabled: true }, Validators.required),
       provider: new FormControl(false),
       categoryIds: new FormControl<number[]>([]),
-    }, { validators: this.passwordsMatchValidator });
-  }
-
-  private passwordsMatchValidator(control: AbstractControl): ValidationErrors | null {
-    const password = control.get('password')?.value;
-    const repeatPassword = control.get('repeatPassword')?.value;
-
-    return password === repeatPassword ? null : { passwordsMismatch: true };
+    });
+    this.setupInputMasks();
   }
 
   async ngOnInit(): Promise<void> {
@@ -93,24 +82,6 @@ export class SignUp implements OnInit {
     this.updateProviderValidators(
       this.registerForm.get('provider')?.value ?? false
     );
-
-    (['email', 'cpf', 'phone'] as const).forEach((field) => {
-      this.registerForm.get(field)?.valueChanges.subscribe(() => {
-        this.fieldErrors[field] = '';
-      });
-    });
-
-    this.setupInputMasks();
-  }
-
-  private exactDigitsValidator(length: number) {
-    return (control: AbstractControl): ValidationErrors | null => {
-      const digits = this.onlyDigits(control.value ?? '');
-
-      if (!digits) return null;
-
-      return digits.length === length ? null : { digitLength: true };
-    };
   }
 
   private setupInputMasks(): void {
@@ -118,7 +89,7 @@ export class SignUp implements OnInit {
     const phoneControl = this.registerForm.get('phone');
 
     cpfControl?.valueChanges.subscribe((value) => {
-      const formattedCpf = this.formatCpf(value ?? '');
+      const formattedCpf = formatCpf(value ?? '');
 
       if (value !== formattedCpf) {
         cpfControl.setValue(formattedCpf, { emitEvent: false });
@@ -126,37 +97,12 @@ export class SignUp implements OnInit {
     });
 
     phoneControl?.valueChanges.subscribe((value) => {
-      const formattedPhone = this.formatPhone(value ?? '');
+      const formattedPhone = formatPhone(value ?? '');
 
       if (value !== formattedPhone) {
         phoneControl.setValue(formattedPhone, { emitEvent: false });
       }
     });
-  }
-
-  private formatCpf(value: string): string {
-    const digits = this.onlyDigits(value).slice(0, 11);
-
-    if (digits.length <= 3) return digits;
-    if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
-    if (digits.length <= 9) {
-      return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
-    }
-
-    return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
-  }
-
-  private formatPhone(value: string): string {
-    const digits = this.onlyDigits(value).slice(0, 11);
-
-    if (digits.length <= 2) return digits;
-    if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
-
-    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
-  }
-
-  private onlyDigits(value: string): string {
-    return value.replace(/\D/g, '');
   }
 
   private updateProviderValidators(provider: boolean): void {
@@ -204,11 +150,10 @@ async onStateChange(): Promise<void> {
     if (!fields) return true;
 
     const fieldsAreValid = fields.every((field) => this.registerForm.get(field)?.valid);
-    const passwordsMatch = step !== 1 || !this.registerForm.hasError('passwordsMismatch');
-    const fieldsHaveNoServerErrors = step !== 1
-      || Object.values(this.fieldErrors).every((message) => !message);
+    const passwordsMatch = step !== 1
+      || this.registerForm.value.password === this.registerForm.value.repeatPassword;
 
-    return fieldsAreValid && passwordsMatch && fieldsHaveNoServerErrors;
+    return fieldsAreValid && passwordsMatch;
   }
 
   nextStep(): void {
@@ -236,23 +181,6 @@ async onStateChange(): Promise<void> {
     this.showRepeatPassword = !this.showRepeatPassword;
   }
 
-  private applyFieldError(message: string): boolean {
-    const normalizedMessage = message.toLowerCase();
-    const field = normalizedMessage.includes('email')
-      ? 'email'
-      : normalizedMessage.includes('cpf')
-        ? 'cpf'
-        : normalizedMessage.includes('telefone')
-          ? 'phone'
-          : null;
-
-    if (!field) return false;
-
-    this.fieldErrors[field] = message;
-    this.registerForm.get(field)?.markAsTouched();
-    return true;
-  }
-
 async onRegister(): Promise<void> {
   if (this.loading) {
     return;
@@ -260,18 +188,18 @@ async onRegister(): Promise<void> {
 
   this.markStepAsTouched(2);
 
-  if (this.registerForm.invalid || !this.isStepValid(2)) return;
+  if (this.registerForm.invalid || !this.isStepValid(2)
+    || this.registerForm.value.password !== this.registerForm.value.repeatPassword) return;
 
   this.loading = true;
-  this.errorMsg = '';
   this.cdr.detectChanges();
 
   const dto: RegisterRequestDto = {
     name: this.registerForm.value.name!,
     email: this.registerForm.value.email!,
     password: this.registerForm.value.password!,
-    cpf: this.onlyDigits(this.registerForm.value.cpf!),
-    phone: this.onlyDigits(this.registerForm.value.phone!),
+    cpf: onlyDigits(this.registerForm.value.cpf!),
+    phone: onlyDigits(this.registerForm.value.phone!),
     provider: this.registerForm.value.provider!,
     city: this.registerForm.value.city!,
     state: this.registerForm.value.state!,
@@ -293,9 +221,9 @@ async onRegister(): Promise<void> {
     const message =
       err.error?.message ?? 'Erro ao cadastrar usuário';
 
-    this.errorMsg = message;
-
-    if (this.applyFieldError(message)) {
+    const lowerMessage = message.toLowerCase();
+    if (lowerMessage.includes('cpf') || lowerMessage.includes('email')
+      || lowerMessage.includes('e-mail') || lowerMessage.includes('telefone')) {
       this.currentStep = 1;
     }
 

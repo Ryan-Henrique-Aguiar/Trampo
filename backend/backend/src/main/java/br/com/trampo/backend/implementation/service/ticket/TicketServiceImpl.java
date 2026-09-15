@@ -9,6 +9,7 @@ import br.com.trampo.backend.domain.ticket.AvailableHour;
 import br.com.trampo.backend.domain.ticket.Ticket;
 import br.com.trampo.backend.domain.ticket.TicketPaymentMethod;
 import br.com.trampo.backend.dto.ticket.*;
+import br.com.trampo.backend.dto.common.PageDto;
 import br.com.trampo.backend.infra.exception.DatabaseException;
 import br.com.trampo.backend.infra.exception.InvalidRequestException;
 import br.com.trampo.backend.infra.exception.UnauthorizedUserException;
@@ -18,6 +19,7 @@ import br.com.trampo.backend.port.dao.ticket.AvailableDayDao;
 import br.com.trampo.backend.port.dao.ticket.AvailableHourDao;
 import br.com.trampo.backend.port.dao.ticket.TicketDao;
 import br.com.trampo.backend.port.dao.ticket.TicketPaymentMethodDao;
+import br.com.trampo.backend.port.dao.users.UsersDao;
 import br.com.trampo.backend.port.service.category.CategoryService;
 import br.com.trampo.backend.port.service.ticket.TicketService;
 import br.com.trampo.backend.utils.TicketCodeGenerate;
@@ -56,8 +58,9 @@ public class TicketServiceImpl implements TicketService {
     private final CategoryService categoryService;
     private final TicketMapper ticketMapper;
     private final TicketPaymentMethodDao ticketPaymentMethodDao;
+    private final UsersDao usersDao;
 
-    public TicketServiceImpl(TicketCodeGenerate ticketCodeGenerate, TicketDao ticketDao, AddressDao addressDao, AvailableDayDao availableDayDao, AvailableHourDao availableHourDao, CategoryService categoryService, TicketMapper ticketMapper, TicketPaymentMethodDao ticketPaymentMethodDao) {
+    public TicketServiceImpl(TicketCodeGenerate ticketCodeGenerate, TicketDao ticketDao, AddressDao addressDao, AvailableDayDao availableDayDao, AvailableHourDao availableHourDao, CategoryService categoryService, TicketMapper ticketMapper, TicketPaymentMethodDao ticketPaymentMethodDao, UsersDao usersDao) {
         this.ticketCodeGenerate = ticketCodeGenerate;
         this.ticketDao = ticketDao;
         this.addressDao = addressDao;
@@ -66,6 +69,7 @@ public class TicketServiceImpl implements TicketService {
         this.categoryService = categoryService;
         this.ticketMapper = ticketMapper;
         this.ticketPaymentMethodDao = ticketPaymentMethodDao;
+        this.usersDao = usersDao;
     }
 
     @Transactional
@@ -134,6 +138,8 @@ public class TicketServiceImpl implements TicketService {
                     ticketPaymentMethodDao.save(ticketPaymentMethod);
                 }
 
+                usersDao.incrementCreatedServicesCount(user.getId());
+
                 return ticketMapper.toDto(
                         newTicket,
                         createTicketDto.paymentMethods(),
@@ -168,15 +174,31 @@ public class TicketServiceImpl implements TicketService {
 
 
     @Override
-    public List<TicketDto> getMyTickets(Users user) {
+    public PageDto<TicketDto> getMyTickets(
+            Users user,
+            List<StatusTicket> statuses,
+            int page,
+            int size
+    ) {
         if (user == null || user.getId() == null) {
             throw new UnauthorizedUserException("Usuário não autenticado ou inválido.");
         }
 
-        try {
-            List<Ticket> tickets = ticketDao.findByUserId(user.getId());
+        validatePagination(page, size);
 
-            return tickets.stream().map(ticket -> {
+        try {
+            List<Ticket> tickets = ticketDao.findByUserId(
+                    user.getId(),
+                    statuses,
+                    page,
+                    size
+            );
+            boolean hasNext = tickets.size() > size;
+            if (hasNext) {
+                tickets = tickets.subList(0, size);
+            }
+
+            List<TicketDto> content = tickets.stream().map(ticket -> {
                 try {
                     List<PaymentMethod> paymentMethods = ticketPaymentMethodDao.findByTicketId(ticket.getId());
                     List<String> availableDays = availableDayDao.findByTicketId(ticket.getId());
@@ -188,13 +210,21 @@ public class TicketServiceImpl implements TicketService {
                 }
             }).toList();
 
+            return new PageDto<>(content, hasNext);
+
         } catch (SQLException e) {
             throw new DatabaseException("Erro ao consultar tickets do usuário no banco de dados.", e);
         }
     }
 
     @Override
-    public List<TicketDto> getAvailableTickets(Users user, Integer categoryId, BigDecimal minPrice, BigDecimal maxPrice
+    public PageDto<TicketDto> getAvailableTickets(
+            Users user,
+            Integer categoryId,
+            BigDecimal minPrice,
+            BigDecimal maxPrice,
+            int page,
+            int size
     ) {
         if (user == null || user.getId() == null) {
             throw new IllegalArgumentException("Usuário autenticado é obrigatório");
@@ -204,21 +234,39 @@ public class TicketServiceImpl implements TicketService {
             throw new IllegalArgumentException("Apenas prestadores podem consultar tickets disponíveis");
         }
 
+        validatePagination(page, size);
+
         try {
-            return ticketDao.findAvailableForProvider(
-                            user.getId(),
-                            user.getCity(),
-                            user.getState(),
-                            categoryId,
-                            minPrice,
-                            maxPrice
-                    )
-                    .stream()
-                    .map(ticketMapper::toDto)
-                    .toList();
+            List<Ticket> tickets = ticketDao.findAvailableForProvider(
+                    user.getId(),
+                    user.getCity(),
+                    user.getState(),
+                    categoryId,
+                    minPrice,
+                    maxPrice,
+                    page,
+                    size
+            );
+
+            boolean hasNext = tickets.size() > size;
+            if (hasNext) {
+                tickets = tickets.subList(0, size);
+            }
+
+            return new PageDto<>(tickets.stream().map(ticketMapper::toDto).toList(), hasNext);
 
         } catch (SQLException exception) {
             throw new RuntimeException("Erro ao consultar tickets disponíveis", exception);
+        }
+    }
+
+    private void validatePagination(int page, int size) {
+        if (page < 0) {
+            throw new InvalidRequestException("A página não pode ser negativa.");
+        }
+
+        if (size < 1 || size > 50) {
+            throw new InvalidRequestException("O tamanho da página deve estar entre 1 e 50.");
         }
     }
 
@@ -316,6 +364,9 @@ public class TicketServiceImpl implements TicketService {
         validateStatusTransition(ticket.getStatus(), newStatus);
 
         ticketDao.updateStatus(ticketId, newStatus);
+        if (newStatus == StatusTicket.COMPLETED) {
+            usersDao.incrementCompletedServicesCountForTicket(ticketId);
+        }
 
         Ticket updatedTicket = findTicketById(ticketId);
 
@@ -330,7 +381,9 @@ public class TicketServiceImpl implements TicketService {
         }
     }
 
-    private Ticket findTicketById(int ticketId) {
+
+    @Override
+    public Ticket findTicketById(int ticketId) {
         try {
             return ticketDao.findById(ticketId)
                     .orElseThrow(() -> new InvalidRequestException("Ticket não encontrado."));
@@ -338,6 +391,7 @@ public class TicketServiceImpl implements TicketService {
             throw new DatabaseException("Erro ao buscar ticket por ID.", e);
         }
     }
+
 
     private StatusTicket parseStatus(String status) {
         try {

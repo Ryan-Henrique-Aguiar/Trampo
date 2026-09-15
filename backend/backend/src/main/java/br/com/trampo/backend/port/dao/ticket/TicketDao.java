@@ -18,8 +18,22 @@ public interface TicketDao {
 
     List<Ticket> findAll() throws SQLException;
 
-    List<Ticket> findByUserId(int userId) throws SQLException;
-    List<Ticket> findAvailableForProvider(int providerId, String city, String state, Integer categoryId, BigDecimal minPrice, BigDecimal maxPrice) throws SQLException;
+    List<Ticket> findByUserId(
+            int userId,
+            List<StatusTicket> statuses,
+            int page,
+            int size
+    ) throws SQLException;
+    List<Ticket> findAvailableForProvider(
+            int providerId,
+            String city,
+            String state,
+            Integer categoryId,
+            BigDecimal minPrice,
+            BigDecimal maxPrice,
+            int page,
+            int size
+    ) throws SQLException;
 
     void incrementProposalsCount(int ticketId);
 

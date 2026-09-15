@@ -1,8 +1,10 @@
 package br.com.trampo.backend.controller.ticket;
 
 import br.com.trampo.backend.domain.Users;
+import br.com.trampo.backend.domain.enums.StatusTicket;
 import br.com.trampo.backend.dto.ticket.CreateTicketDto;
 import br.com.trampo.backend.dto.ticket.TicketDto;
+import br.com.trampo.backend.dto.common.PageDto;
 import br.com.trampo.backend.dto.ticket.UpdateTicketDto;
 import br.com.trampo.backend.dto.ticket.UpdateTicketStatusDto;
 import br.com.trampo.backend.port.service.ticket.TicketService;
@@ -34,20 +36,25 @@ public class TicketController {
     }
 
     @GetMapping()
-    public ResponseEntity<List<TicketDto>> findMyTickets(
-            @AuthenticationPrincipal Users user
+    public ResponseEntity<PageDto<TicketDto>> findMyTickets(
+            @AuthenticationPrincipal Users user,
+            @RequestParam(required = false) List<StatusTicket> status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size
     ) {
-        return ResponseEntity.ok(ticketService.getMyTickets(user));
+        return ResponseEntity.ok(ticketService.getMyTickets(user, status, page, size));
     }
 
     @GetMapping("/available")
-    public ResponseEntity<List<TicketDto>> findAvailableTicekts(
+    public ResponseEntity<PageDto<TicketDto>> findAvailableTicekts(
             @AuthenticationPrincipal Users user,
             @RequestParam(required = false) Integer categoryId,
             @RequestParam(required = false) BigDecimal minPrice,
-            @RequestParam(required = false) BigDecimal maxPrice
+            @RequestParam(required = false) BigDecimal maxPrice,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
     ) {
-        return ResponseEntity.ok(ticketService.getAvailableTickets(user, categoryId, minPrice, maxPrice));
+        return ResponseEntity.ok(ticketService.getAvailableTickets(user, categoryId, minPrice, maxPrice, page, size));
     }
 
     @PatchMapping("/{ticketId}")

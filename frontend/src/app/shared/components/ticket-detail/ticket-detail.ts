@@ -40,19 +40,14 @@ export class TicketDetail implements OnInit {
   @Output() close = new EventEmitter<void>();
   @Output() ticketUpdated = new EventEmitter<Ticket>();
 
-  private static readonly TERMINAL_STATUSES = [
-    TicketStatus.COMPLETED,
-    TicketStatus.CANCELLED
-  ];
-
-  paymentOptions = [
+  readonly paymentOptions = [
     { label: 'Pix', value: PaymentMethod.PIX },
     { label: 'Crédito', value: PaymentMethod.CREDIT },
     { label: 'Débito', value: PaymentMethod.DEBIT },
     { label: 'Dinheiro', value: PaymentMethod.CASH },
   ];
 
-  dayOptions = [
+  readonly dayOptions = [
     { label: 'Segunda', value: WeekDay.MONDAY },
     { label: 'Terça', value: WeekDay.TUESDAY },
     { label: 'Quarta', value: WeekDay.WEDNESDAY },
@@ -62,7 +57,7 @@ export class TicketDetail implements OnInit {
     { label: 'Domingo', value: WeekDay.SUNDAY },
   ];
 
-  hourOptions = [
+  readonly hourOptions = [
     '06:00', '07:00', '08:00', '09:00', '10:00', '11:00',
     '12:00', '13:00', '14:00', '15:00', '16:00', '17:00',
     '18:00', '19:00', '20:00', '21:00', '22:00', '23:00',
@@ -85,7 +80,7 @@ export class TicketDetail implements OnInit {
 
   proposalPriceControl = new FormControl<number | null>(
     null,
-    [Validators.required, Validators.min(1)]
+    [Validators.required]
   );
 
   constructor(
@@ -123,8 +118,8 @@ export class TicketDetail implements OnInit {
   }
 
   get isPendingStatusIrreversible(): boolean {
-    return this.pendingStatus !== null &&
-      TicketDetail.TERMINAL_STATUSES.includes(this.pendingStatus);
+    return this.pendingStatus === TicketStatus.COMPLETED ||
+      this.pendingStatus === TicketStatus.CANCELLED;
   }
 
   get myProposal(): Proposal | null {
@@ -326,10 +321,10 @@ export class TicketDetail implements OnInit {
       this.isEditing = false;
 
       this.ticketUpdated.emit(updatedTicket);
-      this.toastrService.success('Ticket atualizado com sucesso');
+      this.toastrService.success('Serviço atualizado com sucesso');
     } catch (err) {
       console.error('Erro ao atualizar ticket:', err);
-      this.toastrService.error('Não foi possível atualizar o ticket');
+      this.toastrService.error('Não foi possível atualizar o serviço');
     } finally {
       this.isSaving = false;
       this.cdr.detectChanges();
@@ -370,6 +365,7 @@ export class TicketDetail implements OnInit {
       this.isProposalFormOpen = false;
       this.proposalPriceControl.reset();
       this.toastrService.success('Proposta enviada com sucesso');
+      this.ticketUpdated.emit(this.ticket);
       this.closeModal();
     } catch (err) {
       console.error('Erro ao enviar proposta:', err);
@@ -387,7 +383,7 @@ export class TicketDetail implements OnInit {
       [ProposalStatus.REJECTED]: 'Recusada',
     };
 
-    return labels[status] || status;
+    return labels[status];
   }
 
   getStatusLabel(status: TicketStatus): string {
@@ -398,7 +394,7 @@ export class TicketDetail implements OnInit {
       [TicketStatus.CANCELLED]: 'Cancelado'
     };
 
-    return labels[status] || 'Desconhecido';
+    return labels[status];
   }
 
   getStatusClass(status: TicketStatus): string {
@@ -409,7 +405,7 @@ export class TicketDetail implements OnInit {
       [TicketStatus.CANCELLED]: 'status-cancelled'
     };
 
-    return classes[status] || 'status-default';
+    return classes[status];
   }
 
   getDayLabel(day: string): string {

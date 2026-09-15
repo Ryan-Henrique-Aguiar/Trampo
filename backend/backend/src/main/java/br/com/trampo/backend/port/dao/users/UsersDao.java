@@ -16,7 +16,15 @@ public interface UsersDao {
 
     Optional<Users> findByPhone(String phone);
 
-    List<Users> findAll();
+    void incrementCreatedServicesCount(int userId);
+
+    void incrementCompletedServicesCountForTicket(int ticketId);
+
+    void updateProfile(int userId, String name, String email, String cpf, String phone);
+
+    void updateLocation(int userId, String state, String city);
+
+    void updatePassword(int userId, String encodedPassword);
 
     List<Users> findProvidersAvailableForUrgency(
             int userId,
@@ -32,4 +40,7 @@ public interface UsersDao {
     );
 
     void updateUrgencyAvailability(int userId, boolean available);
+
+    void updateProfileImage(Integer userId, String imagePath);
+    
 }

@@ -1,8 +1,11 @@
 package br.com.trampo.backend.controller.proposal;
 
 import br.com.trampo.backend.domain.Users;
+import br.com.trampo.backend.domain.enums.StatusProposal;
 import br.com.trampo.backend.dto.proposal.CreateProposalDto;
+import br.com.trampo.backend.dto.proposal.MyProposalDto;
 import br.com.trampo.backend.dto.proposal.ProposalDto;
+import br.com.trampo.backend.dto.common.PageDto;
 import br.com.trampo.backend.port.service.proposal.ProposalService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +16,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -43,6 +47,16 @@ public class ProposalController {
             @PathVariable int ticketId
     ) {
         return ResponseEntity.ok(proposalService.findByTicketId(ticketId, user));
+    }
+
+    @GetMapping("/my")
+    public ResponseEntity<PageDto<MyProposalDto>> findMyProposals(
+            @AuthenticationPrincipal Users user,
+            @RequestParam(required = false) List<StatusProposal> status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return ResponseEntity.ok(proposalService.findMyProposals(user, status, page, size));
     }
 
     @PatchMapping("/{proposalId}/accept")
