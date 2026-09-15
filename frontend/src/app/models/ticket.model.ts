@@ -30,15 +30,20 @@ export interface UrgentTicket {
     title: string;
     description: string;
     createdAt: string;
-    status: TicketStatus
+    status: TicketStatus;
     userId: number;
     categoryId: number;
     providerId: number;
     address: Address;
     serviceDate?: string;
 }
+
+export interface UrgentTicketPage {
+    content: UrgentTicket[];
+    hasNext: boolean;
+}
+
 export interface GroupedTickets {
-  categoryName: string;
-  categoryId?: number;
-  tickets: Ticket[];
+    categoryName: string;
+    tickets: Ticket[];
 }

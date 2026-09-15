@@ -40,11 +40,6 @@ export class TicketDetail implements OnInit {
   @Output() close = new EventEmitter<void>();
   @Output() ticketUpdated = new EventEmitter<Ticket>();
 
-  private static readonly TERMINAL_STATUSES = [
-    TicketStatus.COMPLETED,
-    TicketStatus.CANCELLED
-  ];
-
   paymentOptions = [
     { label: 'Pix', value: PaymentMethod.PIX },
     { label: 'Crédito', value: PaymentMethod.CREDIT },
@@ -85,7 +80,7 @@ export class TicketDetail implements OnInit {
 
   proposalPriceControl = new FormControl<number | null>(
     null,
-    [Validators.required, Validators.min(1)]
+    [Validators.required]
   );
 
   constructor(
@@ -123,8 +118,8 @@ export class TicketDetail implements OnInit {
   }
 
   get isPendingStatusIrreversible(): boolean {
-    return this.pendingStatus !== null &&
-      TicketDetail.TERMINAL_STATUSES.includes(this.pendingStatus);
+    return this.pendingStatus === TicketStatus.COMPLETED ||
+      this.pendingStatus === TicketStatus.CANCELLED;
   }
 
   get myProposal(): Proposal | null {

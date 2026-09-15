@@ -1,4 +1,4 @@
-import { inject, Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { Ticket } from '../../models/ticket.model';
@@ -9,11 +9,12 @@ import { TicketStatus } from '../../enums/ticket-status';
 import { UpdateTicketRequest } from '../../dto/ticket/update-ticket-request';
 import { AvailableTicketFilters } from '../../dto/ticket/available-ticket-filters';
 import { TicketPage } from '../../models/ticket.model';
+
 @Injectable({ providedIn: 'root' })
 export class TicketService {
-
-  private http = inject(HttpClient);
   private baseUrl = `${environment.apiUrl}/tickets`;
+
+  constructor(private http: HttpClient) {}
 
   private static readonly TICKET_TRANSITIONS: Record<TicketStatus, TicketStatus[]> = {
     [TicketStatus.OPEN]: [TicketStatus.CANCELLED],
@@ -26,7 +27,7 @@ export class TicketService {
     return TicketService.TICKET_TRANSITIONS[currentStatus] ?? [];
   }
 
-  async getMyTickets(
+  getMyTickets(
     statuses: TicketStatus[] = [],
     page = 0,
     size = 5
@@ -46,7 +47,7 @@ export class TicketService {
   }
 
 
-  async getAvailableTickets(
+  getAvailableTickets(
     filters?: AvailableTicketFilters,
     page = 0,
     size = 10
@@ -54,24 +55,26 @@ export class TicketService {
     let params = new HttpParams();
 
     if (filters?.categoryId != null) {
-      params = params.set('categoryId',filters.categoryId.toString());
+      params = params.set('categoryId', filters.categoryId.toString());
     }
 
-    if (filters?.minPrice != null) {params = params.set('minPrice',filters.minPrice.toString());
+    if (filters?.minPrice != null) {
+      params = params.set('minPrice', filters.minPrice.toString());
     }
 
-    if (filters?.maxPrice != null) {params = params.set('maxPrice',filters.maxPrice.toString());
+    if (filters?.maxPrice != null) {
+      params = params.set('maxPrice', filters.maxPrice.toString());
     }
 
     params = params.set('page', page.toString());
     params = params.set('size', size.toString());
 
     return firstValueFrom(
-      this.http.get<TicketPage>(`${this.baseUrl}/available`,{ params })
+      this.http.get<TicketPage>(`${this.baseUrl}/available`, { params })
     );
   }
 
-  async create(dto: CreateTicketRequest): Promise<Ticket> {
+  create(dto: CreateTicketRequest): Promise<Ticket> {
     const payload: CreateTicketRequest = {
       title: dto.title,
       description: dto.description,
@@ -92,7 +95,7 @@ export class TicketService {
   }
 
 
-  async update(id: number, dto: UpdateTicketRequest): Promise<Ticket> {
+  update(id: number, dto: UpdateTicketRequest): Promise<Ticket> {
     const payload: UpdateTicketRequest = {
       title: dto.title,
       description: dto.description,
@@ -106,14 +109,12 @@ export class TicketService {
       availableHours: dto.availableHours
     };
 
-    const updatedTicket = await firstValueFrom(
+    return firstValueFrom(
       this.http.patch<Ticket>(`${this.baseUrl}/${id}`, payload)
     );
-
-    return updatedTicket;
   }
 
-  async updateStatus(
+  updateStatus(
     id: number,
     currentStatus: TicketStatus,
     newStatus: TicketStatus

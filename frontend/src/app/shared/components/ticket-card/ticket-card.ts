@@ -9,8 +9,6 @@ import { ViewModeService } from '../../../services/view-mode/view-mode-service';
   styleUrl: './ticket-card.css',
 })
 export class TicketCard {
-
-
   @Input() ticket!: Ticket;
   @Output() viewDetails = new EventEmitter<Ticket>();
   @Output() viewProposals = new EventEmitter<Ticket>();
@@ -20,7 +18,7 @@ export class TicketCard {
   get isProviderMode() {
     return this.viewModeService.isProviderMode;
   }
-  // Retorna o label do status
+
   getStatusLabel(status: TicketStatus): string {
     const labels: Record<TicketStatus, string> = {
       [TicketStatus.OPEN]: 'Aberto',
@@ -28,10 +26,9 @@ export class TicketCard {
       [TicketStatus.COMPLETED]: 'Finalizado',
       [TicketStatus.CANCELLED]: 'Cancelado'
     };
-    return labels[status] || status || 'Desconhecido';
+    return labels[status];
   }
 
-  // Formata data
   formatDate(date: string): string {
     if (!date) return '';
     return new Date(date).toLocaleDateString('pt-BR', {
@@ -41,7 +38,6 @@ export class TicketCard {
     });
   }
 
-  // Formata valor monetário
   formatCurrency(value: number): string {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -49,10 +45,10 @@ export class TicketCard {
     }).format(value);
   }
 
-  // Emite o evento quando o botão de detalhes é clicado
   onViewDetails(): void {
     this.viewDetails.emit(this.ticket);
   }
+
   onViewProposals(): void {
     this.viewProposals.emit(this.ticket);
   }

@@ -31,7 +31,7 @@ export class ProposalsModal implements OnInit {
   proposalsError: string | null = null;
 
   isLoading = false;
-  processingProposalId: number | null = null;
+  isProcessing = false;
 
   constructor(
     private proposalService: ProposalService,
@@ -61,7 +61,7 @@ export class ProposalsModal implements OnInit {
   }
 
   closeModal(): void {
-    this.processingProposalId = null;
+    this.isProcessing = false;
     this.proposalsError = null;
     this.close.emit();
   }
@@ -100,13 +100,13 @@ export class ProposalsModal implements OnInit {
 
   async onAcceptProposal(proposal: Proposal): Promise<void> {
     if (
-      this.processingProposalId !== null ||
+      this.isProcessing ||
       !this.ticket
     ) {
       return;
     }
 
-    this.processingProposalId = proposal.id;
+    this.isProcessing = true;
     this.proposalsError = null;
 
     try {
@@ -121,20 +121,20 @@ export class ProposalsModal implements OnInit {
       console.error('Erro ao aceitar proposta:', err);
       this.proposalsError = 'Não foi possível aceitar a proposta.';
     } finally {
-      this.processingProposalId = null;
+      this.isProcessing = false;
       this.cdr.detectChanges();
     }
   }
 
   async onRejectProposal(proposal: Proposal): Promise<void> {
     if (
-      this.processingProposalId !== null ||
+      this.isProcessing ||
       !this.ticket
     ) {
       return;
     }
 
-    this.processingProposalId = proposal.id;
+    this.isProcessing = true;
     this.proposalsError = null;
 
     try {
@@ -145,7 +145,7 @@ export class ProposalsModal implements OnInit {
       console.error('Erro ao rejeitar proposta:', err);
       this.proposalsError = 'Não foi possível recusar a proposta.';
     } finally {
-      this.processingProposalId = null;
+      this.isProcessing = false;
       this.cdr.detectChanges();
     }
   }
@@ -160,11 +160,7 @@ export class ProposalsModal implements OnInit {
     return labels[status] || status;
   }
 
-  formatCurrency(value: number | undefined): string {
-    if (value === undefined || value === null) {
-      return 'Não informado';
-    }
-
+  formatCurrency(value: number): string {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL'

@@ -1,23 +1,19 @@
-import { inject, Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { firstValueFrom, Observable } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 import { Category } from '../../models/category.model';
 import { environment } from '../../../environments/environment';
 
 
 @Injectable({ providedIn: 'root' })
 export class CategoryService {
-  private http = inject(HttpClient);
-
   private baseUrl = `${environment.apiUrl}/categories`;
 
-  async getAll(): Promise<Category[]> {
-    return await firstValueFrom (
-      this.http.get<Category[]>(this.baseUrl)
-    )
-  }
+  constructor(private http: HttpClient) {}
 
-  getById(id: number): Observable<Category> {
-    return this.http.get<Category>(`${this.baseUrl}/${id}`);
+  getAll(): Promise<Category[]> {
+    return firstValueFrom(
+      this.http.get<Category[]>(this.baseUrl)
+    );
   }
 }

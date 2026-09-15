@@ -37,8 +37,8 @@ export class AuthService {
     return res;
   }
   
-  async register(dto: RegisterRequestDto): Promise<RegisterResponseDto> {
-    return await firstValueFrom(
+  register(dto: RegisterRequestDto): Promise<RegisterResponseDto> {
+    return firstValueFrom(
       this.http.post<RegisterResponseDto>(
         `${this.apiUrl}/register`,
         dto
@@ -63,16 +63,20 @@ export class AuthService {
     return user;
   }
 
-  async updatePassword(dto: UpdatePasswordRequest): Promise<void> {
-    await firstValueFrom(this.http.patch<void>(`${this.userApiUrl}/password`, dto));
+  updatePassword(dto: UpdatePasswordRequest): Promise<void> {
+    return firstValueFrom(
+      this.http.patch<void>(`${this.userApiUrl}/password`, dto)
+    );
   }
 
-  async getUserCategories(): Promise<number[]> {
-    return await firstValueFrom(this.http.get<number[]>(`${this.userApiUrl}/categories`));
+  getUserCategories(): Promise<number[]> {
+    return firstValueFrom(
+      this.http.get<number[]>(`${this.userApiUrl}/categories`)
+    );
   }
 
-  async updateUserCategories(categoryIds: number[]): Promise<number[]> {
-    return await firstValueFrom(
+  updateUserCategories(categoryIds: number[]): Promise<number[]> {
+    return firstValueFrom(
       this.http.patch<number[]>(`${this.userApiUrl}/categories`, { categoryIds })
     );
   }

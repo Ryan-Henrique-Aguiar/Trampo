@@ -1,4 +1,4 @@
-import { inject, Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 
@@ -11,11 +11,11 @@ import { ProposalStatus } from '../../enums/proposal-status';
   providedIn: 'root'
 })
 export class ProposalService {
-
-  private http = inject(HttpClient);
   private baseUrl = `${environment.apiUrl}/proposals`;
 
-  async getByTicketId(ticketId: number): Promise<Proposal[]> {
+  constructor(private http: HttpClient) {}
+
+  getByTicketId(ticketId: number): Promise<Proposal[]> {
     return firstValueFrom(
       this.http.get<Proposal[]>(
         `${this.baseUrl}/ticket/${ticketId}`
@@ -23,7 +23,11 @@ export class ProposalService {
     );
   }
 
-  async getMyProposals(statuses: ProposalStatus[], page = 0, size = 10): Promise<MyProposalPage> {
+  getMyProposals(
+    statuses: ProposalStatus[],
+    page = 0,
+    size = 10
+  ): Promise<MyProposalPage> {
     let params = new HttpParams();
     for (const status of statuses) {
       params = params.append('status', status);
@@ -38,13 +42,13 @@ export class ProposalService {
     );
   }
 
-  async create(dto: CreateProposalRequest): Promise<Proposal> {
+  create(dto: CreateProposalRequest): Promise<Proposal> {
     return firstValueFrom(
       this.http.post<Proposal>(this.baseUrl, dto)
     );
   }
 
-  async reject(proposalId: number): Promise<Proposal> {
+  reject(proposalId: number): Promise<Proposal> {
     return firstValueFrom(
       this.http.patch<Proposal>(
         `${this.baseUrl}/${proposalId}/reject`,
@@ -53,7 +57,7 @@ export class ProposalService {
     );
   }
 
-  async accept(proposalId: number): Promise<Proposal> {
+  accept(proposalId: number): Promise<Proposal> {
     return firstValueFrom(
       this.http.patch<Proposal>(
         `${this.baseUrl}/${proposalId}/accept`,

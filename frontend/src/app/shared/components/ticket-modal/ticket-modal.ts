@@ -43,28 +43,28 @@ export class TicketModal implements OnInit {
   @Input() preselectedCategoryId: number | null = null;
   @Output() close = new EventEmitter<void>();
   @Output() ticketCreated = new EventEmitter<Ticket>();
-  public categories: Category[] = [];
-  public currentStep = 1;
-  public isSubmitting = false;
-  public providers: UrgentProviderResponse[] = [];
-  public states: State[] = []
-  public cities: City[] = [];
-  public cepLoading = false;
-  public cepError: string | null = null;
-  public sendingProviderId: number | null = null;
-  public providersError: string | null = null;
+  categories: Category[] = [];
+  currentStep = 1;
+  isSubmitting = false;
+  providers: UrgentProviderResponse[] = [];
+  states: State[] = [];
+  cities: City[] = [];
+  cepLoading = false;
+  cepError: string | null = null;
+  sendingProviderId: number | null = null;
+  providersError: string | null = null;
 
-  public ticketForm!: FormGroup;
-  public totalSteps = 3;
+  ticketForm!: FormGroup;
+  readonly totalSteps = 3;
 
-  public paymentOptions = [
+  paymentOptions = [
     { label: 'Pix', value: PaymentMethod.PIX },
     { label: 'Crédito', value: PaymentMethod.CREDIT },
     { label: 'Débito', value: PaymentMethod.DEBIT },
     { label: 'Dinheiro', value: PaymentMethod.CASH },
   ];
 
-  public dayOptions = [
+  dayOptions = [
     { label: 'Segunda', value: WeekDay.MONDAY },
     { label: 'Terça', value: WeekDay.TUESDAY },
     { label: 'Quarta', value: WeekDay.WEDNESDAY },
@@ -74,7 +74,7 @@ export class TicketModal implements OnInit {
     { label: 'Domingo', value: WeekDay.SUNDAY },
   ];
 
-  public hourOptions = [
+  hourOptions = [
     '06:00', '07:00', '08:00', '09:00', '10:00', '11:00',
     '12:00', '13:00', '14:00', '15:00', '16:00', '17:00',
     '18:00', '19:00', '20:00', '21:00', '22:00', '23:00',
@@ -138,7 +138,7 @@ export class TicketModal implements OnInit {
     }
   }
 
-  public async onStateChange(): Promise<void> {
+  async onStateChange(): Promise<void> {
     const stateCode = this.ticketForm.get('address.state')?.value;
     const state = this.states.find(s => s.uf === stateCode);
 
@@ -152,16 +152,16 @@ export class TicketModal implements OnInit {
     try {
       this.cities = await this.locationService.getCities(state.uf);
 
-      cityControl?.enable()
+      cityControl?.enable();
     } catch (err) {
-      console.error("Erro ao carregar cidades:", err)
+      console.error('Erro ao carregar cidades:', err);
       this.cities = [];
     } finally {
       this.cdr.detectChanges();
     }
   }
 
-  public formatCep(event: any): void {
+  formatCep(event: any): void {
     let value = event.target.value.replace(/\D/g, '');
     if (value.length > 5) {
       value = value.substring(0, 5) + '-' + value.substring(5, 8);
@@ -169,7 +169,7 @@ export class TicketModal implements OnInit {
     this.ticketForm.get('address.zipCode')?.setValue(value, { emitEvent: false });
   }
 
-  public async onCepBlur(): Promise<void> {
+  async onCepBlur(): Promise<void> {
     const cep = this.ticketForm.get('address.zipCode')?.value;
 
     if (!cep) return;
@@ -217,31 +217,28 @@ export class TicketModal implements OnInit {
     const cityControl = this.ticketForm.get('address.city');
     const stateCode = data.state ?? null;
     if (!stateCode) {
-      this.cepError = "Não conseguimos identificar o estado pelo CEP"
-      this.cepLoading = false;
+      this.cepError = 'Não conseguimos identificar o estado pelo CEP';
       return;
     }
     const state = this.states.find(s => s.uf === stateCode);
     if (!state) {
       cityControl?.disable();
-      this.cepLoading = false
-      this.cepError = "Não conseguimos identificar o estado automaticamente. Selecione manualmente.";
+      this.cepError = 'Não conseguimos identificar o estado automaticamente. Selecione manualmente.';
       return;
     }
     this.ticketForm.get('address.state')?.setValue(stateCode);
 
     try {
-      this.cities = await this.locationService.getCities(state.uf)
+      this.cities = await this.locationService.getCities(state.uf);
       cityControl?.enable();
       const match = this.cities.find(c => normalizeText(c.name) === normalizeText(data.city));
       cityControl?.setValue(match ? match.name : null);
       if (!match) {
-        this.cepError = "Cidade não encontrada na lista oficial. Selecione manualmente.";
+        this.cepError = 'Cidade não encontrada na lista oficial. Selecione manualmente.';
       }
     } catch (err) {
-      console.error("Erro ao carregar cidades do estado:", err)
+      console.error('Erro ao carregar cidades do estado:', err);
       cityControl?.disable();
-      this.cepLoading = false;
     }
   }
 
@@ -249,14 +246,14 @@ export class TicketModal implements OnInit {
     try {
       this.categories = await this.categoryService.getAll();
     } catch (err) {
-      console.error("Erro ao buscar categorias")
+      console.error('Erro ao buscar categorias', err);
       this.categories = [];
     } finally {
       this.cdr.detectChanges();
     }
   }
 
-  public async saveTicket(): Promise<void> {
+  async saveTicket(): Promise<void> {
     if (this.isSubmitting) return;
 
     if (this.ticketForm.invalid) {
@@ -292,7 +289,7 @@ export class TicketModal implements OnInit {
         'Erro ao criar ticket:',
         err
       );
-
+      this.toastrService.error('Não foi possível criar o serviço.');
     } finally {
       this.isSubmitting = false;
       this.cdr.detectChanges();
@@ -325,7 +322,7 @@ export class TicketModal implements OnInit {
     }
   }
 
-  public nextStep(): void {
+  nextStep(): void {
     if (!this.isStepValid(this.currentStep)) {
       this.markStepAsTouched(this.currentStep);
       return;
@@ -341,7 +338,7 @@ export class TicketModal implements OnInit {
     }
   }
 
-  public prevStep(): void {
+  prevStep(): void {
     if (this.currentStep > 1) {
       this.currentStep--;
     }
@@ -357,19 +354,19 @@ export class TicketModal implements OnInit {
     this.stepFields[step]?.forEach(field => this.ticketForm.get(field)?.markAsTouched());
   }
 
-  public isInvalid(field: string): boolean {
+  isInvalid(field: string): boolean {
     const control = this.ticketForm.get(field);
     return !!control && control.invalid && control.touched;
   }
 
-  public isPaymentSelected(paymentMethod: PaymentMethod): boolean {
+  isPaymentSelected(paymentMethod: PaymentMethod): boolean {
     const paymentMethods: PaymentMethod[] =
       this.ticketForm.get('paymentMethods')?.value ?? [];
 
     return paymentMethods.includes(paymentMethod);
   }
 
-  public togglePaymentMethod(paymentMethod: PaymentMethod): void {
+  togglePaymentMethod(paymentMethod: PaymentMethod): void {
     const paymentMethods: PaymentMethod[] =
       this.ticketForm.get('paymentMethods')?.value ?? [];
 
@@ -381,7 +378,7 @@ export class TicketModal implements OnInit {
     this.ticketForm.get('paymentMethods')?.markAsTouched();
   }
 
-  public async createUrgentTicket(
+  async createUrgentTicket(
     provider: UrgentProviderResponse
   ): Promise<void> {
     if (this.sendingProviderId !== null) return;
@@ -438,12 +435,12 @@ export class TicketModal implements OnInit {
       this.cdr.detectChanges();
     }
   }
-  public closeModal(): void {
+  closeModal(): void {
     this.resetForm();
     this.close.emit();
   }
 
-  public onOverlayClick(event: MouseEvent): void {
+  onOverlayClick(event: MouseEvent): void {
     if ((event.target as HTMLElement).classList.contains('modal-overlay')) {
       this.closeModal();
     }
