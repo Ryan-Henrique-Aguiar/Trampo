@@ -131,14 +131,12 @@
           <div class="filter-group filter-group--status">
             <span class="filter-label">Status</span>
             <div class="status-filters">
-              @for (status of statusOptions; track status.value) {
-                @if (status.value === 'IN_PROGRESS' || status.value === 'COMPLETED') {
-                  <button type="button" [class.active]="selectedProvidedUrgentStatuses.includes(status.value)"
-                    [attr.aria-pressed]="selectedProvidedUrgentStatuses.includes(status.value)"
-                    (click)="toggleProvidedUrgentStatus(status.value)">
-                    {{ status.label }}
-                  </button>
-                }
+              @for (status of providedUrgentStatusOptions; track status.value) {
+                <button type="button" [class.active]="selectedProvidedUrgentStatuses.includes(status.value)"
+                  [attr.aria-pressed]="selectedProvidedUrgentStatuses.includes(status.value)"
+                  (click)="toggleProvidedUrgentStatus(status.value)">
+                  {{ status.label }}
+                </button>
               }
             </div>
           </div>
@@ -302,6 +300,9 @@
               }
             </div>
           </div>
+          @if (selectedUrgentStatuses.length > 0) {
+            <button type="button" class="clear-filters" (click)="clearUrgentFilters()">Limpar filtros</button>
+          }
         </div>
 
         @if (loadingMyUrgentTickets) {
@@ -350,7 +351,7 @@
     <app-ticket-modal
       [isUrgent]="isModalUrgent"
       (close)="closeModal()"
-      (ticketCreated)="onTicketCreated($event)" />
+      (ticketCreated)="onTicketCreated()" />
   }
 
   @if (activeModal === 'details' && selectedTicket) {

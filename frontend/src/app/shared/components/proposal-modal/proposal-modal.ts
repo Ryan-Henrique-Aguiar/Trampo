@@ -157,7 +157,7 @@ export class ProposalsModal implements OnInit {
       [ProposalStatus.REJECTED]: 'Recusada',
     };
 
-    return labels[status] || status;
+    return labels[status];
   }
 
   formatCurrency(value: number): string {

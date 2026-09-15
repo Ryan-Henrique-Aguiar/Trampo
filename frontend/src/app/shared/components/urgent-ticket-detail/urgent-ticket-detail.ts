@@ -28,9 +28,15 @@ export class UrgentTicketDetail {
     private cdr: ChangeDetectorRef
   ) {}
 
+  get isOwnTicket(): boolean {
+    return this.ticket.userId === this.authService.currentUser?.id;
+  }
+
   get canChangeStatus(): boolean {
-    return this.ticket.userId === this.authService.currentUser?.id &&
-      (this.ticket.status === TicketStatus.OPEN || this.ticket.status === TicketStatus.IN_PROGRESS);
+    const statusAllowsChange = this.ticket.status === TicketStatus.OPEN ||
+      this.ticket.status === TicketStatus.IN_PROGRESS;
+
+    return this.isOwnTicket && statusAllowsChange;
   }
 
   toggleStatusMenu(): void {
@@ -82,7 +88,7 @@ export class UrgentTicketDetail {
       [TicketStatus.COMPLETED]: 'Finalizado',
       [TicketStatus.CANCELLED]: 'Cancelado'
     };
-    return labels[status] || status || 'Desconhecido';
+    return labels[status];
   }
 
   formatDate(date: string): string {
@@ -101,6 +107,6 @@ export class UrgentTicketDetail {
       [TicketStatus.COMPLETED]: 'status-completed',
       [TicketStatus.CANCELLED]: 'status-cancelled'
     };
-    return classes[status] || 'status-default';
+    return classes[status];
   }
 }

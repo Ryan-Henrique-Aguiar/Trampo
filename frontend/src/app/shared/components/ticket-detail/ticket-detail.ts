@@ -40,14 +40,14 @@ export class TicketDetail implements OnInit {
   @Output() close = new EventEmitter<void>();
   @Output() ticketUpdated = new EventEmitter<Ticket>();
 
-  paymentOptions = [
+  readonly paymentOptions = [
     { label: 'Pix', value: PaymentMethod.PIX },
     { label: 'Crédito', value: PaymentMethod.CREDIT },
     { label: 'Débito', value: PaymentMethod.DEBIT },
     { label: 'Dinheiro', value: PaymentMethod.CASH },
   ];
 
-  dayOptions = [
+  readonly dayOptions = [
     { label: 'Segunda', value: WeekDay.MONDAY },
     { label: 'Terça', value: WeekDay.TUESDAY },
     { label: 'Quarta', value: WeekDay.WEDNESDAY },
@@ -57,7 +57,7 @@ export class TicketDetail implements OnInit {
     { label: 'Domingo', value: WeekDay.SUNDAY },
   ];
 
-  hourOptions = [
+  readonly hourOptions = [
     '06:00', '07:00', '08:00', '09:00', '10:00', '11:00',
     '12:00', '13:00', '14:00', '15:00', '16:00', '17:00',
     '18:00', '19:00', '20:00', '21:00', '22:00', '23:00',
@@ -383,7 +383,7 @@ export class TicketDetail implements OnInit {
       [ProposalStatus.REJECTED]: 'Recusada',
     };
 
-    return labels[status] || status;
+    return labels[status];
   }
 
   getStatusLabel(status: TicketStatus): string {
@@ -394,7 +394,7 @@ export class TicketDetail implements OnInit {
       [TicketStatus.CANCELLED]: 'Cancelado'
     };
 
-    return labels[status] || 'Desconhecido';
+    return labels[status];
   }
 
   getStatusClass(status: TicketStatus): string {
@@ -405,7 +405,7 @@ export class TicketDetail implements OnInit {
       [TicketStatus.CANCELLED]: 'status-cancelled'
     };
 
-    return classes[status] || 'status-default';
+    return classes[status];
   }
 
   getDayLabel(day: string): string {

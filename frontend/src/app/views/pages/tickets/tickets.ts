@@ -27,8 +27,8 @@ export class Tickets implements OnInit {
   myProposals: MyProposal[] = [];
   urgentTickets: UrgentTicket[] = [];
   providedUrgentTickets: UrgentTicket[] = [];
-  selectedStatuses: TicketStatus[] = [];
-  selectedUrgentStatuses: TicketStatus[] = [];
+  selectedStatuses: TicketStatus[] = [TicketStatus.OPEN];
+  selectedUrgentStatuses: TicketStatus[] = [TicketStatus.OPEN];
   selectedProvidedUrgentStatuses: TicketStatus[] = [];
 
   currentPage = 0;
@@ -78,6 +78,10 @@ export class Tickets implements OnInit {
     { value: TicketStatus.IN_PROGRESS, label: 'Em andamento' },
     { value: TicketStatus.COMPLETED, label: 'Concluídos' },
     { value: TicketStatus.CANCELLED, label: 'Cancelados' }
+  ];
+  readonly providedUrgentStatusOptions = [
+    { value: TicketStatus.IN_PROGRESS, label: 'Em andamento' },
+    { value: TicketStatus.COMPLETED, label: 'Concluídos' }
   ];
 
   constructor(
@@ -182,6 +186,12 @@ export class Tickets implements OnInit {
     this.selectedUrgentStatuses = this.selectedUrgentStatuses.includes(status)
       ? this.selectedUrgentStatuses.filter(item => item !== status)
       : [...this.selectedUrgentStatuses, status];
+    this.urgentCurrentPage = 0;
+    this.loadMyUrgentTickets();
+  }
+
+  clearUrgentFilters(): void {
+    this.selectedUrgentStatuses = [];
     this.urgentCurrentPage = 0;
     this.loadMyUrgentTickets();
   }
@@ -343,7 +353,6 @@ export class Tickets implements OnInit {
   openUrgentTicketDetail(ticket: UrgentTicket): void {
     this.selectedUrgentTicket = ticket;
     this.activeModal = 'urgent-details';
-    this.cdr.detectChanges();
   }
 
   openProposalsModal(ticket: Ticket): void {
@@ -363,9 +372,6 @@ export class Tickets implements OnInit {
   }
 
   onTicketUpdated(updatedTicket: Ticket): void {
-    this.availableTickets = this.availableTickets.map(ticket =>
-      ticket.id === updatedTicket.id ? updatedTicket : ticket
-    );
     this.selectedTicket = updatedTicket;
     if (this.isProviderMode) {
       this.availableCurrentPage = 0;
@@ -375,8 +381,8 @@ export class Tickets implements OnInit {
     } else {
       this.loadMyTickets();
     }
-    this.cdr.detectChanges();
   }
+
   onUrgentTicketUpdated(updatedTicket: UrgentTicket): void {
     this.selectedUrgentTicket = updatedTicket;
     if (this.isProviderMode) {
@@ -385,7 +391,8 @@ export class Tickets implements OnInit {
       this.loadMyUrgentTickets();
     }
   }
-  onTicketCreated(ticket: Ticket): void {
+
+  onTicketCreated(): void {
     this.currentPage = 0;
     this.loadMyTickets();
   }

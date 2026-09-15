@@ -21,9 +21,6 @@ interface NormalizedCepAddress {
   state?: string | null;
 }
 
-// Os nomes das cidades vindos das APIs de CEP podem vir com acentuação/caixa diferentes
-// da lista do IBGE ("Sao Paulo" vs "São Paulo"), então normalizamos ambos os lados
-// antes de comparar
 function normalizeText(value: string | null | undefined): string {
   return (value ?? '')
     .normalize('NFD')
@@ -57,14 +54,14 @@ export class TicketModal implements OnInit {
   ticketForm!: FormGroup;
   readonly totalSteps = 3;
 
-  paymentOptions = [
+  readonly paymentOptions = [
     { label: 'Pix', value: PaymentMethod.PIX },
     { label: 'Crédito', value: PaymentMethod.CREDIT },
     { label: 'Débito', value: PaymentMethod.DEBIT },
     { label: 'Dinheiro', value: PaymentMethod.CASH },
   ];
 
-  dayOptions = [
+  readonly dayOptions = [
     { label: 'Segunda', value: WeekDay.MONDAY },
     { label: 'Terça', value: WeekDay.TUESDAY },
     { label: 'Quarta', value: WeekDay.WEDNESDAY },
@@ -74,14 +71,14 @@ export class TicketModal implements OnInit {
     { label: 'Domingo', value: WeekDay.SUNDAY },
   ];
 
-  hourOptions = [
+  readonly hourOptions = [
     '06:00', '07:00', '08:00', '09:00', '10:00', '11:00',
     '12:00', '13:00', '14:00', '15:00', '16:00', '17:00',
     '18:00', '19:00', '20:00', '21:00', '22:00', '23:00',
     '00:00',
   ];
 
-  private stepFields: Record<number, string[]> = {
+  private readonly stepFields: Record<number, string[]> = {
     1: ['title', 'description', 'categoryId'],
     2: ['address.state', 'address.city', 'address.street', 'address.number', 'address.neighborhood'],
   };
@@ -115,7 +112,7 @@ export class TicketModal implements OnInit {
         street: new FormControl(null, [Validators.required]),
         number: new FormControl(null, [Validators.required]),
         neighborhood: new FormControl(null, [Validators.required]),
-        city: new FormControl({ value: null, disabled: true }, [Validators.required]), // habilitado quando um estado é selecionado (via CEP ou manualmente)
+        city: new FormControl({ value: null, disabled: true }, [Validators.required]),
         state: new FormControl(null, [Validators.required, Validators.maxLength(2)]),
         zipCode: new FormControl(null),
         complement: new FormControl(null),
@@ -161,8 +158,9 @@ export class TicketModal implements OnInit {
     }
   }
 
-  formatCep(event: any): void {
-    let value = event.target.value.replace(/\D/g, '');
+  formatCep(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    let value = input.value.replace(/\D/g, '');
     if (value.length > 5) {
       value = value.substring(0, 5) + '-' + value.substring(5, 8);
     }
@@ -281,7 +279,7 @@ export class TicketModal implements OnInit {
         await this.ticketService.create(dto);
 
       this.ticketCreated.emit(createdTicket);
-      this.toastrService.success("Serviço criado com sucesso")
+      this.toastrService.success('Serviço criado com sucesso');
       this.closeModal();
 
     } catch (err) {
@@ -464,7 +462,6 @@ export class TicketModal implements OnInit {
 
     this.ticketForm.get('address.city')?.disable();
 
-    this.cdr.detectChanges();
   }
 
 }
