@@ -12,9 +12,12 @@ import br.com.trampo.backend.dto.user.UpdateCategoriesDto;
 import br.com.trampo.backend.infra.security.TokenService;
 import br.com.trampo.backend.mapper.user.UserMapper;
 import br.com.trampo.backend.port.service.users.UserService;
+import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -105,5 +108,31 @@ public class UsersController {
                 dto.availableForUrgency()
         );
         return ResponseEntity.ok(new UrgencyAvailabilityDto(available));
+    }
+
+    @PostMapping("/{userId}/profile-image")
+    public ResponseEntity<Void> updateProfileImage(@PathVariable Integer userId, @RequestParam("file") MultipartFile file) {
+        usersService.updateProfileImage(userId, file);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{userId}/profile-image")
+    public ResponseEntity<Resource> getProfileImage(
+            @PathVariable Integer userId
+    ) {
+        Resource image = usersService.getProfileImage(userId);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.IMAGE_JPEG)
+                .body(image);
+    }
+
+    @DeleteMapping("/{userId}/profile-image")
+    public ResponseEntity<Void> deleteProfileImage(
+            @PathVariable Integer userId
+    ) {
+        usersService.deleteProfileImage(userId);
+
+        return ResponseEntity.noContent().build();
     }
 }

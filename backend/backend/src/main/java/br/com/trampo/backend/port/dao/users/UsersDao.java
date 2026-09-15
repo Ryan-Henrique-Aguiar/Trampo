@@ -40,4 +40,7 @@ public interface UsersDao {
     );
 
     void updateUrgencyAvailability(int userId, boolean available);
+
+    void updateProfileImage(Integer userId, String imagePath);
+    
 }
