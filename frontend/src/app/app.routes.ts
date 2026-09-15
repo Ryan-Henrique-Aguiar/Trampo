@@ -54,14 +54,25 @@ export const routes: Routes = [
         path: 'perfil',
         component: Profile
       },
+      {
+        path: 'termo-de-compromisso',
+        component: Ofcommitment
+      },
+      {
+        path: 'faq',
+        component: Faq
+      },
+      {
+        path: 'suporte',
+        component: Support
+      },
+      {
+        path: 'contato',
+        component: Contact
+      },
 
     ]
   },
-
-  { path: 'termo-de-compromisso', component: Ofcommitment },
-  { path: 'faq', component: Faq },
-  { path: 'suporte', component: Support },
-  { path: 'contato', component: Contact},
 
   // Qualquer rota inexistente
   {

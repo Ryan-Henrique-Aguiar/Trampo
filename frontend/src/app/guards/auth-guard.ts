@@ -10,7 +10,7 @@ export const authGuard: CanActivateFn = async (route, state) => {
 
   if (await authService.validateSession()) {
     const user = authService.currentUser!;
-    viewModeService.initializeForUser(user.id, user.provider);
+    viewModeService.initialize(user.provider);
     return true;
   }
 

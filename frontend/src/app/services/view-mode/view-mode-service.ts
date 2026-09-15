@@ -1,4 +1,4 @@
-import { Injectable, PLATFORM_ID, inject, signal } from '@angular/core';
+import { Injectable, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 
 export type ViewMode = 'client' | 'provider';
@@ -8,45 +8,37 @@ export type ViewMode = 'client' | 'provider';
 })
 export class ViewModeService {
   private platformId = inject(PLATFORM_ID);
-  private userId: number | null = null;
-  private modeSignal = signal<ViewMode>('client');
+  mode: ViewMode = 'client';
 
-  get mode() {
-    return this.modeSignal();
-  }
-
-  get isProviderMode() {
-    return this.modeSignal() === 'provider';
+  get isProviderMode(): boolean {
+    return this.mode === 'provider';
   }
 
   setMode(mode: ViewMode): void {
-    this.modeSignal.set(mode);
-    if (isPlatformBrowser(this.platformId) && this.userId !== null) {
+    this.mode = mode;
+    if (isPlatformBrowser(this.platformId)) {
       localStorage.setItem('viewMode', mode);
     }
   }
 
-  initializeForUser(userId: number, provider: boolean): void {
+  initialize(provider: boolean): void {
     if (!isPlatformBrowser(this.platformId)) return;
 
-    const savedUserId = localStorage.getItem('viewModeUserId');
+    if (!provider) {
+      this.mode = 'client';
+      return;
+    }
+
     const savedMode = localStorage.getItem('viewMode');
-    this.userId = userId;
-
-    const mode = provider
-      ? (savedUserId === String(userId) && savedMode === 'client' ? 'client' : 'provider')
-      : 'client';
-
-    this.setMode(mode);
-    localStorage.setItem('viewModeUserId', String(userId));
+    this.mode = savedMode === 'client' || savedMode === 'provider'
+      ? savedMode
+      : 'provider';
   }
 
   clear(): void {
-    this.userId = null;
-    this.modeSignal.set('client');
+    this.mode = 'client';
     if (isPlatformBrowser(this.platformId)) {
       localStorage.removeItem('viewMode');
-      localStorage.removeItem('viewModeUserId');
     }
   }
 }
