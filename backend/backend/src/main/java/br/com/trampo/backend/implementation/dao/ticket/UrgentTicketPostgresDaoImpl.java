@@ -31,6 +31,23 @@ public class UrgentTicketPostgresDaoImpl implements UrgentTicketDao {
                 INNER JOIN address a ON a.id = t.address_id
                 WHERE t.user_id = ?
                 """;
+        return findTickets(sql, userId, statuses, page, size);
+    }
+
+    @Override
+    public List<UrgentTicket> findByProviderId(int providerId, List<StatusTicket> statuses, int page, int size) {
+        String sql = """
+                SELECT t.*, a.street, a.number, a.neighborhood,
+                       a.city, a.state, a.zip_code, a.complement
+                FROM urgent_ticket t
+                INNER JOIN address a ON a.id = t.address_id
+                WHERE t.provider_id = ?
+                  AND t.status IN ('IN_PROGRESS', 'COMPLETED')
+                """;
+        return findTickets(sql, providerId, statuses, page, size);
+    }
+
+    private List<UrgentTicket> findTickets(String sql, int userId, List<StatusTicket> statuses, int page, int size) {
         if (statuses != null && !statuses.isEmpty()) {
             sql += " AND t.status IN (" + "?,".repeat(statuses.size()).replaceAll(",$", "") + ")";
         }
@@ -84,12 +101,12 @@ public class UrgentTicketPostgresDaoImpl implements UrgentTicketDao {
     }
 
     @Override
-    public boolean updateStatus(int id, StatusTicket status) {
+    public boolean updateStatus(int id, StatusTicket currentStatus, StatusTicket newStatus) {
         String updateTicket = """
                 UPDATE urgent_ticket
                 SET status = ?,
                     service_date = CASE WHEN ? = 'COMPLETED' THEN CURRENT_TIMESTAMP ELSE service_date END
-                WHERE id = ? AND status = 'IN_PROGRESS'
+                WHERE id = ? AND status = ?
                 RETURNING provider_id
                 """;
         String updateProvider = """
@@ -103,9 +120,10 @@ public class UrgentTicketPostgresDaoImpl implements UrgentTicketDao {
             try {
                 int providerId;
                 try (PreparedStatement statement = connection.prepareStatement(updateTicket)) {
-                    statement.setString(1, status.name());
-                    statement.setString(2, status.name());
+                    statement.setString(1, newStatus.name());
+                    statement.setString(2, newStatus.name());
                     statement.setInt(3, id);
+                    statement.setString(4, currentStatus.name());
                     try (ResultSet resultSet = statement.executeQuery()) {
                         if (!resultSet.next()) {
                             connection.rollback();
@@ -115,7 +133,7 @@ public class UrgentTicketPostgresDaoImpl implements UrgentTicketDao {
                     }
                 }
 
-                if (status == StatusTicket.COMPLETED) {
+                if (newStatus == StatusTicket.COMPLETED) {
                     try (PreparedStatement statement = connection.prepareStatement(updateProvider)) {
                         statement.setInt(1, providerId);
                         statement.executeUpdate();

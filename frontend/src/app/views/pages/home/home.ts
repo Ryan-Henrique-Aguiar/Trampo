@@ -29,10 +29,8 @@ export class Home implements OnInit, OnDestroy {
   categories: Category[] = [];
   tickets: Ticket[] = [];
   availableTickets: Ticket[] = [];
-  availableUrgentProviders = 0;
-
   groupedTickets: GroupedTickets[] = [];
-  activeTickets: Ticket[] = [];
+  availableUrgentProviders = 0;
 
   loadingMyTickets = false;
   loadingAvailableTickets = false;
@@ -46,13 +44,9 @@ export class Home implements OnInit, OnDestroy {
   preselectedCategoryId: number | null = null;
   selectedTicket: Ticket | null = null;
   updatingUrgency = false;
-
-  // Variáveis para o drag-to-scroll
   isDragging = false;
   startX = 0;
   scrollLeft = 0;
-  private hasMoved = false; // Identifica se o usuário realmente arrastou
-
 
   private urgentProvidersInterval: ReturnType<typeof setInterval> | null = null;
 
@@ -96,49 +90,25 @@ export class Home implements OnInit, OnDestroy {
     }
   }
 
-  private buildGroupedTickets(): void {
-  // Evita processar se os tickets ainda não chegaram
-  if (!this.availableTickets || this.availableTickets.length === 0) {
-    this.groupedTickets = [];
-    return;
-  }
+  private groupAvailableTickets(): void {
+    const groups: GroupedTickets[] = [];
 
-  const groups = new Map<string, GroupedTickets>();
+    for (const ticket of this.availableTickets) {
+      const category = this.categories.find(
+        item => item.id === ticket.categoryId
+      );
+      const categoryName = category?.name ?? 'Outros serviços';
+      let group = groups.find(item => item.categoryName === categoryName);
 
-  this.availableTickets.forEach(ticket => {
-    // Cruza o categoryId do ticket com o array de categorias já carregado
-    const categoryMatch = this.categories.find(c => c.id === ticket.categoryId);
-    const catName = categoryMatch ? categoryMatch.name : 'Outros Serviços';
-    
-    if (!groups.has(catName)) {
-      groups.set(catName, { 
-        categoryName: catName, 
-        categoryId: ticket.categoryId,
-        tickets: [] 
-      });
+      if (!group) {
+        group = { categoryName, tickets: [] };
+        groups.push(group);
+      }
+
+      group.tickets.push(ticket);
     }
-    
-    groups.get(catName)!.tickets.push(ticket);
-  });
 
-  this.groupedTickets = Array.from(groups.values());
-  }
-
-private filterAndSortMyTickets(): void {
-  if (!this.tickets || this.tickets.length === 0) {
-    this.activeTickets = [];
-    return;
-  }
-
-  this.activeTickets = this.tickets
-    // Filtra apenas os status desejados
-    .filter(ticket => ticket.status === 'OPEN' || ticket.status === 'IN_PROGRESS')
-    // Ordena por data de criação (mais recentes primeiro)
-    .sort((a, b) => {
-      const dateA = new Date(a.createdAt).getTime();
-      const dateB = new Date(b.createdAt).getTime();
-      return dateB - dateA;
-    });
+    this.groupedTickets = groups;
   }
 
   private async loadAvailableUrgentProvidersCount(): Promise<void> {
@@ -161,10 +131,9 @@ private filterAndSortMyTickets(): void {
       const response = await this.ticketService.getMyTickets(
         [TicketStatus.OPEN, TicketStatus.IN_PROGRESS],
         0,
-        3
+        10
       );
       this.tickets = response.content;
-        this.filterAndSortMyTickets();
     } catch (err) {
       console.error(
         'Erro ao carregar tickets do usuário:',
@@ -188,13 +157,14 @@ private filterAndSortMyTickets(): void {
     try {
       const response = await this.ticketService.getAvailableTickets(undefined, 0, 10);
       this.availableTickets = response.content;
-        this.buildGroupedTickets();
+      this.groupAvailableTickets();
     } catch (err) {
       console.error(
         'Erro ao carregar tickets disponíveis:',
         err
       );
       this.availableTickets = [];
+      this.groupAvailableTickets();
       this.availableTicketsError =
         'Não foi possível carregar os serviços disponíveis.';
     } finally {
@@ -210,13 +180,14 @@ private filterAndSortMyTickets(): void {
     try {
       this.categories =
         await this.categoryService.getAll();
-        this.buildGroupedTickets();
+      this.groupAvailableTickets();
     } catch (err) {
       console.error(
         'Erro ao carregar categorias:',
         err
       );
       this.categories = [];
+      this.groupAvailableTickets();
       this.categoriesError =
         'Não foi possível carregar as categorias.';
     } finally {
@@ -225,39 +196,24 @@ private filterAndSortMyTickets(): void {
     }
   }
 
-  // ===== MODAL DE DETALHES =====
-
   openTicketDetail(ticket: Ticket): void {
     this.selectedTicket = ticket;
     this.activeModal = 'details';
   }
 
   onTicketUpdated(updatedTicket: Ticket): void {
-    this.tickets = this.tickets.map(ticket =>
-      ticket.id === updatedTicket.id
-        ? updatedTicket
-        : ticket
-    )
-    this.availableTickets = this.availableTickets.map(ticket =>
-      ticket.id === updatedTicket.id
-        ? updatedTicket
-        : ticket
-    );
-  
-    this.buildGroupedTickets();
-    this.filterAndSortMyTickets();
     this.selectedTicket = updatedTicket;
-    this.cdr.detectChanges();
+    if (this.isProviderMode) {
+      this.loadAvailableTickets();
+    } else {
+      this.loadMyTickets();
+    }
   }
-
-  // ===== MODAL DE PROPOSTAS (novo) =====
 
   openProposalsModal(ticket: Ticket): void {
     this.selectedTicket = ticket;
     this.activeModal = 'proposals';
   }
-
-  // ===== MODAL DE CRIAÇÃO =====
 
   openTicketModal(isUrgent: boolean, categoryId: number | null = null): void {
     this.isModalUrgent = isUrgent;
@@ -274,7 +230,7 @@ private filterAndSortMyTickets(): void {
 
 
   onTicketCreated(ticket: Ticket): void {
-    this.tickets = [ticket, ...this.tickets];
+    this.tickets = [ticket, ...this.tickets].slice(0, 10);
     this.cdr.detectChanges();
   }
   
@@ -302,18 +258,12 @@ private filterAndSortMyTickets(): void {
     }
   }
 
-  // Função para as setas de navegação
   scrollCarousel(carousel: HTMLElement, direction: number): void {
-    // Rola cerca de 320px (tamanho aproximado de um card)
-    const scrollAmount = 320; 
-    carousel.scrollBy({ left: scrollAmount * direction, behavior: 'smooth' });
+    carousel.scrollBy({ left: 320 * direction, behavior: 'smooth' });
   }
-
-  // ===== EVENTOS DE MOUSE PARA ARRASTAR =====
 
   onMouseDown(event: MouseEvent, carousel: HTMLElement): void {
     this.isDragging = true;
-    this.hasMoved = false; // Reseta no início do clique
     this.startX = event.pageX - carousel.offsetLeft;
     this.scrollLeft = carousel.scrollLeft;
   }
@@ -324,10 +274,7 @@ private filterAndSortMyTickets(): void {
     const x = event.pageX - carousel.offsetLeft;
     const walk = x - this.startX;
 
-    // Se o usuário moveu o mouse mais de 5 pixels, consideramos um ARRASTO
     if (Math.abs(walk) > 5) {
-      this.hasMoved = true;
-      carousel.classList.add('is-dragging-active');
       event.preventDefault();
       carousel.scrollLeft = this.scrollLeft - (walk * 1.5);
     }
@@ -335,18 +282,10 @@ private filterAndSortMyTickets(): void {
 
   onMouseUp(): void {
     this.isDragging = false;
-    // Pequeno atraso para liberar os cliques caso tenha sido um arrasto
-    setTimeout(() => {
-      this.hasMoved = false;
-    }, 50);
   }
 
   onMouseLeave(): void {
     this.isDragging = false;
-    this.hasMoved = false;
   }
-  
-
-  
 
 }

@@ -23,8 +23,13 @@
             </button>
             @if (isStatusMenuOpen) {
             <div class="status-menu">
-              <button type="button" class="status-menu-item" (click)="selectNewStatus(TicketStatus.COMPLETED)">Finalizar</button>
-              <button type="button" class="status-menu-item" (click)="selectNewStatus(TicketStatus.CANCELLED)">Cancelar serviço</button>
+              @if (ticket.status === TicketStatus.OPEN) {
+                <button type="button" class="status-menu-item" (click)="selectNewStatus(TicketStatus.IN_PROGRESS)">Iniciar atendimento</button>
+                <button type="button" class="status-menu-item" (click)="selectNewStatus(TicketStatus.CANCELLED)">Cancelar solicitação</button>
+              } @else {
+                <button type="button" class="status-menu-item" (click)="selectNewStatus(TicketStatus.COMPLETED)">Finalizar</button>
+                <button type="button" class="status-menu-item" (click)="selectNewStatus(TicketStatus.CANCELLED)">Cancelar serviço</button>
+              }
             </div>
             }
           </div>

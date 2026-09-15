@@ -37,8 +37,8 @@ export class AuthService {
     return res;
   }
   
-  async register(dto: RegisterRequestDto): Promise<RegisterResponseDto> {
-    return await firstValueFrom(
+  register(dto: RegisterRequestDto): Promise<RegisterResponseDto> {
+    return firstValueFrom(
       this.http.post<RegisterResponseDto>(
         `${this.apiUrl}/register`,
         dto
@@ -63,16 +63,20 @@ export class AuthService {
     return user;
   }
 
-  async updatePassword(dto: UpdatePasswordRequest): Promise<void> {
-    await firstValueFrom(this.http.patch<void>(`${this.userApiUrl}/password`, dto));
+  updatePassword(dto: UpdatePasswordRequest): Promise<void> {
+    return firstValueFrom(
+      this.http.patch<void>(`${this.userApiUrl}/password`, dto)
+    );
   }
 
-  async getUserCategories(): Promise<number[]> {
-    return await firstValueFrom(this.http.get<number[]>(`${this.userApiUrl}/categories`));
+  getUserCategories(): Promise<number[]> {
+    return firstValueFrom(
+      this.http.get<number[]>(`${this.userApiUrl}/categories`)
+    );
   }
 
-  async updateUserCategories(categoryIds: number[]): Promise<number[]> {
-    return await firstValueFrom(
+  updateUserCategories(categoryIds: number[]): Promise<number[]> {
+    return firstValueFrom(
       this.http.patch<number[]>(`${this.userApiUrl}/categories`, { categoryIds })
     );
   }
@@ -87,22 +91,12 @@ export class AuthService {
     if (!this.isBrowser()) return;
 
     localStorage.removeItem('token');
-    localStorage.removeItem('user');
 
     this.currentUser = null;
   }
 
   async validateSession(): Promise<boolean> {
-    if (!this.isBrowser()) return false;
-
-    localStorage.removeItem('user');
-
-    const token = this.getToken();
-
-    if (!token || this.isTokenExpired(token)) {
-      this.logout();
-      return false;
-    }
+    if (!this.isBrowser() || !this.getToken()) return false;
 
     try {
       await this.refreshUser();
@@ -110,26 +104,6 @@ export class AuthService {
     } catch {
       this.logout();
       return false;
-    }
-  }
-
-  private isTokenExpired(token: string): boolean {
-    try {
-      const base64 = token
-        .split('.')[1]
-        .replace(/-/g, '+')
-        .replace(/_/g, '/');
-
-      const padded = base64.padEnd(
-        Math.ceil(base64.length / 4) * 4,
-        '='
-      );
-
-      const payload = JSON.parse(atob(padded));
-
-      return !payload.exp || payload.exp * 1000 <= Date.now();
-    } catch {
-      return true;
     }
   }
 
@@ -146,7 +120,6 @@ export class AuthService {
   private setSession(res: AuthResponseDto): void {
     if (!this.isBrowser()) return;
 
-    localStorage.removeItem('user');
     localStorage.setItem('token', res.token);
   }
 

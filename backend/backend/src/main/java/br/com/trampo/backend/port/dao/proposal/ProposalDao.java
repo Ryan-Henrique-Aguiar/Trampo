@@ -15,6 +15,8 @@ public interface ProposalDao {
 
     List<Proposal> findByTicketIdAndProfessionalId(int ticketId, int professionalId);
 
+    List<Proposal> findByProfessionalId(int professionalId, List<StatusProposal> statuses, int page, int size);
+
     boolean existsByTicketIdAndProfessionalId(int ticketId, int professionalId);
 
     boolean canProfessionalPropose(int ticketId, int professionalId);

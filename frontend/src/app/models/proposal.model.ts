@@ -1,4 +1,5 @@
 import { ProposalStatus } from '../enums/proposal-status';
+import { Ticket } from './ticket.model';
 
 export interface Proposal {
   id: number;
@@ -8,4 +9,14 @@ export interface Proposal {
   professionalName: string;
   professionalPhone: string;
   ticketId: number;
+}
+
+export interface MyProposal {
+  proposal: Proposal;
+  ticket: Ticket;
+}
+
+export interface MyProposalPage {
+  content: MyProposal[];
+  hasNext: boolean;
 }

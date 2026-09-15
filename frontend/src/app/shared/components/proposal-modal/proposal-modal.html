@@ -38,11 +38,11 @@
                         }
 
                         @if (proposal.status === 'PENDING') {
-                        <button type="button" class="btn-reject" [disabled]="processingProposalId !== null"
+                        <button type="button" class="btn-reject" [disabled]="isProcessing"
                             (click)="onRejectProposal(proposal)">
                             Recusar
                         </button>
-                        <button type="button" class="btn-accept" [disabled]="processingProposalId !== null"
+                        <button type="button" class="btn-accept" [disabled]="isProcessing"
                             (click)="onAcceptProposal(proposal)">
                             Aceitar
                         </button>

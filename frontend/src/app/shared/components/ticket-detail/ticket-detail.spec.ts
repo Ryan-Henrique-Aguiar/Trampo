@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideToastr } from '@iqx-limited/ngx-toastr';
 
 import { TicketDetail } from './ticket-detail';
 
@@ -9,6 +10,7 @@ describe('TicketDetail', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [TicketDetail],
+      providers: [provideToastr()]
     }).compileComponents();
 
     fixture = TestBed.createComponent(TicketDetail);

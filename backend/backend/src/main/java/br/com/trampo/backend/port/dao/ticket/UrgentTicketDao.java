@@ -11,6 +11,7 @@ public interface UrgentTicketDao {
 
     UrgentTicket save(UrgentTicket urgentTicket) throws SQLException;
     List<UrgentTicket> findByUserId(int userId, List<StatusTicket> statuses, int page, int size) throws SQLException;
+    List<UrgentTicket> findByProviderId(int providerId, List<StatusTicket> statuses, int page, int size) throws SQLException;
     Optional<UrgentTicket> findById(int id);
-    boolean updateStatus(int id, StatusTicket status);
+    boolean updateStatus(int id, StatusTicket currentStatus, StatusTicket newStatus);
 }

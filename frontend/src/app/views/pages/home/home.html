@@ -54,14 +54,14 @@
           </div>
           <div class="stat-info">
             <span class="stat-value">{{ availableTickets.length }}</span>
-            <span class="stat-label">Serviços Disponíveis</span>
+            <span class="stat-label">Serviços em destaque</span>
           </div>
         </div>
       </div>
 
       <div class="section-header">
         <h2>Serviços disponíveis para você</h2>
-        <span class="tickets-count">{{ availableTickets.length }} serviços</span>
+        <a routerLink="/tickets" class="link-see-all">Ver todos →</a>
       </div>
 
       @if (loadingAvailableTickets) {
@@ -69,52 +69,45 @@
           <i class="fa-solid fa-spinner fa-spin"></i>
           <span>Carregando serviços...</span>
         </div>
+      } @else if (availableTicketsError) {
+        <div class="error-state">
+          <i class="fa-solid fa-exclamation-circle"></i>
+          <p>{{ availableTicketsError }}</p>
+        </div>
       } @else if (groupedTickets.length > 0) {
-        @for (group of groupedTickets; track group.categoryName) {
-          
-          <div class="swimlane-section">
-            <!-- Cabeçalho da Categoria -->
-            <div class="section-header">
-              <h2>{{ group.categoryName }}</h2>
-              <a routerLink="/tickets" [queryParams]="{ category: group.categoryName }" class="link-see-all">
-                Ver todos →
-              </a>
-            </div>
+        <div class="ticket-swimlanes">
+          @for (group of groupedTickets; track group.categoryName) {
+            <section class="swimlane-section">
+              <h3>{{ group.categoryName }}</h3>
 
-            <!-- Container Relativo para posicionar as setas -->
-            <div class="carousel-container">
-              
-              <!-- Seta Esquerda -->
-              <button class="nav-arrow left-arrow" (click)="scrollCarousel(carouselElement, -1)">
-                <i class="fa-solid fa-chevron-left"></i>
-              </button>
+              <div class="carousel-container">
+                <button class="nav-arrow left-arrow" (click)="scrollCarousel(categoryCarousel, -1)">
+                  <i class="fa-solid fa-chevron-left"></i>
+                </button>
 
-              <!-- Carrossel -->
-              <div class="ticket-carousel" 
-                  #carouselElement
+                <div class="ticket-carousel"
+                  #categoryCarousel
                   [class.is-dragging]="isDragging"
-                  (mousedown)="onMouseDown($event, carouselElement)"
-                  (mouseleave)="onMouseLeave()"
+                  (mousedown)="onMouseDown($event, categoryCarousel)"
+                  (mousemove)="onMouseMove($event, categoryCarousel)"
                   (mouseup)="onMouseUp()"
-                  (mousemove)="onMouseMove($event, carouselElement)">
-                
-                @for (ticket of group.tickets; track ticket.id) {
-                  <div class="carousel-item">
-                    <app-ticket-card 
-                      [ticket]="ticket" 
-                      (viewDetails)="openTicketDetail($event)" />
-                  </div>
-                }
-              </div>
+                  (mouseleave)="onMouseLeave()">
+                  @for (ticket of group.tickets; track ticket.id) {
+                    <div class="carousel-item">
+                      <app-ticket-card
+                        [ticket]="ticket"
+                        (viewDetails)="openTicketDetail($event)" />
+                    </div>
+                  }
+                </div>
 
-              <!-- Seta Direita -->
-              <button class="nav-arrow right-arrow" (click)="scrollCarousel(carouselElement, 1)">
-                <i class="fa-solid fa-chevron-right"></i>
-              </button>
-              
-            </div>
-          </div>
-        }
+                <button class="nav-arrow right-arrow" (click)="scrollCarousel(categoryCarousel, 1)">
+                  <i class="fa-solid fa-chevron-right"></i>
+                </button>
+              </div>
+            </section>
+          }
+        </div>
       } @else {
         <div class="empty-state">
           <i class="fa-regular fa-face-smile"></i>
@@ -193,12 +186,9 @@
         </div>
       }
 
-      <!-- ========================================== -->
-      <!-- NOVO CARROSSEL DO CLIENTE                  -->
-      <!-- ========================================== -->
       <div class="section-header">
-        <h2>Meus serviços ativos</h2>
-        <span class="tickets-count">{{ activeTickets.length }} serviços</span>
+        <h2>Meus serviços ativos recentes</h2>
+        <span class="tickets-count">{{ tickets.length }} serviços</span>
       </div>
 
       @if (loadingMyTickets) {
@@ -211,24 +201,22 @@
           <i class="fa-solid fa-exclamation-circle"></i>
           <p>{{ myTicketsError }}</p>
         </div>
-      } @else if (activeTickets.length > 0) {
+      } @else if (tickets.length > 0) {
         
         <div class="carousel-container">
-          <!-- Seta Esquerda -->
           <button class="nav-arrow left-arrow" (click)="scrollCarousel(clientCarousel, -1)">
             <i class="fa-solid fa-chevron-left"></i>
           </button>
 
-          <!-- Carrossel -->
-          <div class="ticket-carousel" 
-              #clientCarousel
-              [class.is-dragging]="isDragging"
-              (mousedown)="onMouseDown($event, clientCarousel)"
-              (mouseleave)="onMouseLeave()"
-              (mouseup)="onMouseUp()"
-              (mousemove)="onMouseMove($event, clientCarousel)">
+          <div class="ticket-carousel"
+            #clientCarousel
+            [class.is-dragging]="isDragging"
+            (mousedown)="onMouseDown($event, clientCarousel)"
+            (mousemove)="onMouseMove($event, clientCarousel)"
+            (mouseup)="onMouseUp()"
+            (mouseleave)="onMouseLeave()">
             
-            @for (ticket of activeTickets; track ticket.id) {
+            @for (ticket of tickets; track ticket.id) {
               <div class="carousel-item">
                 <app-ticket-card 
                   [ticket]="ticket" 
@@ -238,7 +226,6 @@
             }
           </div>
 
-          <!-- Seta Direita -->
           <button class="nav-arrow right-arrow" (click)="scrollCarousel(clientCarousel, 1)">
             <i class="fa-solid fa-chevron-right"></i>
           </button>

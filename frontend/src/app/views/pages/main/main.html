@@ -58,30 +58,22 @@
     <div class="content-area">
         <header class="navbar">
              <div class="navbar-left">
-                <div class="navbar-brand">
-                    <img
-                        src="logos/logominpngbranca.png"
-                        alt="Trampo"
-                        class="logo-navbar-mobile"
-                    >
-
-                    <h1 class="logo-text-mobile">Trampo</h1>
-                </div>
-
-                <span class="navbar-title">Olá, {{name}}</span>
+                <span class="navbar-title">
+                    <span class="greeting">Olá,</span>
+                    <span class="user-name">{{name}}</span>
+                </span>
             </div>
 
             <div class="navbar-icon">
                 @if (provider) {
-                <div class="view-mode-switch-wrapper">
-                    <button type="button" class="view-mode-switch" [class.view-mode-switch--provider]="isProviderMode"
-                        (click)="toggleMode()">
-                        <span class="view-mode-switch-track">
-                            <span class="view-mode-switch-knob"></span>
-                        </span>
-                        <span class="view-mode-switch-label">
-                            {{ isProviderMode ? 'Quero trabalhar' : 'Quero contratar' }}
-                        </span>
+                <div class="view-mode-switch-wrapper" role="group" aria-label="Modo de visualização">
+                    <button type="button" class="view-mode-option" [class.active]="!isProviderMode"
+                        [attr.aria-pressed]="!isProviderMode" (click)="setMode('client')">
+                        Modo cliente
+                    </button>
+                    <button type="button" class="view-mode-option" [class.active]="isProviderMode"
+                        [attr.aria-pressed]="isProviderMode" (click)="setMode('provider')">
+                        Modo prestador
                     </button>
                 </div>
                 }
@@ -172,10 +164,26 @@
                 <i class="fa-solid fa-ticket"></i>
                 <span>Serviços</span>
             </a>
+            <a routerLink="/categories" routerLinkActive="active">
+                <i class="fa-solid fa-layer-group"></i>
+                <span>Categorias</span>
+            </a>
             <a routerLink="/perfil" routerLinkActive="active">
                 <i class="fa-solid fa-user"></i>
                 <span>Perfil</span>
             </a>
+            <details class="bottom-nav-help" #helpMenu>
+                <summary>
+                    <i class="fa-solid fa-circle-question"></i>
+                    <span>Ajuda</span>
+                </summary>
+                <div class="bottom-nav-help-menu">
+                    <a routerLink="/faq" (click)="helpMenu.open = false"><i class="fa-solid fa-book"></i> FAQ</a>
+                    <a routerLink="/suporte" (click)="helpMenu.open = false"><i class="fa-solid fa-headset"></i> Suporte</a>
+                    <a routerLink="/contato" (click)="helpMenu.open = false"><i class="fa-solid fa-envelope"></i> Contato</a>
+                    <a routerLink="/termo-de-compromisso" (click)="helpMenu.open = false"><i class="fa-solid fa-file-lines"></i> Termo de compromisso</a>
+                </div>
+            </details>
         </nav>
     </div>
 </div>

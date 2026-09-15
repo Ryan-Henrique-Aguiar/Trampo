@@ -142,6 +142,10 @@ public class TicketPostgresDaoImpl implements TicketDao {
                    AND uc.user_id = ?
                 WHERE t.status = 'OPEN'
                   AND t.user_id <> ?
+                  AND NOT EXISTS (
+                      SELECT 1 FROM proposal p
+                      WHERE p.ticket_id = t.id AND p.professional_id = ?
+                  )
                   AND LOWER(a.city) = LOWER(?)
                   AND a.state = ?
                   AND (? IS NULL OR t.category_id = ?)
@@ -154,35 +158,36 @@ public class TicketPostgresDaoImpl implements TicketDao {
         try (Connection connection = dataSource.getConnection(); PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setInt(1, providerId);
             stmt.setInt(2, providerId);
-            stmt.setString(3, city);
-            stmt.setString(4, state);
+            stmt.setInt(3, providerId);
+            stmt.setString(4, city);
+            stmt.setString(5, state);
 
             if (categoryId != null) {
-                stmt.setInt(5, categoryId);
                 stmt.setInt(6, categoryId);
+                stmt.setInt(7, categoryId);
             } else {
-                stmt.setNull(5, Types.INTEGER);
                 stmt.setNull(6, Types.INTEGER);
+                stmt.setNull(7, Types.INTEGER);
             }
 
             if (minPrice != null) {
-                stmt.setBigDecimal(7, minPrice);
                 stmt.setBigDecimal(8, minPrice);
+                stmt.setBigDecimal(9, minPrice);
             } else {
-                stmt.setNull(7, Types.NUMERIC);
                 stmt.setNull(8, Types.NUMERIC);
+                stmt.setNull(9, Types.NUMERIC);
             }
 
             if (maxPrice != null) {
-                stmt.setBigDecimal(9, maxPrice);
                 stmt.setBigDecimal(10, maxPrice);
+                stmt.setBigDecimal(11, maxPrice);
             } else {
-                stmt.setNull(9, Types.NUMERIC);
                 stmt.setNull(10, Types.NUMERIC);
+                stmt.setNull(11, Types.NUMERIC);
             }
 
-            stmt.setInt(11, size + 1);
-            stmt.setInt(12, page * size);
+            stmt.setInt(12, size + 1);
+            stmt.setInt(13, page * size);
 
             try (ResultSet resultSet = stmt.executeQuery()) {
                 while (resultSet.next()) {

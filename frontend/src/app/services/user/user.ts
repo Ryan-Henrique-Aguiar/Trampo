@@ -14,7 +14,7 @@ export class UserService {
   constructor(private http: HttpClient) {}
 
 
-  async getProvidersWithUrgency(
+  getProvidersWithUrgency(
     categoryId: number,
     state: string,
     city: string
@@ -24,7 +24,7 @@ export class UserService {
       .set('state', state)
       .set('city', city);
 
-    return await firstValueFrom(
+    return firstValueFrom(
       this.http.get<UrgentProviderResponse[]>(
         `${this.apiUrl}/providers/urgent`,
         { params }
@@ -32,16 +32,16 @@ export class UserService {
     );
   }
 
-  async getAvailableUrgentProvidersCount(): Promise<number> {
-    return await firstValueFrom(
+  getAvailableUrgentProvidersCount(): Promise<number> {
+    return firstValueFrom(
       this.http.get<number>(`${this.apiUrl}/providers/urgent/count`)
     );
   }
 
-  async toggleUrgencyAvailability(
+  toggleUrgencyAvailability(
     isAvailable: boolean
   ): Promise<UrgencyAvailability> {
-    return await firstValueFrom(
+    return firstValueFrom(
       this.http.patch<UrgencyAvailability>(`${this.apiUrl}/urgency`, {
         availableForUrgency: isAvailable,
       })

@@ -17,6 +17,7 @@ import {
 
 import { AuthLayout } from '../../../shared/components/auth-layout/auth-layout';
 import { AuthService } from '../../../services/auth/auth';
+import { ViewModeService } from '../../../services/view-mode/view-mode-service';
 import { LoginRequestDto } from '../../../dto/auth/login-request';
 import { ToastrService } from '@iqx-limited/ngx-toastr';
 
@@ -38,6 +39,7 @@ export class SignIn {
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
+    private viewModeService: ViewModeService,
     private router: Router,
     private route: ActivatedRoute,
     private cdr: ChangeDetectorRef,
@@ -74,6 +76,7 @@ export class SignIn {
 
   try {
     await this.authService.login(dto);
+    this.viewModeService.clear();
 
     this.toastrService.success('Login realizado com sucesso!');
 

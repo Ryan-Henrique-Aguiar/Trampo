@@ -6,11 +6,14 @@ import br.com.trampo.backend.domain.enums.StatusTicket;
 import br.com.trampo.backend.domain.ticket.Proposal;
 import br.com.trampo.backend.domain.ticket.Ticket;
 import br.com.trampo.backend.dto.proposal.CreateProposalDto;
+import br.com.trampo.backend.dto.proposal.MyProposalDto;
 import br.com.trampo.backend.dto.proposal.ProposalDto;
+import br.com.trampo.backend.dto.common.PageDto;
 import br.com.trampo.backend.infra.exception.DatabaseException;
 import br.com.trampo.backend.infra.exception.InvalidRequestException;
 import br.com.trampo.backend.infra.exception.UnauthorizedUserException;
 import br.com.trampo.backend.mapper.proposal.ProposalMapper;
+import br.com.trampo.backend.mapper.ticket.TicketMapper;
 import br.com.trampo.backend.port.dao.proposal.ProposalDao;
 import br.com.trampo.backend.port.dao.ticket.TicketDao;
 import br.com.trampo.backend.port.service.notification.NotificationService;
@@ -28,16 +31,20 @@ public class ProposalServiceImpl implements ProposalService {
     private final ProposalDao proposalDao;
     private final TicketDao ticketDao;
     private final ProposalMapper proposalMapper;
+    private final TicketMapper ticketMapper;
     private final NotificationService notificationService;
 
     public ProposalServiceImpl(
             ProposalDao proposalDao,
             TicketDao ticketDao,
-            ProposalMapper proposalMapper, NotificationService notificationService
+            ProposalMapper proposalMapper,
+            TicketMapper ticketMapper,
+            NotificationService notificationService
     ) {
         this.proposalDao = proposalDao;
         this.ticketDao = ticketDao;
         this.proposalMapper = proposalMapper;
+        this.ticketMapper = ticketMapper;
         this.notificationService = notificationService;
     }
 
@@ -106,6 +113,33 @@ public class ProposalServiceImpl implements ProposalService {
         return proposals.stream()
                 .map(proposalMapper::toDto)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public PageDto<MyProposalDto> findMyProposals(Users user, List<StatusProposal> statuses, int page, int size) {
+        validateAuthenticatedUser(user);
+
+        if (!user.isProvider()) {
+            throw new UnauthorizedUserException("Apenas prestadores podem consultar suas propostas.");
+        }
+
+        if (page < 0 || size < 1 || size > 50) {
+            throw new InvalidRequestException("Página ou tamanho de página inválido.");
+        }
+
+        List<Proposal> proposals = proposalDao.findByProfessionalId(user.getId(), statuses, page, size);
+        boolean hasNext = proposals.size() > size;
+        if (hasNext) {
+            proposals = proposals.subList(0, size);
+        }
+
+        List<MyProposalDto> content = proposals.stream().map(proposal -> {
+            Ticket ticket = findTicket(proposal.getTicket().getId());
+            return new MyProposalDto(proposalMapper.toDto(proposal), ticketMapper.toDto(ticket));
+        }).toList();
+
+        return new PageDto<>(content, hasNext);
     }
 
     @Transactional
