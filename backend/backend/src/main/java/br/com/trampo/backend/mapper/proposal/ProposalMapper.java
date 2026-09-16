@@ -15,6 +15,7 @@ public class ProposalMapper {
                 proposal.getProfessional().getId(),
                 proposal.getProfessional().getName(),
                 proposal.getProfessional().getPhone(),
+                proposal.getProfessional().getRating(),
                 proposal.getTicket().getId()
         );
     }

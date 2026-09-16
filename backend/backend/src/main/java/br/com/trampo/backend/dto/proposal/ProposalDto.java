@@ -11,6 +11,7 @@ public record ProposalDto(
         Integer professionalId,
         String professionalName,
         String professionalPhone,
+        Double professionalRating,
         Integer ticketId
 ) {
 }

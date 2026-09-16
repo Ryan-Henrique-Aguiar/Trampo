@@ -8,6 +8,7 @@ export interface Proposal {
   professionalId: number;
   professionalName: string;
   professionalPhone: string;
+  professionalRating: string;
   ticketId: number;
 }
 
