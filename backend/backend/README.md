@@ -189,3 +189,19 @@ Exemplo:
 }
 ```
 
+## Images
+
+### Users
+
+**Upload imagem no usuário**
+
+```text
+/api/v1/user/{userId}/profile-image
+```
+
+Exemplo em cURL:
+
+```text
+KEY       TYPE     VALUE
+file      File     sua-foto.jpg
+```

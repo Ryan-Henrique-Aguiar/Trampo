@@ -49,3 +49,11 @@ export interface GroupedTickets {
     categoryName: string;
     tickets: Ticket[];
 }
+
+export interface TicketImage {
+  id: number;
+  fileName: string;
+  contentType: string;
+    url: string;
+  createdAt: string;
+}

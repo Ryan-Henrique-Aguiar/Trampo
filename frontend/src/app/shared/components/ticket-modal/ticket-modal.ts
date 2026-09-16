@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgSelectModule } from '@ng-select/ng-select';
 
@@ -10,9 +10,10 @@ import { UrgentProviderResponse } from '../../../dto/user/urgent-provider-respon
 import { PaymentMethod } from '../../../enums/payment-method';
 import { UserService } from '../../../services/user/user';
 import { LocationService, State, City } from '../../../services/location/location';
-import { Ticket } from '../../../models/ticket.model';
+import { Ticket} from '../../../models/ticket.model';
 import { WeekDay } from '../../../enums/week-day';
 import { ToastrService } from '@iqx-limited/ngx-toastr';
+import { TicketImageService } from '../../../services/ticket/ticket-image-service';
 
 interface NormalizedCepAddress {
   street?: string | null;
@@ -35,7 +36,7 @@ function normalizeText(value: string | null | undefined): string {
   templateUrl: './ticket-modal.html',
   styleUrl: './ticket-modal.css',
 })
-export class TicketModal implements OnInit {
+export class TicketModal implements OnInit, OnDestroy {
   @Input() isUrgent = false;
   @Input() preselectedCategoryId: number | null = null;
   @Output() close = new EventEmitter<void>();
@@ -50,9 +51,12 @@ export class TicketModal implements OnInit {
   cepError: string | null = null;
   sendingProviderId: number | null = null;
   providersError: string | null = null;
+  selectedFiles: File[] = [];
+  selectedFilePreviews: string[] = [];
 
   ticketForm!: FormGroup;
-  readonly totalSteps = 3;
+  readonly totalSteps = 4;
+  readonly maxImages = 5;
 
   readonly paymentOptions = [
     { label: 'Pix', value: PaymentMethod.PIX },
@@ -82,10 +86,12 @@ export class TicketModal implements OnInit {
     1: ['title', 'description', 'categoryId'],
     2: ['address.state', 'address.city', 'address.street', 'address.number', 'address.neighborhood'],
   };
+  
 
   constructor(
     private categoryService: CategoryService,
     private ticketService: TicketService,
+    private ticketImageService: TicketImageService,
     private urgentTicketService: UrgentTicketService,
     private userService: UserService,
     private locationService: LocationService,
@@ -135,7 +141,7 @@ export class TicketModal implements OnInit {
     }
   }
 
-  async onStateChange(): Promise<void> {
+   async onStateChange(): Promise<void> {
     const stateCode = this.ticketForm.get('address.state')?.value;
     const state = this.states.find(s => s.uf === stateCode);
 
@@ -156,6 +162,43 @@ export class TicketModal implements OnInit {
     } finally {
       this.cdr.detectChanges();
     }
+  }
+
+  ngOnDestroy(): void {
+    this.revokeFilePreviews();
+  }
+
+  onFilesSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.setSelectedFiles(input.files ? Array.from(input.files) : []);
+  }
+
+  onFilesDropped(event: DragEvent): void {
+    event.preventDefault();
+    this.setSelectedFiles(event.dataTransfer?.files ? Array.from(event.dataTransfer.files) : []);
+  }
+
+  private setSelectedFiles(files: File[]): void {
+    if (files.length === 0) {
+      return;
+    }
+
+    if (files.length > this.maxImages) {
+      this.toastrService.warning(
+        `Você pode selecionar no máximo ${this.maxImages} imagens.`
+      );
+
+      return;
+    }
+
+    this.revokeFilePreviews();
+    this.selectedFiles = files;
+    this.selectedFilePreviews = files.map(file => URL.createObjectURL(file));
+  }
+
+  private revokeFilePreviews(): void {
+    this.selectedFilePreviews.forEach(preview => URL.revokeObjectURL(preview));
+    this.selectedFilePreviews = [];
   }
 
   formatCep(event: Event): void {
@@ -275,8 +318,21 @@ export class TicketModal implements OnInit {
     };
 
     try {
+      // Cria o ticket
       const createdTicket =
         await this.ticketService.create(dto);
+
+      // 2. Se houver imagens, faz o upload
+      if (this.selectedFiles.length > 0) {
+
+        console.log('Arquivos enviados:', this.selectedFiles.map(file => file.name));
+
+        await this.ticketImageService.uploadImages(
+          createdTicket.id,
+          this.selectedFiles
+        );
+        
+      }
 
       this.ticketCreated.emit(createdTicket);
       this.toastrService.success('Serviço criado com sucesso');
