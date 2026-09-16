@@ -10,7 +10,7 @@ import { UrgentProviderResponse } from '../../../dto/user/urgent-provider-respon
 import { PaymentMethod } from '../../../enums/payment-method';
 import { UserService } from '../../../services/user/user';
 import { LocationService, State, City } from '../../../services/location/location';
-import { Ticket, TicketImage } from '../../../models/ticket.model';
+import { Ticket} from '../../../models/ticket.model';
 import { WeekDay } from '../../../enums/week-day';
 import { ToastrService } from '@iqx-limited/ngx-toastr';
 import { TicketImageService } from '../../../services/ticket/ticket-image-service';
@@ -303,8 +303,18 @@ export class TicketModal implements OnInit {
     };
 
     try {
+      // Cria o ticket
       const createdTicket =
         await this.ticketService.create(dto);
+
+      // 2. Se houver imagens, faz o upload
+      if (this.selectedFiles.length > 0) {
+
+        await this.ticketImageService.uploadImages(
+          createdTicket.id,
+          this.selectedFiles
+        );
+      }
 
       this.ticketCreated.emit(createdTicket);
       this.toastrService.success('Serviço criado com sucesso');

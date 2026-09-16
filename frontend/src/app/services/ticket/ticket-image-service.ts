@@ -3,6 +3,7 @@ import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 import { TicketImage } from "../../models/ticket.model";
 import { environment } from "../../../environments/environment";
+import { firstValueFrom } from 'rxjs';
 
 
 
@@ -11,23 +12,25 @@ import { environment } from "../../../environments/environment";
 })
 export class TicketImageService {
 
-    private baseUrl = `${environment.apiUrl}/images-tickets`;
+    private baseUrl = `${environment.apiUrl}/image-tickets`;
 
 
     constructor(private http: HttpClient) {}
 
-    uploadImages(ticketId: number, files: File[]): Observable<void> {
+    async uploadImages(ticketId: number, files: File[]): Promise<void> {
 
-    const formData = new FormData();
+        const formData = new FormData();
 
-    files.forEach(file => {
-        formData.append('files', file);
-    });
+        files.forEach(file => {
+            formData.append('files', file);
+        });
 
-    return this.http.post<void>(
-        `${this.baseUrl}/${ticketId}/images`,
-        formData
-    );
+        await firstValueFrom(
+            this.http.post<void>(
+            `${this.baseUrl}/${ticketId}/images`,
+            formData
+            )
+        );
     }
 
     getImages(ticketId: number): Observable<TicketImage[]> {
@@ -37,12 +40,12 @@ export class TicketImageService {
     }
 
     deleteImage(imageId: number): Observable<void> {
-    return this.http.delete<void>(
-        `http://localhost:8080/api/v1/ticket-images/${imageId}`
+        return this.http.delete<void>(
+        `${environment.apiUrl}/ticket-images/${imageId}`
     );
     }
 
     getImageUrl(imageId: number): string {
-    return `http://localhost:8080/api/v1/ticket-images/${imageId}`;
+        return `${environment.apiUrl}/ticket-images/${imageId}`;
     }
 }

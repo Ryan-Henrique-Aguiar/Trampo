@@ -50,12 +50,12 @@ export interface GroupedTickets {
     tickets: Ticket[];
 }
 
-export interface TicketImage{
-    id: number;
-    ticket: Ticket;
-    filename: string;
-    filepath: string;
-    contentType: string;
-    fileSize: number;
-    createdAt: Date;
+export interface TicketImage {
+  id: number;
+  ticketId: number;
+  fileName: string;
+  filePath: string;
+  contentType: string;
+  fileSize: number;
+  createdAt: string;
 }
