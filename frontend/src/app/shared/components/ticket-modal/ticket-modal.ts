@@ -10,9 +10,10 @@ import { UrgentProviderResponse } from '../../../dto/user/urgent-provider-respon
 import { PaymentMethod } from '../../../enums/payment-method';
 import { UserService } from '../../../services/user/user';
 import { LocationService, State, City } from '../../../services/location/location';
-import { Ticket } from '../../../models/ticket.model';
+import { Ticket, TicketImage } from '../../../models/ticket.model';
 import { WeekDay } from '../../../enums/week-day';
 import { ToastrService } from '@iqx-limited/ngx-toastr';
+import { TicketImageService } from '../../../services/ticket/ticket-image-service';
 
 interface NormalizedCepAddress {
   street?: string | null;
@@ -50,9 +51,11 @@ export class TicketModal implements OnInit {
   cepError: string | null = null;
   sendingProviderId: number | null = null;
   providersError: string | null = null;
+  selectedFiles: File[] = [];
 
   ticketForm!: FormGroup;
-  readonly totalSteps = 3;
+  readonly totalSteps = 4;
+  readonly maxImages = 5;
 
   readonly paymentOptions = [
     { label: 'Pix', value: PaymentMethod.PIX },
@@ -82,10 +85,12 @@ export class TicketModal implements OnInit {
     1: ['title', 'description', 'categoryId'],
     2: ['address.state', 'address.city', 'address.street', 'address.number', 'address.neighborhood'],
   };
+  
 
   constructor(
     private categoryService: CategoryService,
     private ticketService: TicketService,
+    private ticketImageService: TicketImageService,
     private urgentTicketService: UrgentTicketService,
     private userService: UserService,
     private locationService: LocationService,
@@ -135,7 +140,7 @@ export class TicketModal implements OnInit {
     }
   }
 
-  async onStateChange(): Promise<void> {
+   async onStateChange(): Promise<void> {
     const stateCode = this.ticketForm.get('address.state')?.value;
     const state = this.states.find(s => s.uf === stateCode);
 
@@ -157,6 +162,29 @@ export class TicketModal implements OnInit {
       this.cdr.detectChanges();
     }
   }
+
+  // ====== Selecionar Images ======
+  onFilesSelected(event: Event): void {
+
+    const input = event.target as HTMLInputElement;
+
+    if (!input.files) {
+      return;
+    }
+
+    const files = Array.from(input.files);
+
+    if (files.length > this.maxImages) {
+      this.toastrService.warning(
+        `Você pode selecionar no máximo ${this.maxImages} imagens.`
+      );
+
+      input.value = '';
+      return;
+    }
+
+    this.selectedFiles = files;
+}
 
   formatCep(event: Event): void {
     const input = event.target as HTMLInputElement;

@@ -34,6 +34,14 @@
                     {{ isUrgent ? 'Prestadores' : 'Detalhes' }}
                 </span>
             </div>
+            <div class="step-line" [class.done]="currentStep > 3"></div>
+            <div class="step-wrapper">
+                <div class="step-circle" [class.active]="currentStep === 4" [class.done]="currentStep > 4">
+                    @if (currentStep > 4) { <i class="fa-solid fa-check"></i> } @else { 4 }
+                </div>
+                <span class="step-label" [class.active]="currentStep === 4">Fotos</span>
+            </div>
+            
         </div>
 
         <form [formGroup]="ticketForm">
@@ -214,6 +222,39 @@
             </div>
             }
 
+            <!-- Passo 4 (normal): Fotos -->
+            @if (currentStep === 4 && !isUrgent) {
+            <div class="form-section">
+                <div class="form-group">
+                    <label>Selecione as fotos</label>
+                    <div class="select-images">
+                        <input
+                            type="file"
+                            multiple
+                            accept="image/jpeg,image/png,image/webp"
+                            (change)="onFilesSelected($event)"
+                        >
+
+                        @if (selectedFiles.length > 0) {
+
+                            <div class="selected-images">
+
+                                @for (file of selectedFiles; track file.name) {
+
+                                    <div class="selected-image">
+                                        <span>{{ file.name }}</span>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                
+                </div>
+
+            </div>
+            }
+
+            
             <!-- Passo 3 (urgente): Prestadores disponíveis -->
             @if (currentStep === 3 && isUrgent) {
                 <div class="form-section">
