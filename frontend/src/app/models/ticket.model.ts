@@ -52,10 +52,8 @@ export interface GroupedTickets {
 
 export interface TicketImage {
   id: number;
-  ticketId: number;
   fileName: string;
-  filePath: string;
   contentType: string;
-  fileSize: number;
+    url: string;
   createdAt: string;
 }

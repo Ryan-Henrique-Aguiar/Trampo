@@ -34,9 +34,16 @@ export class TicketImageService {
     }
 
     getImages(ticketId: number): Observable<TicketImage[]> {
-    return this.http.get<TicketImage[]>(
-        `${this.baseUrl}/${ticketId}/images`
-    );
+        return this.http.get<TicketImage[]>(
+            `${this.baseUrl}/${ticketId}/images`
+        );
+    }
+
+    getImage(imageId: number): Observable<Blob> {
+        return this.http.get(
+            `${this.baseUrl}/images/${imageId}`,
+            { responseType: 'blob' }
+        );
     }
 
     deleteImage(imageId: number): Observable<void> {
@@ -46,6 +53,6 @@ export class TicketImageService {
     }
 
     getImageUrl(imageId: number): string {
-        return `${environment.apiUrl}/ticket-images/${imageId}`;
+        return `${this.baseUrl}/images/${imageId}`;
     }
 }

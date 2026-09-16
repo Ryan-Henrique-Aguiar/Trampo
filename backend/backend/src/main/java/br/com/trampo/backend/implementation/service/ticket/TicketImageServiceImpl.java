@@ -3,6 +3,7 @@ package br.com.trampo.backend.implementation.service.ticket;
 import br.com.trampo.backend.domain.Users;
 import br.com.trampo.backend.domain.ticket.Ticket;
 import br.com.trampo.backend.domain.ticket.TicketImage;
+import br.com.trampo.backend.dto.ticket.TicketImageResponse;
 import br.com.trampo.backend.infra.exception.UnauthorizedUserException;
 import br.com.trampo.backend.port.dao.ticket.TicketImageDao;
 import br.com.trampo.backend.port.service.ticket.TicketImageService;
@@ -89,27 +90,24 @@ public class TicketImageServiceImpl implements TicketImageService {
     }
 
     @Override
-    public List<TicketImage> findByTicketId(Integer ticketId) {
+    public List<TicketImageResponse> findByTicketId(Integer ticketId) {
+
         if (ticketId == null || ticketId <= 0) {
             throw new IllegalArgumentException("Ticket inválido.");
         }
 
-        // Busca as imagens pelo DAO
-        List<TicketImage> images = ticketImageDao.findByTicketId(ticketId);
+        List<TicketImage> images =
+                ticketImageDao.findByTicketId(ticketId);
 
-        if (images.isEmpty()) {
-            return images;
-        }
-
-        // Busca o objeto completo do Ticket apenas UMA vez
-        Ticket ticketCompleto = ticketService.findTicketById(ticketId);
-
-        // tualiza a referência em cada imagem
-        for (TicketImage image : images) {
-            image.setTicket(ticketCompleto);
-        }
-
-        return images;
+        return images.stream()
+                .map(image -> new TicketImageResponse(
+                        image.getId(),
+                        image.getFileName(),
+                        image.getContentType(),
+                        "/api/v1/image-tickets/images/" + image.getId(),
+                        image.getCreatedAt()
+                ))
+                .toList();
     }
 
     @Override
