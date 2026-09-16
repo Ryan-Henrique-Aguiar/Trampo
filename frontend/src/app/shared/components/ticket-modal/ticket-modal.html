@@ -226,31 +226,32 @@
             @if (currentStep === 4 && !isUrgent) {
             <div class="form-section">
                 <div class="form-group">
-                    <label>Selecione as fotos</label>
-                    <div class="select-images">
+                    <label>Fotos do serviço <span class="optional">(opcional)</span></label>
+                    <label class="select-images" for="ticket-images"
+                        (dragover)="$event.preventDefault()" (drop)="onFilesDropped($event)">
                         <input
+                            id="ticket-images"
                             type="file"
                             multiple
                             accept="image/jpeg,image/png,image/webp"
                             (change)="onFilesSelected($event)"
                         >
+                        <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+                        <span class="upload-title">Arraste-as aqui</span>
+                        <span class="upload-subtitle">ou clique para selecionar</span>
+                        <span class="upload-limit">Até {{ maxImages }} fotos</span>
+                    </label>
 
-                        @if (selectedFiles.length > 0) {
-
-                            <div class="selected-images">
-
-                                @for (file of selectedFiles; track file.name) {
-
-                                    <div class="selected-image">
-                                        <span>{{ file.name }}</span>
-                                    </div>
-                                }
-                            </div>
-                        }
-                    </div>
-                
+                    @if (selectedFiles.length > 0) {
+                        <div class="selected-images" aria-label="Fotos selecionadas">
+                            @for (file of selectedFiles; track file.name; let index = $index) {
+                                <div class="selected-image">
+                                    <img [src]="selectedFilePreviews[index]" [alt]="file.name" />
+                                </div>
+                            }
+                        </div>
+                    }
                 </div>
-
             </div>
             }
 

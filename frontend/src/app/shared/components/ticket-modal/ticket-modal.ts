@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgSelectModule } from '@ng-select/ng-select';
 
@@ -36,7 +36,7 @@ function normalizeText(value: string | null | undefined): string {
   templateUrl: './ticket-modal.html',
   styleUrl: './ticket-modal.css',
 })
-export class TicketModal implements OnInit {
+export class TicketModal implements OnInit, OnDestroy {
   @Input() isUrgent = false;
   @Input() preselectedCategoryId: number | null = null;
   @Output() close = new EventEmitter<void>();
@@ -52,6 +52,7 @@ export class TicketModal implements OnInit {
   sendingProviderId: number | null = null;
   providersError: string | null = null;
   selectedFiles: File[] = [];
+  selectedFilePreviews: string[] = [];
 
   ticketForm!: FormGroup;
   readonly totalSteps = 4;
@@ -163,28 +164,42 @@ export class TicketModal implements OnInit {
     }
   }
 
-  // ====== Selecionar Images ======
+  ngOnDestroy(): void {
+    this.revokeFilePreviews();
+  }
+
   onFilesSelected(event: Event): void {
-
     const input = event.target as HTMLInputElement;
+    this.setSelectedFiles(input.files ? Array.from(input.files) : []);
+  }
 
-    if (!input.files) {
+  onFilesDropped(event: DragEvent): void {
+    event.preventDefault();
+    this.setSelectedFiles(event.dataTransfer?.files ? Array.from(event.dataTransfer.files) : []);
+  }
+
+  private setSelectedFiles(files: File[]): void {
+    if (files.length === 0) {
       return;
     }
-
-    const files = Array.from(input.files);
 
     if (files.length > this.maxImages) {
       this.toastrService.warning(
         `Você pode selecionar no máximo ${this.maxImages} imagens.`
       );
 
-      input.value = '';
       return;
     }
 
+    this.revokeFilePreviews();
     this.selectedFiles = files;
-}
+    this.selectedFilePreviews = files.map(file => URL.createObjectURL(file));
+  }
+
+  private revokeFilePreviews(): void {
+    this.selectedFilePreviews.forEach(preview => URL.revokeObjectURL(preview));
+    this.selectedFilePreviews = [];
+  }
 
   formatCep(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -310,10 +325,13 @@ export class TicketModal implements OnInit {
       // 2. Se houver imagens, faz o upload
       if (this.selectedFiles.length > 0) {
 
+        console.log('Arquivos enviados:', this.selectedFiles.map(file => file.name));
+
         await this.ticketImageService.uploadImages(
           createdTicket.id,
           this.selectedFiles
         );
+        
       }
 
       this.ticketCreated.emit(createdTicket);
