@@ -39,6 +39,24 @@ export class UrgentTicketDetail {
     return this.isOwnTicket && statusAllowsChange;
   }
 
+  get otherPersonName(): string {
+    return this.isOwnTicket ? this.ticket.providerName : this.ticket.userName;
+  }
+
+  get otherPersonRating(): number | null {
+    return this.isOwnTicket ? this.ticket.providerRating : this.ticket.userRating;
+  }
+
+  get otherPersonLabel(): string {
+    return this.isOwnTicket ? 'Prestador responsável' : 'Solicitado por';
+  }
+
+  formatRating(rating: number | null): string {
+    return rating === null
+      ? 'Sem avaliações ainda'
+      : rating.toFixed(1).replace('.', ',');
+  }
+
   toggleStatusMenu(): void {
     if (this.canChangeStatus) this.isStatusMenuOpen = !this.isStatusMenuOpen;
   }

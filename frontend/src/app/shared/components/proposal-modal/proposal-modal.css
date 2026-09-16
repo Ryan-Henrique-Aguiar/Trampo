@@ -222,3 +222,25 @@
     color: var(--primary);
     font-size: 20px;
 }
+
+.proposal-provider-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.proposal-provider-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.ticket-owner-rating {
+    color: var(--text-secondary);
+    font-size: var(--font-size-xs);
+}
+
+.ticket-owner-rating i {
+    color: #f4b400;
+}

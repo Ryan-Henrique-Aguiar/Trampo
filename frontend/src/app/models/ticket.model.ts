@@ -34,8 +34,12 @@ export interface UrgentTicket {
     createdAt: string;
     status: TicketStatus;
     userId: number;
+    userName: string;
+    userRating: number | null;
     categoryId: number;
     providerId: number;
+    providerName: string;
+    providerRating: number | null;
     address: Address;
     serviceDate?: string;
 }

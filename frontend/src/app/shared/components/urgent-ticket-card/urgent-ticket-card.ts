@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { UrgentTicket } from '../../../models/ticket.model';
 import { TicketStatus } from '../../../enums/ticket-status';
+import { AuthService } from '../../../services/auth/auth';
 
 @Component({
   selector: 'app-urgent-ticket-card',
@@ -11,6 +12,14 @@ import { TicketStatus } from '../../../enums/ticket-status';
 export class UrgentTicketCard {
   @Input() ticket!: UrgentTicket;
   @Output() viewDetails = new EventEmitter<UrgentTicket>();
+
+  constructor(private authService: AuthService) {}
+
+  get otherPersonName(): string {
+    return this.ticket.userId === this.authService.currentUser?.id
+      ? this.ticket.providerName
+      : this.ticket.userName;
+  }
 
   getStatusLabel(status: TicketStatus): string {
     const labels: Record<TicketStatus, string> = {

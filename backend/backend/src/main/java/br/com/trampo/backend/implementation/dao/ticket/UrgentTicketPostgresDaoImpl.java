@@ -26,9 +26,15 @@ public class UrgentTicketPostgresDaoImpl implements UrgentTicketDao {
     public List<UrgentTicket> findByUserId(int userId, List<StatusTicket> statuses, int page, int size) {
         String sql = """
                 SELECT t.*, a.street, a.number, a.neighborhood,
-                       a.city, a.state, a.zip_code, a.complement
+                       a.city, a.state, a.zip_code, a.complement,
+                       customer.name AS user_name,
+                       customer.rating AS user_rating,
+                       provider.name AS provider_name,
+                       provider.rating AS provider_rating
                 FROM urgent_ticket t
                 INNER JOIN address a ON a.id = t.address_id
+                INNER JOIN users customer ON customer.id = t.user_id
+                INNER JOIN users provider ON provider.id = t.provider_id
                 WHERE t.user_id = ?
                 """;
         return findTickets(sql, userId, statuses, page, size);
@@ -38,9 +44,15 @@ public class UrgentTicketPostgresDaoImpl implements UrgentTicketDao {
     public List<UrgentTicket> findByProviderId(int providerId, List<StatusTicket> statuses, int page, int size) {
         String sql = """
                 SELECT t.*, a.street, a.number, a.neighborhood,
-                       a.city, a.state, a.zip_code, a.complement
+                       a.city, a.state, a.zip_code, a.complement,
+                       customer.name AS user_name,
+                       customer.rating AS user_rating,
+                       provider.name AS provider_name,
+                       provider.rating AS provider_rating
                 FROM urgent_ticket t
                 INNER JOIN address a ON a.id = t.address_id
+                INNER JOIN users customer ON customer.id = t.user_id
+                INNER JOIN users provider ON provider.id = t.provider_id
                 WHERE t.provider_id = ?
                   AND t.status IN ('IN_PROGRESS', 'COMPLETED')
                 """;
@@ -81,9 +93,15 @@ public class UrgentTicketPostgresDaoImpl implements UrgentTicketDao {
     public Optional<UrgentTicket> findById(int id) {
         String sql = """
                 SELECT t.*, a.street, a.number, a.neighborhood,
-                       a.city, a.state, a.zip_code, a.complement
+                       a.city, a.state, a.zip_code, a.complement,
+                       customer.name AS user_name,
+                       customer.rating AS user_rating,
+                       provider.name AS provider_name,
+                       provider.rating AS provider_rating
                 FROM urgent_ticket t
                 INNER JOIN address a ON a.id = t.address_id
+                INNER JOIN users customer ON customer.id = t.user_id
+                INNER JOIN users provider ON provider.id = t.provider_id
                 WHERE t.id = ?
                 """;
         try (Connection connection = dataSource.getConnection();
@@ -166,9 +184,17 @@ public class UrgentTicketPostgresDaoImpl implements UrgentTicketDao {
 
         Users user = new Users();
         user.setId(rs.getInt("user_id"));
+        user.setName(rs.getString("user_name"));
+        if (rs.getObject("user_rating") != null) {
+            user.setRating(rs.getDouble("user_rating"));
+        }
         ticket.setUser(user);
         Users provider = new Users();
         provider.setId(rs.getInt("provider_id"));
+        provider.setName(rs.getString("provider_name"));
+        if (rs.getObject("provider_rating") != null) {
+            provider.setRating(rs.getDouble("provider_rating"));
+        }
         ticket.setProvider(provider);
         Category category = new Category();
         category.setId(rs.getInt("category_id"));

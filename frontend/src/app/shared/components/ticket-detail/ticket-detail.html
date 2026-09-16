@@ -80,6 +80,7 @@
             <!-- ===== MODO VISUALIZAÇÃO ===== -->
             @if (!isEditing) {
 
+            @if (isProviderMode) {
             <div class="ticket-owner-card">
                 <div class="ticket-owner-avatar" aria-hidden="true">
                     <i class="fa-solid fa-user"></i>
@@ -96,6 +97,7 @@
                     Avaliações em breve
                 </button>
             </div>
+            }
 
             @if (ticket.description) {
             <div class="detail-group">

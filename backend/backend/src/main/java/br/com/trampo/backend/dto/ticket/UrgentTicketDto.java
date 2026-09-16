@@ -16,7 +16,11 @@ public record UrgentTicketDto(
         LocalDateTime serviceDate,
         StatusTicket status,
         Integer userId,
+        String userName,
+        Double userRating,
         Integer providerId,
+        String providerName,
+        Double providerRating,
         Integer categoryId,
         @Validated
         @JsonProperty("address")

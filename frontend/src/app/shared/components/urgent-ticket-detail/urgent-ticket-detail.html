@@ -51,6 +51,22 @@
           </div>
         </div>
         }
+        <div class="ticket-owner-card">
+          <div class="ticket-owner-avatar" aria-hidden="true">
+            <i class="fa-solid fa-user"></i>
+          </div>
+          <div class="ticket-owner-info">
+            <span class="ticket-owner-label">{{ otherPersonLabel }}</span>
+            <strong>{{ otherPersonName }}</strong>
+            <span class="ticket-owner-rating">
+              <i class="fa-solid fa-star"></i>
+              {{ formatRating(otherPersonRating) }}
+            </span>
+          </div>
+          <button type="button" class="btn-reviews" disabled title="Funcionalidade em desenvolvimento">
+            Avaliações em breve
+          </button>
+        </div>
         <div class="detail-group">
           <label>Descrição</label>
           <p class="description-text">{{ ticket.description }}</p>

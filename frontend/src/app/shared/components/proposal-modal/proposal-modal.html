@@ -22,15 +22,17 @@
                 @for (proposal of proposals; track proposal.id) {
                 <div class="proposal-card">
                     <div class="proposal-info">
-                        <div style="display: flex; gap: 4px; align-items: center;">
+                        <div class="proposal-provider-info">
                             <div class="ticket-owner-avatar" aria-hidden="true">
                                 <i class="fa-solid fa-user"></i>
                             </div>
-                            <span class="proposal-provider">{{ proposal.professionalName || 'Prestador #' + proposal.professionalId }}</span>
-                            <span class="ticket-owner-rating">
-                                {{ proposal.professionalRating !== null ? (ticket.userRating | number:'1.1-1') : 'Sem avaliações ainda' }}
-                                <i class="fa-solid fa-star"></i>    
-                            </span>
+                            <div class="proposal-provider-details">
+                                <span class="proposal-provider">{{ proposal.professionalName || 'Prestador #' + proposal.professionalId }}</span>
+                                <span class="ticket-owner-rating">
+                                    <i class="fa-solid fa-star"></i>
+                                    {{ proposal.professionalRating !== null ? (proposal.professionalRating | number:'1.1-1') : 'Sem avaliações ainda' }}
+                                </span>
+                            </div>
                         </div>
                         <span class="proposal-price">{{ formatCurrency(proposal.priceRange) }}</span>
                         <span class="proposal-status" [class]="'proposal-status--' + proposal.status.toLowerCase()">

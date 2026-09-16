@@ -106,7 +106,8 @@ public class ProposalPostgresDaoImpl implements ProposalDao {
                     p.professional_id,
                     p.ticket_id,
                     u.name AS professional_name,
-                    u.phone AS professional_phone
+                    u.phone AS professional_phone,
+                    u.rating AS professional_rating
                 FROM proposal p
                 INNER JOIN users u ON u.id = p.professional_id
                 WHERE p.professional_id = ?
@@ -267,7 +268,9 @@ public class ProposalPostgresDaoImpl implements ProposalDao {
         professional.setId(resultSet.getInt("professional_id"));
         professional.setName(resultSet.getString("professional_name"));
         professional.setPhone(resultSet.getString("professional_phone"));
-        professional.setRating(resultSet.getDouble("professional_rating"));
+        if (resultSet.getObject("professional_rating") != null) {
+            professional.setRating(resultSet.getDouble("professional_rating"));
+        }
 
         Ticket ticket = new Ticket();
         ticket.setId(resultSet.getInt("ticket_id"));
