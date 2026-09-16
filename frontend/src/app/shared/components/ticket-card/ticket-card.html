@@ -35,13 +35,6 @@
         Até: {{ formatCurrency(ticket.priceMax) }}
       </span>
       }
-
-      @if (!isProviderMode && (ticket.proposalsCount ?? 0) > 0) {
-      <span>
-        <i class="fa-solid fa-comment-dots"></i>
-        {{ ticket.proposalsCount }} propostas
-      </span>
-      }
     </div>
     <div class="group-btn-detail">
       <button
