@@ -43,7 +43,7 @@
         (click)="onViewDetails()">
         Detalhes
       </button>
-      @if (!isProviderMode && (ticket.proposalsCount ?? 0) > 0) {
+      @if (!isProviderMode) {
         <button
           type="button"
           class="ticket-button ticket-button--proposals"
