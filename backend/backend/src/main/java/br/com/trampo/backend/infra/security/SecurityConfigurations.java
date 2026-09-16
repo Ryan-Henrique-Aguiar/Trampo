@@ -2,6 +2,7 @@ package br.com.trampo.backend.infra.security;
 
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -27,6 +28,9 @@ public class SecurityConfigurations {
     @Autowired
     SecurityFilter securityFilter;
 
+        @Value("${api.security.cors-origin:http://localhost:4200}")
+        private String corsOrigin;
+
     @Bean
     public SecurityFilterChain configure(HttpSecurity http) throws Exception {
         return http
@@ -51,7 +55,7 @@ public class SecurityConfigurations {
         CorsConfiguration configuration = new CorsConfiguration();
 
         configuration.setAllowedOrigins(
-                List.of("http://localhost:4200")
+                List.of(corsOrigin)
         );
 
         configuration.setAllowedMethods(

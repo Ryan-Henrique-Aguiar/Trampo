@@ -1,0 +1,7 @@
+# Production secrets
+.env
+
+# Build outputs
+frontend/dist/
+frontend/.angular/
+backend/backend/target/
