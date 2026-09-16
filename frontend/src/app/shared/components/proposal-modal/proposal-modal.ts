@@ -14,10 +14,12 @@ import { ProposalStatus } from '../../../enums/proposal-status';
 import { TicketStatus } from '../../../enums/ticket-status';
 
 import { ProposalService } from '../../../services/proposal/proposal-service';
+import { DecimalPipe } from '@angular/common';
 
 @Component({
   selector: 'app-proposals-modal',
   templateUrl: './proposal-modal.html',
+    imports: [DecimalPipe],
   styleUrl: './proposal-modal.css',
 })
 export class ProposalsModal implements OnInit {
