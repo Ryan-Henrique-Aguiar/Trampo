@@ -27,6 +27,8 @@ import { AuthService } from '../../../services/auth/auth';
 import { ViewModeService } from '../../../services/view-mode/view-mode-service';
 import { TicketService } from '../../../services/ticket/ticket-service';
 import { ProposalService } from '../../../services/proposal/proposal-service';
+import { ReviewService } from '../../../services/review/review-service';
+import { Review } from '../../../models/review.model';
 
 @Component({
   selector: 'app-ticket-detail',
@@ -79,6 +81,19 @@ export class TicketDetail implements OnInit {
   isProposalFormOpen = false;
   isSubmittingProposal = false;
 
+  canReview = false;
+  alreadyReviewed = false;
+  isSubmittingReview = false;
+  isReviewsOpen = false;
+  loadingReviews = false;
+  reviews: Review[] = [];
+  reviewScoreControl = new FormControl<number | null>(null, [
+    Validators.required,
+    Validators.min(1),
+    Validators.max(5)
+  ]);
+  reviewCommentControl = new FormControl('', [Validators.maxLength(500)]);
+
   proposalPriceControl = new FormControl<number | null>(
     null,
     [Validators.required]
@@ -89,6 +104,7 @@ export class TicketDetail implements OnInit {
     private viewModeService: ViewModeService,
     private ticketService: TicketService,
     private proposalService: ProposalService,
+    private reviewService: ReviewService,
     private toastrService: ToastrService,
     private cdr: ChangeDetectorRef
   ) {}
@@ -129,6 +145,37 @@ export class TicketDetail implements OnInit {
     return this.proposals[0] ?? null;
   }
 
+  get acceptedProposal(): Proposal | null {
+    return this.proposals.find(
+      proposal => proposal.status === ProposalStatus.ACCEPTED
+    ) ?? null;
+  }
+
+  get reviewedUserId(): number | null {
+    if (!this.ticket) return null;
+    return this.isProviderMode
+      ? this.ticket.userId
+      : this.acceptedProposal?.professionalId ?? null;
+  }
+
+  get reviewedUserName(): string {
+    if (!this.ticket) return '';
+    return this.isProviderMode
+      ? this.ticket.userName
+      : this.acceptedProposal?.professionalName ?? '';
+  }
+
+  get reviewedUserRating(): number | null {
+    if (!this.ticket) return null;
+    return this.isProviderMode
+      ? this.ticket.userRating
+      : this.acceptedProposal?.professionalRating ?? null;
+  }
+
+  get shouldShowReviewedUser(): boolean {
+    return this.isProviderMode || this.acceptedProposal !== null;
+  }
+
   get canSendProposal(): boolean {
     return this.isProviderMode &&
       !this.loadingProposals &&
@@ -149,7 +196,7 @@ export class TicketDetail implements OnInit {
     ]);
     this.proposalPriceControl.updateValueAndValidity();
 
-    if (this.isProviderMode) {
+    if (this.isProviderMode || (this.ticket.proposalsCount ?? 0) > 0) {
       this.loadProposals(this.ticket.id);
     }
   }
@@ -160,6 +207,9 @@ export class TicketDetail implements OnInit {
 
     try {
       this.proposals = await this.proposalService.getByTicketId(ticketId);
+      if (this.canCurrentUserReview()) {
+        await this.loadReviewStatus();
+      }
     } catch (err) {
       console.error('Erro ao carregar propostas:', err);
       this.proposals = [];
@@ -168,6 +218,92 @@ export class TicketDetail implements OnInit {
       this.loadingProposals = false;
       this.cdr.detectChanges();
     }
+  }
+
+  private canCurrentUserReview(): boolean {
+    if (this.ticket?.status !== TicketStatus.COMPLETED) return false;
+    if (this.isOwnTicket) return this.acceptedProposal !== null;
+    return this.myProposal?.status === ProposalStatus.ACCEPTED;
+  }
+
+  private async loadReviewStatus(): Promise<void> {
+    if (!this.ticket) return;
+
+    try {
+      const status = await this.reviewService.getStatus(this.ticket.id);
+      this.canReview = status.canReview;
+      this.alreadyReviewed = status.alreadyReviewed;
+    } catch (err) {
+      console.error('Erro ao consultar avaliação:', err);
+    }
+  }
+
+  async submitReview(): Promise<void> {
+    if (!this.ticket || !this.canReview || this.isSubmittingReview) return;
+
+    if (this.reviewScoreControl.invalid) {
+      this.reviewScoreControl.markAsTouched();
+      return;
+    }
+
+    this.isSubmittingReview = true;
+    try {
+      await this.reviewService.create(
+        this.ticket.id,
+        this.reviewScoreControl.value!,
+        this.reviewCommentControl.value ?? ''
+      );
+      if (this.reviewedUserId) {
+        this.reviews = await this.reviewService.getByUserId(this.reviewedUserId);
+        this.updateDisplayedRating();
+      }
+      this.canReview = false;
+      this.alreadyReviewed = true;
+      this.reviewScoreControl.reset();
+      this.reviewCommentControl.reset();
+      this.toastrService.success('Avaliação enviada com sucesso');
+    } catch (err) {
+      console.error('Erro ao enviar avaliação:', err);
+      this.toastrService.error('Não foi possível enviar a avaliação');
+    } finally {
+      this.isSubmittingReview = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  private updateDisplayedRating(): void {
+    if (this.reviews.length === 0 || !this.ticket) return;
+
+    const rating = this.reviews.reduce(
+      (total, review) => total + review.score,
+      0
+    ) / this.reviews.length;
+
+    if (this.isProviderMode) {
+      this.ticket.userRating = rating;
+    } else if (this.acceptedProposal) {
+      this.acceptedProposal.professionalRating = rating;
+    }
+  }
+
+  async openReviewsModal(): Promise<void> {
+    this.isReviewsOpen = true;
+    if (this.reviews.length > 0 || !this.reviewedUserId) return;
+
+    this.loadingReviews = true;
+    try {
+      this.reviews = await this.reviewService.getByUserId(this.reviewedUserId);
+    } catch (err) {
+      console.error('Erro ao carregar avaliações:', err);
+      this.toastrService.error('Não foi possível carregar as avaliações');
+    } finally {
+      this.loadingReviews = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  closeReviewsModal(): void {
+    this.isReviewsOpen = false;
   }
 
   toggleStatusMenu(): void {
@@ -203,6 +339,9 @@ export class TicketDetail implements OnInit {
       this.pendingStatus = null;
 
       this.ticketUpdated.emit(updatedTicket);
+      if (this.canCurrentUserReview()) {
+        await this.loadReviewStatus();
+      }
       this.toastrService.success('Status atualizado com sucesso');
     } catch (err) {
       console.error('Erro ao alterar status do ticket:', err);

@@ -242,13 +242,16 @@ CREATE TABLE IF NOT EXISTS notification (
 -- ==========================================================
 CREATE TABLE IF NOT EXISTS review (
     id SERIAL PRIMARY KEY,
-    score INT NOT NULL CHECK(score BETWEEN 0 AND 5),
-    comment TEXT NOT NULL,
-    professional_id INT NOT NULL,
-    user_id INT NOT NULL,
-    FOREIGN KEY (professional_id) REFERENCES users(id),
-    FOREIGN KEY (user_id) REFERENCES users(id),
-    UNIQUE(professional_id, user_id)
+    score INT NOT NULL CHECK(score BETWEEN 1 AND 5),
+    comment TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ticket_id INT NOT NULL,
+    reviewer_id INT NOT NULL,
+    reviewed_user_id INT NOT NULL,
+    FOREIGN KEY (ticket_id) REFERENCES ticket(id) ON DELETE CASCADE,
+    FOREIGN KEY (reviewer_id) REFERENCES users(id),
+    FOREIGN KEY (reviewed_user_id) REFERENCES users(id),
+    UNIQUE(ticket_id, reviewer_id)
 );
 
 

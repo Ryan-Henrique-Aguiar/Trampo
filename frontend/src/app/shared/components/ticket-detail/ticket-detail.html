@@ -80,23 +80,52 @@
             <!-- ===== MODO VISUALIZAÇÃO ===== -->
             @if (!isEditing) {
 
-            @if (isProviderMode) {
+            @if (shouldShowReviewedUser) {
             <div class="ticket-owner-card">
                 <div class="ticket-owner-avatar" aria-hidden="true">
                     <i class="fa-solid fa-user"></i>
                 </div>
                 <div class="ticket-owner-info">
-                    <span class="ticket-owner-label">Publicado por</span>
-                    <strong>{{ ticket.userName }}</strong>
+                    <span class="ticket-owner-label">{{ isProviderMode ? 'Publicado por' : 'Prestador responsável' }}</span>
+                    <strong>{{ reviewedUserName }}</strong>
                     <span class="ticket-owner-rating">
                         <i class="fa-solid fa-star"></i>
-                        {{ ticket.userRating !== null ? (ticket.userRating | number:'1.1-1') : 'Sem avaliações ainda' }}
+                        {{ reviewedUserRating !== null ? (reviewedUserRating | number:'1.1-1') : 'Sem avaliações ainda' }}
                     </span>
                 </div>
-                <button type="button" class="btn-reviews" disabled title="Funcionalidade em desenvolvimento">
-                    Avaliações em breve
+                <button type="button" class="btn-reviews" (click)="openReviewsModal()">
+                    Ver todas
                 </button>
             </div>
+
+            @if (canReview) {
+            <div class="review-form">
+                <h4>Avaliar serviço</h4>
+                <label for="review-score">Nota</label>
+                <select id="review-score" [formControl]="reviewScoreControl">
+                    <option [ngValue]="null">Selecione</option>
+                    <option [ngValue]="1">1</option>
+                    <option [ngValue]="2">2</option>
+                    <option [ngValue]="3">3</option>
+                    <option [ngValue]="4">4</option>
+                    <option [ngValue]="5">5</option>
+                </select>
+                @if (reviewScoreControl.invalid && reviewScoreControl.touched) {
+                <span class="field-error">Selecione uma nota de 1 a 5.</span>
+                }
+
+                <label for="review-comment">Comentário</label>
+                <textarea id="review-comment" rows="3" maxlength="500"
+                    [formControl]="reviewCommentControl"></textarea>
+
+                <button type="button" class="btn-submit-review"
+                    [disabled]="isSubmittingReview" (click)="submitReview()">
+                    {{ isSubmittingReview ? 'Enviando...' : 'Enviar avaliação' }}
+                </button>
+            </div>
+            } @else if (alreadyReviewed) {
+            <p class="review-sent"><i class="fa-solid fa-circle-check"></i> Você já avaliou este serviço.</p>
+            }
             }
 
             @if (ticket.description) {
@@ -379,4 +408,41 @@
 
     </div>
 </div>
+
+@if (isReviewsOpen) {
+<div class="reviews-modal-overlay" (click)="closeReviewsModal()">
+    <div class="reviews-modal" (click)="$event.stopPropagation()">
+        <div class="reviews-modal-header">
+            <div>
+                <span>Avaliações de</span>
+                <h3>{{ reviewedUserName }}</h3>
+            </div>
+            <button type="button" class="reviews-modal-close" aria-label="Fechar avaliações"
+                (click)="closeReviewsModal()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="reviews-modal-body">
+            @if (loadingReviews) {
+            <p class="reviews-message">Carregando avaliações...</p>
+            } @else if (reviews.length > 0) {
+                @for (review of reviews; track review.id) {
+                <div class="review-item">
+                    <div class="review-header">
+                        <strong>Avaliação anônima</strong>
+                        <span><i class="fa-solid fa-star"></i> {{ review.score }}</span>
+                    </div>
+                    @if (review.comment) {
+                    <p>{{ review.comment }}</p>
+                    }
+                </div>
+                }
+            } @else {
+            <p class="reviews-message">Este usuário ainda não possui avaliações.</p>
+            }
+        </div>
+    </div>
+</div>
+}
 }

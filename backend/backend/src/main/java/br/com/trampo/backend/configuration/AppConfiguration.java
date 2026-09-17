@@ -4,12 +4,14 @@ import br.com.trampo.backend.implementation.dao.AddressPostgresDaoImpl;
 import br.com.trampo.backend.implementation.dao.CategoryPostgresDaoImpl;
 import br.com.trampo.backend.implementation.dao.UsersCategoryPostgresDaoImpl;
 import br.com.trampo.backend.implementation.dao.proposal.ProposalPostgresDaoImpl;
+import br.com.trampo.backend.implementation.dao.review.ReviewPostgresDaoImpl;
 import br.com.trampo.backend.implementation.dao.ticket.*;
 import br.com.trampo.backend.implementation.dao.users.UsersPostgresDaoImpl;
 import br.com.trampo.backend.port.dao.AddressDao;
 import br.com.trampo.backend.port.dao.CategoryDao;
 import br.com.trampo.backend.port.dao.UsersCategoryDao;
 import br.com.trampo.backend.port.dao.proposal.ProposalDao;
+import br.com.trampo.backend.port.dao.review.ReviewDao;
 import br.com.trampo.backend.port.dao.ticket.*;
 import br.com.trampo.backend.port.dao.users.UsersDao;
 import org.springframework.context.annotation.Bean;
@@ -71,6 +73,11 @@ public class AppConfiguration {
     @Bean
     public ProposalDao proposalDao(DataSource dataSource) {
         return new ProposalPostgresDaoImpl(dataSource);
+    }
+
+    @Bean
+    public ReviewDao reviewDao(DataSource dataSource) {
+        return new ReviewPostgresDaoImpl(dataSource);
     }
 
     @Bean
