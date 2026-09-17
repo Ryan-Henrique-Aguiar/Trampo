@@ -5,3 +5,5 @@
 frontend/dist/
 frontend/.angular/
 backend/backend/target/
+
+backend/backend/uploads/
