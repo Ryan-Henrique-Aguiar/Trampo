@@ -3,6 +3,7 @@ import {
   Component,
   EventEmitter,
   Input,
+  OnDestroy,
   OnInit,
   Output
 } from '@angular/core';
@@ -15,7 +16,7 @@ import {
 import { ToastrService } from '@iqx-limited/ngx-toastr';
 import { DecimalPipe } from '@angular/common';
 
-import { Ticket } from '../../../models/ticket.model';
+import { Ticket, TicketImage } from '../../../models/ticket.model';
 import { Proposal } from '../../../models/proposal.model';
 
 import { TicketStatus } from '../../../enums/ticket-status';
@@ -29,6 +30,7 @@ import { TicketService } from '../../../services/ticket/ticket-service';
 import { ProposalService } from '../../../services/proposal/proposal-service';
 import { ReviewService } from '../../../services/review/review-service';
 import { Review } from '../../../models/review.model';
+import { TicketImageService } from '../../../services/ticket/ticket-image-service';
 
 @Component({
   selector: 'app-ticket-detail',
@@ -36,7 +38,7 @@ import { Review } from '../../../models/review.model';
   templateUrl: './ticket-detail.html',
   styleUrl: './ticket-detail.css'
 })
-export class TicketDetail implements OnInit {
+export class TicketDetail implements OnInit, OnDestroy {
 
   @Input() ticket: Ticket | null = null;
 
@@ -80,6 +82,9 @@ export class TicketDetail implements OnInit {
   proposalsError: string | null = null;
   isProposalFormOpen = false;
   isSubmittingProposal = false;
+  ticketImages: TicketImage[] = [];
+  ticketImageUrls: Record<number, string> = {};
+  expandedImageId: number | null = null;
 
   canReview = false;
   alreadyReviewed = false;
@@ -105,6 +110,7 @@ export class TicketDetail implements OnInit {
     private ticketService: TicketService,
     private proposalService: ProposalService,
     private reviewService: ReviewService,
+    private ticketImageService: TicketImageService,
     private toastrService: ToastrService,
     private cdr: ChangeDetectorRef
   ) {}
@@ -195,10 +201,43 @@ export class TicketDetail implements OnInit {
         : [])
     ]);
     this.proposalPriceControl.updateValueAndValidity();
+    this.loadTicketImages(this.ticket.id);
 
     if (this.isProviderMode || (this.ticket.proposalsCount ?? 0) > 0) {
       this.loadProposals(this.ticket.id);
     }
+  }
+
+  ngOnDestroy(): void {
+    Object.values(this.ticketImageUrls).forEach(url => URL.revokeObjectURL(url));
+  }
+
+  private loadTicketImages(ticketId: number): void {
+    this.ticketImageService.getImages(ticketId).subscribe({
+      next: images => {
+        this.ticketImages = images;
+        images.forEach(image => this.loadTicketImage(image));
+        this.cdr.detectChanges();
+      },
+      error: err => {
+        console.error('Erro ao carregar imagens do ticket:', err);
+        this.ticketImages = [];
+      }
+    });
+  }
+
+  private loadTicketImage(image: TicketImage): void {
+    this.ticketImageService.getImage(image.id).subscribe({
+      next: blob => {
+        this.ticketImageUrls[image.id] = URL.createObjectURL(blob);
+        this.cdr.detectChanges();
+      },
+      error: err => console.error(`Erro ao carregar imagem ${image.id}:`, err)
+    });
+  }
+
+  toggleImage(imageId: number): void {
+    this.expandedImageId = this.expandedImageId === imageId ? null : imageId;
   }
 
   private async loadProposals(ticketId: number): Promise<void> {

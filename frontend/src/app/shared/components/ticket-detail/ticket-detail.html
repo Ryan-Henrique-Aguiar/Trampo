@@ -213,6 +213,26 @@
             </div>
             }
 
+            @if (ticketImages.length > 0) {
+            <div class="detail-section ticket-images-section">
+                <h4>Fotos do serviço</h4>
+                <div class="ticket-images-grid">
+                    @for (image of ticketImages; track image.id) {
+                    <button type="button" class="ticket-image-button"
+                        [class.ticket-image-button--expanded]="expandedImageId === image.id"
+                        (click)="toggleImage(image.id)"
+                        [attr.aria-label]="expandedImageId === image.id ? 'Reduzir foto' : 'Ampliar foto'">
+                        @if (ticketImageUrls[image.id]) {
+                        <img [src]="ticketImageUrls[image.id]" [alt]="image.fileName" />
+                        } @else {
+                        <i class="fa-solid fa-spinner fa-spin" aria-label="Carregando foto"></i>
+                        }
+                    </button>
+                    }
+                </div>
+            </div>
+            }
+
             }
 
             <!-- ===== MODO EDIÇÃO ===== -->

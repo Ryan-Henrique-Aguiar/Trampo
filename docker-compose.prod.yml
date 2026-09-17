@@ -1,0 +1,59 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: trampo-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-trampo}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD no arquivo .env}
+    volumes:
+      - trampo_postgres_data:/var/lib/postgresql/data
+      - ./docs/SCRIPT-SQL-BD.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend/backend
+      dockerfile: Dockerfile
+    container_name: trampo-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-trampo}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD no arquivo .env}
+      DB_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-trampo}
+      DB_USER: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD no arquivo .env}
+      JWT_SECRET: ${JWT_SECRET:?Defina JWT_SECRET no arquivo .env}
+      CORS_ORIGIN: ${CORS_ORIGIN:-https://trampo.example.com}
+      FILE_UPLOAD_DIR: /app/uploads
+      SERVER_PORT: 8080
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - trampo_uploads:/app/uploads
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: trampo-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      PORT: 4200
+    ports:
+      - "127.0.0.1:4200:4200"
+
+volumes:
+  trampo_postgres_data:
+  trampo_uploads:

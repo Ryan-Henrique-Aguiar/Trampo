@@ -40,7 +40,7 @@ public class TicketImagePostgresDaoImpl implements TicketImageDao {
             preparedStatement.setString(3, image.getFilePath());
             preparedStatement.setString(4, image.getContentType());
             preparedStatement.setLong(5, image.getFileSize());
-
+            preparedStatement.executeUpdate();
         } catch (SQLException e) {
             throw new DatabaseException("Não foi possível salvar a imagem", e);
         }
@@ -100,7 +100,48 @@ public class TicketImagePostgresDaoImpl implements TicketImageDao {
 
     @Override
     public Optional<TicketImage> findById(Integer imageId) {
-        return Optional.empty();
+        String sql = """
+                SELECT
+                    id,
+                    ticket_id,
+                    file_name,
+                    file_path,
+                    content_type,
+                    file_size,
+                    created_at
+                FROM ticket_image
+                WHERE id = ?
+                """;
+
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+
+            preparedStatement.setInt(1, imageId);
+
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (!resultSet.next()) {
+                    return Optional.empty();
+                }
+
+                Ticket ticket = new Ticket();
+                ticket.setId(resultSet.getInt("ticket_id"));
+
+                Timestamp timestamp = resultSet.getTimestamp("created_at");
+                TicketImage image = new TicketImage(
+                        resultSet.getInt("id"),
+                        ticket,
+                        resultSet.getString("file_name"),
+                        resultSet.getString("file_path"),
+                        resultSet.getString("content_type"),
+                        resultSet.getLong("file_size"),
+                        timestamp != null ? timestamp.toLocalDateTime() : null
+                );
+
+                return Optional.of(image);
+            }
+        } catch (SQLException e) {
+            throw new DatabaseException("Não foi possível buscar a imagem", e);
+        }
     }
 
     @Override
