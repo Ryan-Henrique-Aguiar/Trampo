@@ -138,7 +138,7 @@
         <abstract-items />
         <layer id="3a3fa403618b4f4eb1037b801ea2fa8a" name="Default" visible="true" enabled="true" locked="false" />
       </diagram>
-      <diagram type="uml-deployment" id="p683691dc099d47e8b335eef384bde16a_696116206" name="Diagrama de Implantação" order-index="2" overview-order-index="0" uid="" name-style="" auto-routed-paths="false" default-line-style="default" view-location="381,-104" zoom="0.9">
+      <diagram type="uml-deployment" id="p683691dc099d47e8b335eef384bde16a_696116206" name="Diagrama de Implantação" order-index="2" overview-order-index="0" uid="" name-style="" auto-routed-paths="false" default-line-style="default">
         <style>
           <background-color index="1" color="#FFFFFFFF" />
           <background-color index="2" color="#FFFFFFFF" />
