@@ -85,6 +85,8 @@ public class TicketServiceImpl implements TicketService {
             throw new InvalidRequestException("O orçamento máximo deve ser maior que zero.");
         }
 
+        validateCreateTicket(createTicketDto);
+
 
         int attempt = 0;
         int maxAttempt = 3;
@@ -525,5 +527,42 @@ public class TicketServiceImpl implements TicketService {
 
     private boolean isBlank(String value) {
         return value == null || value.isBlank();
+    }
+
+    private void validateCreateTicket( CreateTicketDto dto){
+        if (dto.title() == null || dto.title().trim().isEmpty()) {
+            throw new InvalidRequestException("O campo 'title' é obrigatório.");
+        }
+
+        if (dto.description() == null || dto.description().trim().isEmpty()) {
+            throw new InvalidRequestException("O campo 'description' é obrigatório.");
+        }
+
+        if (dto.priceMax() == null) {
+            throw new InvalidRequestException("O campo 'priceMax' é obrigatório.");
+        }
+
+        if (dto.priceMax().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new InvalidRequestException(
+                    "O orçamento máximo deve ser maior que zero."
+            );
+        }
+
+        if (dto.categoryId() == null) {
+            throw new InvalidRequestException("O campo 'categoryId' é obrigatório.");
+        }
+
+        if (dto.availableHours() == null || dto.availableHours().isEmpty()) {
+            throw new InvalidRequestException("O campo 'availableHours' é obrigatório.");
+        }
+
+        if (dto.availableDays() == null || dto.availableDays().isEmpty()) {
+            throw new InvalidRequestException("O campo 'availableDays' é obrigatório.");
+        }
+
+        if (dto.paymentMethods() == null || dto.paymentMethods().isEmpty()) {
+            throw new InvalidRequestException("O campo 'paymentMethods' é obrigatório.");
+        }
+
     }
 }
