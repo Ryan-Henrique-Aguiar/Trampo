@@ -1,0 +1,22 @@
+Trampo -  Incremento 6
+Diagrama de implantação: 
+
+- Navegador Web não deve ser um <<artifact>> geralmente na UML é um software executado em um nó (device)
+- NGINX nâo deveria ser modelado como artifact isolado, há realmente essa necessidade?
+- Angular também não é um artifact executado no frontend Container  se realmente existir um container Node.js servindo ficaria dentro do frontend container
+- Spring boot deve ser um artifact implantado poderia usar o backend container
+- Storage não deve ficar dentro o backend container é um recurso de armazenamento separado
+- Banco de dados precisa identificar qual SGBD
+- conexões devem ser entre os nós e não ente artefatos 
+
+Se o NGINX também estiver em um container Docker (situação mais comum), então ele deve ficar dentro do Docker Host, no mesmo nível dos containers Frontend, Backend e PostgreSQL. No diagrama atual, o Proxy Reverso parece estar fora do Docker Host, o que pode não refletir sua arquitetura real.
+
+Diagrama de componentes: 
+
+- Os componentes não estão identificados com clareza
+- Os nomes estão representando uma mistura de conceitos:  ficaria melhor usar: User Management Component, Ticket Management Component,Notification Service, Proposal Service
+-  O banco de dados está modelado como componente
+-  As dependências não estão claras
+-  Não identifiquei nenhuma interface fornecida ou requerida, o Diagrama de Componentes UML normalmente descreve como componentes colaboram através de interfaces.
+
+Documentação:  Cronograma desatualizado
