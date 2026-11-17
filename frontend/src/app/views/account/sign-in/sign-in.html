@@ -7,13 +7,14 @@
       Não possui conta? Faça seu cadastro →
     </a>
 
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+    <form class="ft-login-form" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
 
       <div class="input-icon">
         <i class="fa-solid fa-envelope"></i>
 
         <input
           type="email"
+          class="ft-email"
           placeholder="Email"
           formControlName="email"
           autocomplete="email">
@@ -23,7 +24,7 @@
         loginForm.get('email')?.invalid &&
         loginForm.get('email')?.touched
       ) {
-        <small class="error-msg">
+        <small class="error-msg ft-email-error">
           Informe um email válido.
         </small>
       }
@@ -33,6 +34,7 @@
 
         <input
           type="password"
+          class="ft-password"
           placeholder="Senha"
           formControlName="password"
           autocomplete="current-password">
@@ -42,7 +44,7 @@
         loginForm.get('password')?.invalid &&
         loginForm.get('password')?.touched
       ) {
-        <small class="error-msg">
+        <small class="error-msg ft-password-error">
           Informe sua senha.
         </small>
       }
@@ -53,11 +55,10 @@
 
       <button
         type="submit"
-        class="btn-primary-auth"
+        class="btn-primary-auth ft-btn-login"
         [disabled]="loading">
 
         {{ loading ? 'Entrando...' : 'Entrar' }}
-
       </button>
 
     </form>
