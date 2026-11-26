@@ -130,4 +130,36 @@ describe('TRAMPO - solicitação de serviço', () => {
         await expect(TicketPage.titleInput).toHaveValue(title)
         await expect(TicketPage.descriptionInput).toHaveValue('Descrição detalhada para validar a solicitação de serviço pelo fluxo automatizado.')
     })
+    it('CT-FE-013 cria um ticket urgente e aciona prestador disponível', async () => {
+        await TicketPage.openHome()
+        await $('button.action-card:nth-child(2)').click()
+        await expect($('h2=Serviço urgente')).toBeDisplayed()
+
+        await TicketPage.fillBasic(`Urgente automatizado ${Date.now()}`)
+        await TicketPage.continueToAddress()
+
+        await TicketPage.selectState('MG')
+        await TicketPage.selectCity('Santa Rita do Sapucaí')
+        await TicketPage.neighborhoodInput.setValue('Centro')
+        await TicketPage.streetInput.setValue('Rua de Teste')
+        await TicketPage.numberInput.setValue('123')
+
+        await TicketPage.nextButton.click() // "Buscar prestadores"
+
+        await expect(TicketPage.stepLabel).toHaveText('Prestadores', { timeout: 15000 })
+
+        const mainWindow = await browser.getWindowHandle()
+        const whatsappBtn = $('button.btn-whatsapp')
+        await whatsappBtn.waitForDisplayed({ timeout: 15000 })
+        await whatsappBtn.click()
+
+        // Se abriu a aba do WhatsApp, volta para a aba principal do TRAMPO
+        const handles = await browser.getWindowHandles()
+        if (handles.length > 1) {
+            await browser.switchToWindow(mainWindow)
+        }
+
+        await expect($('body')).toHaveText(/Solicitação criada/, { timeout: 15000 })
+        await expect(TicketPage.modal).not.toBeDisplayed({ timeout: 15000 })
+    })
 })

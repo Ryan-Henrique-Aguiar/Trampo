@@ -29,6 +29,13 @@ class TicketPage extends Page {
     get selectedImages () { return $$('.selected-image') }
     get stepLabel () { return $('.step-label.active') }
 
+    // Urgent service
+    get openUrgentButton () { return $('button.action-card:nth-child(2)') }
+    get urgentHeading () { return $('h2=Serviço urgente') }
+    get stepLabels () { return $$('.stepper .step-label') }
+    get providerCards () { return $$('.provider-card') }
+    get whatsappButtons () { return $$('button.btn-whatsapp') }
+
     async openHome () {
         await browser.url('/home')
         await $('button.action-card:first-child').waitForDisplayed()
@@ -49,8 +56,15 @@ class TicketPage extends Page {
     }
 
     async waitForCategories () {
-        await this.categorySelect.waitForExist()
-        await browser.waitUntil(async () => (await this.categorySelect.$$('option')).length > 1)
+        await this.categorySelect.waitForExist({ timeout: 20000 })
+        await browser.waitUntil(
+            async () => (await this.categorySelect.$$('option')).length > 1,
+            {
+                timeout: 20000,
+                interval: 300,
+                timeoutMsg: 'As categorias não foram carregadas no select dentro de 20s'
+            }
+        )
     }
 
     async fillAddressFromCep () {
@@ -97,16 +111,44 @@ class TicketPage extends Page {
         await this.numberInput.click()
     }
 
-    async selectState (state) {
-        await this.stateSelect.selectByAttribute('value', state)
-        await this.citySelect.waitForEnabled()
-    }
+    
 
     async waitForStates () {
         await browser.waitUntil(async () => (await this.stateSelect.$$('option')).length > 1)
     }
 
+    async selectState (state) {
+        await this.waitForStates()
+        await this.stateSelect.selectByAttribute('value', state)
+        await this.citySelect.waitForEnabled({ timeout: 15000 })
+        await browser.waitUntil(
+            async () => (await this.citySelect.$$('option')).length > 1,
+            {
+                timeout: 15000,
+                interval: 300,
+                timeoutMsg: `As cidades do estado ${state} não carregaram a tempo`
+            }
+        )
+    }
+
     async selectCity (city) {
+        await browser.waitUntil(
+            async () => {
+                const options = await this.citySelect.$$('option')
+                for (const opt of options) {
+                    const text = (await opt.getText()).trim()
+                    if (text.toLowerCase() === city.toLowerCase()) {
+                        return true
+                    }
+                }
+                return false
+            },
+            {
+                timeout: 15000,
+                interval: 300,
+                timeoutMsg: `Cidade "${city}" não encontrada no select`
+            }
+        )
         await this.citySelect.selectByVisibleText(city)
     }
 
@@ -160,6 +202,22 @@ class TicketPage extends Page {
     async submit () {
         await this.submitButton.scrollIntoView()
         await this.submitButton.click()
+    }
+
+    // Métodos para o fluxo de serviço urgente
+
+    async openForUrgentTicket () {
+    await this.openUrgentButton.click()
+    await this.urgentHeading.waitForDisplayed()
+    }
+
+    async searchUrgentProviders () {
+        await this.nextButton.scrollIntoView()
+        await this.nextButton.click()
+        await browser.waitUntil(
+            async () => (await this.providerCards).length > 0 || await $('.providers-empty').isDisplayed(),
+            { timeoutMsg: 'A lista de prestadores urgentes não carregou.' }
+        )
     }
 }
 
