@@ -55,7 +55,11 @@ export class TicketModal implements OnInit, OnDestroy {
   selectedFilePreviews: string[] = [];
 
   ticketForm!: FormGroup;
-  readonly totalSteps = 4;
+  //readonly totalSteps = 4;
+
+  get totalSteps(): number {
+    return this.isUrgent ? 3 : 4;
+  }
   readonly maxImages = 5;
 
   readonly paymentOptions = [
@@ -444,13 +448,6 @@ export class TicketModal implements OnInit, OnDestroy {
       return;
     }
 
-    const whatsappWindow = window.open('', '_blank');
-
-    if (!whatsappWindow) {
-      this.toastrService.error('Permita a abertura de pop-ups para acessar o WhatsApp.');
-      return;
-    }
-
     this.sendingProviderId = provider.id;
 
     try {
@@ -464,6 +461,7 @@ export class TicketModal implements OnInit, OnDestroy {
         providerId: provider.id
       };
 
+      // 1. Cria o ticket urgente no backend primeiro
       await this.urgentTicketService.create(dto);
 
       const message =
@@ -476,12 +474,16 @@ export class TicketModal implements OnInit, OnDestroy {
       const url =
         `https://wa.me/${whatsappPhone}?text=${encodeURIComponent(message)}`;
 
-      whatsappWindow.location.href = url;
+      // 2. Tenta abrir em nova aba; se bloqueado, redireciona ou avisa
+      const whatsappWindow = window.open(url, '_blank', 'noopener,noreferrer');
+      if (!whatsappWindow) {
+        this.toastrService.warning('Solicitação criada, mas o pop-up do WhatsApp foi bloqueado pelo navegador.');
+      } else {
+        this.toastrService.success('Solicitação criada. Inicie o atendimento após combinar com o prestador.');
+      }
 
-      this.toastrService.success('Solicitação criada. Inicie o atendimento após combinar com o prestador.');
       this.closeModal();
     } catch (err) {
-      whatsappWindow.close();
       console.error('Erro ao criar ticket urgente:', err);
       this.toastrService.error('Não foi possível criar o serviço urgente.');
     } finally {
