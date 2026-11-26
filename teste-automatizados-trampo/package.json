@@ -1,0 +1,17 @@
+{
+  "name": "teste-automatizados-trampo",
+  "type": "module",
+  "devDependencies": {
+    "@wdio/allure-reporter": "^9.32.0",
+    "@wdio/cli": "^9.32.0",
+    "@wdio/local-runner": "^9.32.0",
+    "@wdio/mocha-framework": "^9.32.0",
+    "@wdio/spec-reporter": "^9.32.0",
+    "allure-commandline": "^2.46.2"
+  },
+  "scripts": {
+    "wdio": "wdio run ./wdio.conf.js",
+    "allure:generate": "allure generate allure-results --clean",
+    "allure:open": "allure open allure-report"
+  }
+}

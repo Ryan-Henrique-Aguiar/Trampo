@@ -1,0 +1,24 @@
+
+> wdio
+> wdio run ./wdio.conf.js --headless --spec ./test/specs/register.e2e.js --mochaOpts.grep CT-FE-005
+
+
+Execution of 1 workers started at 2026-11-26T18:34:44.864Z
+
+[0-0] RUNNING in chrome - file:///C:/Users/marcus/Documents/teste-automatizados-trampo/test/specs/register.e2e.js
+[0-0] PASSED in chrome - file:///C:/Users/marcus/Documents/teste-automatizados-trampo/test/specs/register.e2e.js
+
+ "spec" Reporter:
+------------------------------------------------------------------
+[chrome 158.0.8127.88 windows #0-0] Running: chrome (v158.0.8127.88) on windows
+[chrome 158.0.8127.88 windows #0-0] Session ID: 836b337d57313db78eb339b147d9af0c
+[chrome 158.0.8127.88 windows #0-0]
+[chrome 158.0.8127.88 windows #0-0] » test\specs\register.e2e.js
+[chrome 158.0.8127.88 windows #0-0] TRAMPO - cadastro
+[chrome 158.0.8127.88 windows #0-0]    ✓ CT-FE-005 impede avançar o cadastro com dados inválidos
+[chrome 158.0.8127.88 windows #0-0]
+[chrome 158.0.8127.88 windows #0-0] 1 passing (4.4s)
+
+
+Spec Files:	 1 passed, 1 total (100% completed) in 00:00:08  
+

@@ -1,0 +1,24 @@
+
+> wdio
+> wdio run ./wdio.conf.js --headless --spec ./test/specs/login.e2e.js --mochaOpts.grep CT-FE-003
+
+
+Execution of 1 workers started at 2026-11-26T18:34:19.415Z
+
+[0-0] RUNNING in chrome - file:///C:/Users/marcus/Documents/teste-automatizados-trampo/test/specs/login.e2e.js
+[0-0] PASSED in chrome - file:///C:/Users/marcus/Documents/teste-automatizados-trampo/test/specs/login.e2e.js
+
+ "spec" Reporter:
+------------------------------------------------------------------
+[chrome 158.0.8127.88 windows #0-0] Running: chrome (v158.0.8127.88) on windows
+[chrome 158.0.8127.88 windows #0-0] Session ID: 9e1850db337d4c8a87f9a6a56958e08b
+[chrome 158.0.8127.88 windows #0-0]
+[chrome 158.0.8127.88 windows #0-0] » test\specs\login.e2e.js
+[chrome 158.0.8127.88 windows #0-0] TRAMPO - autenticação
+[chrome 158.0.8127.88 windows #0-0]    ✓ CT-FE-003 mantém o visitante no login quando a senha está incorreta
+[chrome 158.0.8127.88 windows #0-0]
+[chrome 158.0.8127.88 windows #0-0] 1 passing (5.5s)
+
+
+Spec Files:	 1 passed, 1 total (100% completed) in 00:00:11  
+

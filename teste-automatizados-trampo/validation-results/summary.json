@@ -1,0 +1,74 @@
+[
+  {
+    "case": "CT-FE-001",
+    "status": "PASS",
+    "seconds": 15.2,
+    "log": "C:\\Users\\marcus\\Documents\\teste-automatizados-trampo\\validation-results\\CT-FE-001.log"
+  },
+  {
+    "case": "CT-FE-002",
+    "status": "PASS",
+    "seconds": 44.1,
+    "log": "C:\\Users\\marcus\\Documents\\teste-automatizados-trampo\\validation-results\\CT-FE-002.log"
+  },
+  {
+    "case": "CT-FE-003",
+    "status": "PASS",
+    "seconds": 15.2,
+    "log": "C:\\Users\\marcus\\Documents\\teste-automatizados-trampo\\validation-results\\CT-FE-003.log"
+  },
+  {
+    "case": "CT-FE-004",
+    "status": "FAIL",
+    "seconds": 11.4,
+    "log": "C:\\Users\\marcus\\Documents\\teste-automatizados-trampo\\validation-results\\CT-FE-004.log"
+  },
+  {
+    "case": "CT-FE-005",
+    "status": "PASS",
+    "seconds": 11.8,
+    "log": "C:\\Users\\marcus\\Documents\\teste-automatizados-trampo\\validation-results\\CT-FE-005.log"
+  },
+  {
+    "case": "CT-FE-006",
+    "status": "FAIL",
+    "seconds": 10.3,
+    "log": "C:\\Users\\marcus\\Documents\\teste-automatizados-trampo\\validation-results\\CT-FE-006.log"
+  },
+  {
+    "case": "CT-FE-007",
+    "status": "FAIL",
+    "seconds": 18.2,
+    "log": "C:\\Users\\marcus\\Documents\\teste-automatizados-trampo\\validation-results\\CT-FE-007.log"
+  },
+  {
+    "case": "CT-FE-008",
+    "status": "FAIL",
+    "seconds": 18.0,
+    "log": "C:\\Users\\marcus\\Documents\\teste-automatizados-trampo\\validation-results\\CT-FE-008.log"
+  },
+  {
+    "case": "CT-FE-009",
+    "status": "FAIL",
+    "seconds": 18.2,
+    "log": "C:\\Users\\marcus\\Documents\\teste-automatizados-trampo\\validation-results\\CT-FE-009.log"
+  },
+  {
+    "case": "CT-FE-010",
+    "status": "FAIL",
+    "seconds": 18.6,
+    "log": "C:\\Users\\marcus\\Documents\\teste-automatizados-trampo\\validation-results\\CT-FE-010.log"
+  },
+  {
+    "case": "CT-FE-011",
+    "status": "FAIL",
+    "seconds": 19.1,
+    "log": "C:\\Users\\marcus\\Documents\\teste-automatizados-trampo\\validation-results\\CT-FE-011.log"
+  },
+  {
+    "case": "CT-FE-012",
+    "status": "FAIL",
+    "seconds": 19.6,
+    "log": "C:\\Users\\marcus\\Documents\\teste-automatizados-trampo\\validation-results\\CT-FE-012.log"
+  }
+]

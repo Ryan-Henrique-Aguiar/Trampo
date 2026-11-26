@@ -1,0 +1,48 @@
+
+> wdio
+> wdio run ./wdio.conf.js --headless --spec ./test/specs/register.e2e.js --mochaOpts.grep CT-FE-004
+
+
+Execution of 1 workers started at 2026-11-26T18:34:33.319Z
+
+[0-0] RUNNING in chrome - file:///C:/Users/marcus/Documents/teste-automatizados-trampo/test/specs/register.e2e.js
+[0-0] Error in "TRAMPO - cadastro.CT-FE-004 cadastra uma conta de cliente com dados válidos"
+Error: expect(received).toHaveLength(expected)
+
+Expected length: 1
+Received length: 0
+Received array:  []
+    at Context.<anonymous> (file:///C:/Users/marcus/Documents/teste-automatizados-trampo/test/specs/register.e2e.js:54:26)
+    at async Context.executeAsync (C:\Users\marcus\Documents\teste-automatizados-trampo\node_modules\@wdio\utils\build\index.js:1231:20)
+    at async Context.testFrameworkFnWrapper (C:\Users\marcus\Documents\teste-automatizados-trampo\node_modules\@wdio\utils\build\index.js:1312:14)
+[0-0] FAILED in chrome - file:///C:/Users/marcus/Documents/teste-automatizados-trampo/test/specs/register.e2e.js
+
+ "spec" Reporter:
+------------------------------------------------------------------
+[chrome 158.0.8127.88 windows #0-0] Running: chrome (v158.0.8127.88) on windows
+[chrome 158.0.8127.88 windows #0-0] Session ID: 3e32e42996d2a83d50373495b9c70423
+[chrome 158.0.8127.88 windows #0-0]
+[chrome 158.0.8127.88 windows #0-0] » test\specs\register.e2e.js
+[chrome 158.0.8127.88 windows #0-0] TRAMPO - cadastro
+[chrome 158.0.8127.88 windows #0-0]    ✖ CT-FE-004 cadastra uma conta de cliente com dados válidos
+[chrome 158.0.8127.88 windows #0-0]
+[chrome 158.0.8127.88 windows #0-0] 1 failing (4.2s)
+[chrome 158.0.8127.88 windows #0-0]
+[chrome 158.0.8127.88 windows #0-0] 1) TRAMPO - cadastro CT-FE-004 cadastra uma conta de cliente com dados válidos
+[chrome 158.0.8127.88 windows #0-0] expect(received).toHaveLength(expected)
+
+Expected length: 1
+Received length: 0
+Received array:  []
+[chrome 158.0.8127.88 windows #0-0] Error: expect(received).toHaveLength(expected)
+[chrome 158.0.8127.88 windows #0-0]
+[chrome 158.0.8127.88 windows #0-0] Expected length: 1
+[chrome 158.0.8127.88 windows #0-0] Received length: 0
+[chrome 158.0.8127.88 windows #0-0] Received array:  []
+[chrome 158.0.8127.88 windows #0-0]     at Context.<anonymous> (file:///C:/Users/marcus/Documents/teste-automatizados-trampo/test/specs/register.e2e.js:54:26)
+[chrome 158.0.8127.88 windows #0-0]     at async Context.executeAsync (C:\Users\marcus\Documents\teste-automatizados-trampo\node_modules\@wdio\utils\build\index.js:1231:20)
+[chrome 158.0.8127.88 windows #0-0]     at async Context.testFrameworkFnWrapper (C:\Users\marcus\Documents\teste-automatizados-trampo\node_modules\@wdio\utils\build\index.js:1312:14)
+
+
+Spec Files:	 0 passed, 1 failed, 1 total (100% completed) in 00:00:08  
+

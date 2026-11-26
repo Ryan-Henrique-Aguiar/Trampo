@@ -1,0 +1,24 @@
+
+> wdio
+> wdio run ./wdio.conf.js --headless --spec ./test/specs/login.e2e.js --mochaOpts.grep CT-FE-002
+
+
+Execution of 1 workers started at 2026-11-26T18:33:33.995Z
+
+[0-0] RUNNING in chrome - file:///C:/Users/marcus/Documents/teste-automatizados-trampo/test/specs/login.e2e.js
+[0-0] PASSED in chrome - file:///C:/Users/marcus/Documents/teste-automatizados-trampo/test/specs/login.e2e.js
+
+ "spec" Reporter:
+------------------------------------------------------------------
+[chrome 158.0.8127.88 windows #0-0] Running: chrome (v158.0.8127.88) on windows
+[chrome 158.0.8127.88 windows #0-0] Session ID: eed265fd6a5750dfee8edd29868f1683
+[chrome 158.0.8127.88 windows #0-0]
+[chrome 158.0.8127.88 windows #0-0] » test\specs\login.e2e.js
+[chrome 158.0.8127.88 windows #0-0] TRAMPO - autenticação
+[chrome 158.0.8127.88 windows #0-0]    ✓ CT-FE-002 valida campos obrigatórios e formato do e-mail
+[chrome 158.0.8127.88 windows #0-0]
+[chrome 158.0.8127.88 windows #0-0] 1 passing (29.3s)
+
+
+Spec Files:	 1 passed, 1 total (100% completed) in 00:00:41  
+

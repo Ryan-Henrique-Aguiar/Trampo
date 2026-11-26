@@ -1,0 +1,49 @@
+
+> wdio
+> wdio run ./wdio.conf.js --headless --spec ./test/specs/ticket.e2e.js --mochaOpts.grep CT-FE-009
+
+
+Execution of 1 workers started at 2026-11-26T18:35:43.096Z
+
+[0-0] RUNNING in chrome - file:///C:/Users/marcus/Documents/teste-automatizados-trampo/test/specs/ticket.e2e.js
+[0-0] Error in "TRAMPO - solicitação de serviço.CT-FE-009 valida CEP e preenchimento do endereço do ticket"
+Error: waitUntil condition timed out after 10000ms
+    at <anonymous> (C:\Users\marcus\Documents\teste-automatizados-trampo\node_modules\webdriverio\build\node.js:6476:13)
+    at async Browser.wrapCommandFn (C:\Users\marcus\Documents\teste-automatizados-trampo\node_modules\@wdio\utils\build\index.js:1100:23)
+    at async TicketPage.waitForCategories (file:///C:/Users/marcus/Documents/teste-automatizados-trampo/test/pageobjects/ticket.page.js:52:9)
+    at async TicketPage.fillBasic (file:///C:/Users/marcus/Documents/teste-automatizados-trampo/test/pageobjects/ticket.page.js:45:9)
+    at async abrirTicketComDadosBasicos (file:///C:/Users/marcus/Documents/teste-automatizados-trampo/test/specs/ticket.e2e.js:65:19)
+    at async Context.<anonymous> (file:///C:/Users/marcus/Documents/teste-automatizados-trampo/test/specs/ticket.e2e.js:144:9)
+    at async Context.executeAsync (C:\Users\marcus\Documents\teste-automatizados-trampo\node_modules\@wdio\utils\build\index.js:1231:20)
+    at async Context.testFrameworkFnWrapper (C:\Users\marcus\Documents\teste-automatizados-trampo\node_modules\@wdio\utils\build\index.js:1312:14)
+[0-0] 2026-11-26T18:35:58.321Z WARN webdriver: WebDriverError: Request failed with error code ECONNRESET when running "window" with method "GET"
+[0-0] 2026-11-26T18:35:58.322Z WARN webdriverio: Failed to batch-check element containment for scope f.EAF4028554941938EDB356C80677DF67.d.2589C765A11BF671DDA0513CEFA0D697.e.58: WebDriverError: Request failed with error code UND_ERR_CLOSED when running "window" with method "GET". Falling back to per-element checks.
+[0-0] 2026-11-26T18:35:58.323Z WARN webdriverio: Failed to check element containment for scope f.EAF4028554941938EDB356C80677DF67.d.2589C765A11BF671DDA0513CEFA0D697.e.58 for element f.EAF4028554941938EDB356C80677DF67.d.2589C765A11BF671DDA0513CEFA0D697.e.69: A sessionId is required for this command
+[0-0] FAILED in chrome - file:///C:/Users/marcus/Documents/teste-automatizados-trampo/test/specs/ticket.e2e.js
+
+ "spec" Reporter:
+------------------------------------------------------------------
+[chrome 158.0.8127.88 windows #0-0] Running: chrome (v158.0.8127.88) on windows
+[chrome 158.0.8127.88 windows #0-0] Session ID: fe24365619ffc7434d167c51427b6d83
+[chrome 158.0.8127.88 windows #0-0]
+[chrome 158.0.8127.88 windows #0-0] » test\specs\ticket.e2e.js
+[chrome 158.0.8127.88 windows #0-0] TRAMPO - solicitação de serviço
+[chrome 158.0.8127.88 windows #0-0]    ✖ CT-FE-009 valida CEP e preenchimento do endereço do ticket
+[chrome 158.0.8127.88 windows #0-0]
+[chrome 158.0.8127.88 windows #0-0] 1 failing (12s)
+[chrome 158.0.8127.88 windows #0-0]
+[chrome 158.0.8127.88 windows #0-0] 1) TRAMPO - solicitação de serviço CT-FE-009 valida CEP e preenchimento do endereço do ticket
+[chrome 158.0.8127.88 windows #0-0] waitUntil condition timed out after 10000ms
+[chrome 158.0.8127.88 windows #0-0] Error: waitUntil condition timed out after 10000ms
+[chrome 158.0.8127.88 windows #0-0]     at <anonymous> (C:\Users\marcus\Documents\teste-automatizados-trampo\node_modules\webdriverio\build\node.js:6476:13)
+[chrome 158.0.8127.88 windows #0-0]     at async Browser.wrapCommandFn (C:\Users\marcus\Documents\teste-automatizados-trampo\node_modules\@wdio\utils\build\index.js:1100:23)
+[chrome 158.0.8127.88 windows #0-0]     at async TicketPage.waitForCategories (file:///C:/Users/marcus/Documents/teste-automatizados-trampo/test/pageobjects/ticket.page.js:52:9)
+[chrome 158.0.8127.88 windows #0-0]     at async TicketPage.fillBasic (file:///C:/Users/marcus/Documents/teste-automatizados-trampo/test/pageobjects/ticket.page.js:45:9)
+[chrome 158.0.8127.88 windows #0-0]     at async abrirTicketComDadosBasicos (file:///C:/Users/marcus/Documents/teste-automatizados-trampo/test/specs/ticket.e2e.js:65:19)
+[chrome 158.0.8127.88 windows #0-0]     at async Context.<anonymous> (file:///C:/Users/marcus/Documents/teste-automatizados-trampo/test/specs/ticket.e2e.js:144:9)
+[chrome 158.0.8127.88 windows #0-0]     at async Context.executeAsync (C:\Users\marcus\Documents\teste-automatizados-trampo\node_modules\@wdio\utils\build\index.js:1231:20)
+[chrome 158.0.8127.88 windows #0-0]     at async Context.testFrameworkFnWrapper (C:\Users\marcus\Documents\teste-automatizados-trampo\node_modules\@wdio\utils\build\index.js:1312:14)
+
+
+Spec Files:	 0 passed, 1 failed, 1 total (100% completed) in 00:00:15  
+
