@@ -1,0 +1,48 @@
+# Ambiente local para os testes E2E (teste-automatizados-trampo).
+# Sobe banco isolado + backend; o frontend roda com `npm start` em frontend/.
+# Recriar o banco do zero: docker compose -f docker-compose.e2e.yml down -v
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: trampo-e2e-db
+    environment:
+      POSTGRES_DB: trampo
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - trampo_e2e_data:/var/lib/postgresql/data
+      - ./docs/SCRIPT-SQL-BD.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d trampo"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend/backend
+      dockerfile: Dockerfile
+    container_name: trampo-e2e-backend
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/trampo
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 1234
+      DB_URL: jdbc:postgresql://db:5432/trampo
+      DB_USER: postgres
+      DB_PASSWORD: 1234
+      JWT_SECRET: ambiente-e2e-trampo
+      CORS_ORIGIN: http://localhost:4200
+      FILE_UPLOAD_DIR: /app/uploads
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - trampo_e2e_uploads:/app/uploads
+
+volumes:
+  trampo_e2e_data:
+  trampo_e2e_uploads:

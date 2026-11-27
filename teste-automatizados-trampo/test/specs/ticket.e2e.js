@@ -1,3 +1,4 @@
+import path from 'node:path'
 import { $, browser, expect } from '@wdio/globals'
 import Page from '../pageobjects/page.js'
 import HomePage from '../pageobjects/home.page.js'
@@ -106,8 +107,8 @@ describe('TRAMPO - solicitação de serviço', () => {
         await chegarAosDetalhes()
         await TicketPage.fillDetails()
         await TicketPage.continueToPhotos()
-        const fixtures = Array.from({ length: 5 }, (_, index) => `${process.cwd()}\\test\\fixtures\\imagem-${index + 1}.png`)
-        const sixFixtures = [...fixtures, `${process.cwd()}\\test\\fixtures\\imagem-6.png`]
+        const fixtures = Array.from({ length: 5 }, (_, index) => path.join(process.cwd(), 'test', 'fixtures', `imagem-${index + 1}.png`))
+        const sixFixtures = [...fixtures, path.join(process.cwd(), 'test', 'fixtures', 'imagem-6.png')]
 
         await TicketPage.revealImageInput()
         await TicketPage.imageInput.setValue(sixFixtures.join('\n'))
@@ -139,14 +140,15 @@ describe('TRAMPO - solicitação de serviço', () => {
         await TicketPage.continueToAddress()
 
         await TicketPage.selectState('MG')
-        await TicketPage.selectCity('Santa Rita do Sapucaí')
+        // Cidade do prestador urgente cadastrado no data.sql do backend
+        await TicketPage.selectCity('Abadia dos Dourados')
         await TicketPage.neighborhoodInput.setValue('Centro')
         await TicketPage.streetInput.setValue('Rua de Teste')
         await TicketPage.numberInput.setValue('123')
 
         await TicketPage.nextButton.click() // "Buscar prestadores"
 
-        await expect(TicketPage.stepLabel).toHaveText('Prestadores', { timeout: 15000 })
+        await TicketPage.waitForActiveStep('Prestadores')
 
         const mainWindow = await browser.getWindowHandle()
         const whatsappBtn = $('button.btn-whatsapp')

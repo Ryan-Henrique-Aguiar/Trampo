@@ -9,7 +9,7 @@ INSERT INTO category (id, name, icon_url) VALUES
 INSERT INTO users (name, password, email, phone, nickname, cpf, is_provider, is_available_for_urgency, city, state)
 VALUES (
            'Cliente Teste E2E',
-           '$2a$10$8K1p/a0dL1LXMIgoEDFrwOfMQ9S4Y/m3nB9e1y.0gZ3xK1l2m3n4O',
+           '$2a$10$zRmyaOICUJfVzwSoUljOQ.5lFq9c8KVLuGWgvvEeKkEb7Dbwc58He',
            'trampo.e2e.client@example.com',
            '35999990001',
            'ClienteE2E',
@@ -19,13 +19,13 @@ VALUES (
            'Abadia dos Dourados',
            'MG'
        )
-    ON CONFLICT (email) DO NOTHING;
+    ON CONFLICT (email) DO UPDATE SET password = EXCLUDED.password;
 
 -- Prestador disponível para atendimento urgente em Abadia dos Dourados - MG
 INSERT INTO users (name, password, email, phone, nickname, cpf, is_provider, is_available_for_urgency, city, state)
 VALUES (
            'Valdeci Prestador Urgente',
-           '$2a$10$8K1p/a0dL1LXMIgoEDFrwOfMQ9S4Y/m3nB9e1y.0gZ3xK1l2m3n4O',
+           '$2a$10$zRmyaOICUJfVzwSoUljOQ.5lFq9c8KVLuGWgvvEeKkEb7Dbwc58He',
            'trampo.e2e.provider@example.com',
            '35999990002',
            'ValdeciUrgente',

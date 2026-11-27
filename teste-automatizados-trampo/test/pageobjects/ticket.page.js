@@ -132,12 +132,14 @@ class TicketPage extends Page {
     }
 
     async selectCity (city) {
+        let optionText
         await browser.waitUntil(
             async () => {
                 const options = await this.citySelect.$$('option')
                 for (const opt of options) {
                     const text = (await opt.getText()).trim()
                     if (text.toLowerCase() === city.toLowerCase()) {
+                        optionText = text
                         return true
                     }
                 }
@@ -149,7 +151,15 @@ class TicketPage extends Page {
                 timeoutMsg: `Cidade "${city}" não encontrada no select`
             }
         )
-        await this.citySelect.selectByVisibleText(city)
+        await this.citySelect.selectByVisibleText(optionText)
+    }
+
+    // Consulta o rótulo ativo a cada tentativa: guardar o elemento prenderia a etapa anterior
+    async waitForActiveStep (label, timeout = 15000) {
+        await browser.waitUntil(
+            async () => (await $('.step-label.active').getText()).trim() === label,
+            { timeout, timeoutMsg: `A etapa "${label}" não ficou ativa em ${timeout / 1000}s` }
+        )
     }
 
     async errorTexts () {

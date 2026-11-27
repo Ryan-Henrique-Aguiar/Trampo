@@ -314,7 +314,8 @@ export class TicketModal implements OnInit, OnDestroy {
       title: value.title,
       description: value.description,
       categoryId: Number(value.categoryId),
-      address: value.address,
+      // CEP é opcional no formulário, mas address.zip_code é NOT NULL no banco
+      address: { ...value.address, zipCode: value.address.zipCode ?? '' },
       priceMax: Number(value.priceMax),
       paymentMethods: value.paymentMethods,
       availableDays: value.availableDays,
@@ -457,7 +458,8 @@ export class TicketModal implements OnInit, OnDestroy {
         title: value.title,
         description: value.description,
         categoryId: Number(value.categoryId),
-        address: value.address,
+        // CEP é opcional no formulário, mas address.zip_code é NOT NULL no banco
+        address: { ...value.address, zipCode: value.address.zipCode ?? '' },
         providerId: provider.id
       };
 

@@ -31,7 +31,7 @@ describe('TRAMPO - solicitação de serviço urgente', () => {
         await TicketPage.fillAddressFieldsManually()
         await TicketPage.nextButton.click() // "Buscar prestadores"
 
-        await expect(TicketPage.stepLabel).toHaveText('Prestadores', { timeout: 15000 })
+        await TicketPage.waitForActiveStep('Prestadores')
 
         const mainWindow = await browser.getWindowHandle()
         const whatsappBtn = $('button.btn-whatsapp')
